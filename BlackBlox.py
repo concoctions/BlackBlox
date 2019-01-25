@@ -10,97 +10,20 @@ from collections import defaultdict as ddict
 from molmass import Formula
 import os
 
+print("\nWorking directory:", os.getcwd())
 
 # STYLE NOTES TO SELF
 # when a DF is a global varialbe call it df_name
 # when a DF is a local variable call it nameDF
 
-print("Working directory:", os.getcwd())
+# print("\nWorking directory:", os.getcwd())
 
 ###############################################################################
-# IMPORT DATA
+# IMPORT REFERENCE DATA
 
 #fuels reference dictionary
 df_fuels = pan.read_csv("fuels.tsv", sep='\t', skiprows=[1], index_col=0)
 # ^ skips unit row. Need to figure out how to automate that later
-
-# flows with 
-df_unitList = pan.read_csv('unitList.tsv', sep='\t', index_col = 0)
-df_flowIO = pan.read_csv('CO2CapFlow.tsv', sep='\t')
-df_flowOI = pan.read_csv('cementProdFlow.tsv', sep='\t')
-
-###############################################################################
-# DEFINE TESTS
-
-def test():
-    print("\n")
-#
-#     #---------------------------------------------
-#     print("CALCULATOR FUNCTION TESTS\n")
-#
-#     print("Ratio")
-#     print(5, 0.5,"\n", Ratio(5,0.5),"\n")
-#
-#     print("MolMassRatio")
-#     print(5, "C", "CO2","\n", MolMassRatio(5, "C", "CO2"),"\n")
-#
-#     print("Remainder")
-#     print(5, 0.5,"\n", Remainder(5,0.5),"\n")
-#
-#     print("Combustion")
-#     emDict = ddict(float)
-#     print(33.7, "coal", "emDict", "eff = 1.0", "\n", Combustion(33.7,"coal", emDict),"\n")
-#     print(emDict)
-#
-#     #---------------------------------------------
-#     print("UNIT PROCESS FUNCTION TEST")
-#
-#     df_var= pan.read_csv('blenderVar2.tsv', sep='\t', skiprows=[1], index_col=0)
-#     df_calc = pan.read_csv('blender2.tsv', sep='\t')
-#
-#     product = "cement"
-#
-#     inDict, outDict = unitProcess(df_calc, df_var, product, 1.0, 'EU-bat')
-#
-#     print("inputs\n", pan.DataFrame(inDict, index = [0]), "\n")
-#     print("outputs\n", pan.DataFrame(outDict, index = [0]), "\n")
-#
-#     inDict, outDict = unitProcess(df_calc, df_var, product, 1.0)
-#
-#     print("inputs\n", pan.DataFrame(inDict, index = [0]), "\n")
-#     print("outputs\n", pan.DataFrame(outDict, index = [0]), "\n")
-#
-#     #---------------------------------------------
-#     print("FLOWCHECK TESTS\n")
-#
-#
-#     print("forward flow\n", checkFlow(df_flowIO, df_unitList),"\n")
-#     print("backward flow\n", checkFlow(df_flowOI, df_unitList),"\n")
-
-    #---------------------------------------------
-    # print("MULTI UNIT FLOW TESTS\n")
-
-    # print("Input-based chain: CO2 cap\n")
-    # inDict, outDict = runChain(df_flowIO, df_unitList, 1.0, 'EU-bat')
-
-    # print("inputs\n", pan.DataFrame(inDict), "\n")
-    # print("outputs\n", pan.DataFrame(outDict), "\n")
-
-    # print("input-based chain: Cement Prod\n")
-    # inDict, outDict = runChain(df_flowOI, df_unitList, 1.0, 'EU-bat')
-
-    # print("inputs\n", pan.DataFrame(inDict), "\n")
-    # print("outputs\n", pan.DataFrame(outDict), "\n")
-
-    print("MULTI SCENARIO TESTS\n")
-
-    s = ['EU-bat', 'EU-typ', 'EU-old']
-    scenarioDict = RunScenarios(df_flowOI, df_unitList, s, 1.0)
-
-    for s in scenarioDict.keys():
-        print("scenario:", s)
-        print("inputs\n", pan.DataFrame(scenarioDict[s]['inputs']), "\n")
-        print("outputs\n", pan.DataFrame(scenarioDict[s]['outputs']), "\n")
 
 ###############################################################################
 # CALCULATOR FUNCTIONS
@@ -245,19 +168,6 @@ def unitProcess(calcDF, varDF, productName, productQty, productIO, var_i="defaul
 
 ###############################################################################
 # FUNCTION TO RUN A CHAIN OF MULTIPLE PROCESSES
-#   * specify process chain (in data frame)
-#   * specify final product quantity
-#   * accumulate total input/outputs from chain
-#   * exclude intermediate flows from total inputs/outputs
-
-
-
-
-###############################################################################
-# FUNCTION TO RUN MULTIPLE SCENARIOS ON EACH CHAIN
-
-###############################################################################
-
 
 
 
@@ -389,7 +299,15 @@ def runChain(flowDF, unitListDF, productQty, var_i="default"):
 
 # first run product chain
 # then auxillary chains
+# ability to accumulate qty needed from multiple unit processes in the chain
 # then figure out how to remove intermediate inputs and outputs
+
+# def RunSystem(systemDF, unitListDF, productQty, var_i="default"):
+
+#     chainDF = pan.read_csv(systemDF.at[process, 'calcFile'], sep='\t')
+
+#     for chain in systemDF:
+#          scenarioDict[s]['inputs'], scenarioDict[s]['outputs'] = runChain(chain, unitListDF, productQty, s)
 
 # test: single chain, then input-based aux chains, then mix input/output aux chains, then recycle flows
 
@@ -431,4 +349,4 @@ def RunScenarios(flowDF, unitListDF, scenarioList, productQty):
 ###############################################################################
 # RUN TESTS
 
-test()
+# test()

@@ -10,6 +10,31 @@ Simple simulator for black box process models.
  * Calculate chains of unit processes based on a single final output or input
  * Calculate multiple scenarios of chains based on different variable sets 
 
+ # How to Use
+
+ ## Unit Processes
+
+Each **unit process** is a single "black box" processes with inputs and outputs, with defined relationships to each other.
+
+```dot
+digraph G{
+    rankdir=LR;
+    fixedsize=true;
+    size="6";
+    node [shape=box]
+    inputs [color=white]
+    outputs [color=white]
+    inputs -> "Sutff happens"
+    "Sutff happens" -> outputs
+}
+
+
+```
+
+
+ ## Process Chains
+
+ ## Running Scenarios
 
 # Proposed Features
 * Calculate multiple chains in one system
