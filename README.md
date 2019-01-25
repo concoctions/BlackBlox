@@ -1,4 +1,4 @@
-# BlackBox
+# BlackBlox
 Simple simulator for black box process models.
 
 # Current Features
