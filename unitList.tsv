@@ -1,0 +1,5 @@
+name	product	productType	varFile	calcFile	notes
+kiln	clinker	output	varFiles/ClinkerKilnVar.tsv	calcFiles/ClinkerKiln.tsv	none
+blender	cement	output	varFiles/CementBlenderVar.tsv	calcFiles/CementBlender.tsv	none
+mixer	meal	output	varFiles/MealMixerVar.tsv	calcFiles/MealMixer.tsv	none
+CO2cap	CO2	input	varFiles/CO2CaptureVar.tsv	calcFiles/CO2Capture.tsv	none

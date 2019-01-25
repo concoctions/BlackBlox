@@ -1,0 +1,4 @@
+KnownQty	k_QtyFrom	UnknownQty	u_QtyTo	Calculation	Variable
+cement	output	clinker	input	Ratio	clinkerFract
+cement	output	gypsum	input	Remainder	clinkerFract
+cement	output	electricity	input	Ratio	elecDemand

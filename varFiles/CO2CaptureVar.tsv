@@ -1,0 +1,5 @@
+scenario	captureEff	elecDemand
+name	t/t	mj/t CO2
+EU-bat	0.8	1.3
+EU-typ	0.6	1.5
+EU-old	0.0	0
