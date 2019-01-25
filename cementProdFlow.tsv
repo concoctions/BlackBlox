@@ -1,0 +1,5 @@
+From	What	To
+blender	cement	END
+kiln	clinker	blender
+mixer	meal	kiln
+START	NONE	mixer
