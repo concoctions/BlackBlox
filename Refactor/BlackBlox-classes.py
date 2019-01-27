@@ -1,49 +1,52 @@
 from molmass import Formula
 
-class Calculation:
-    def __init__(self, knownQty, variable, invert = False):
-        self.qty = knownQty
-        self.var = variable
-        self.invert = invert
+
+# Classes for the Calculations might not make sense, actually
+# It just seems to add lots of extra complication where it's not needed.
+# class RatioCalc():
+#     def __init__(self, knownQty, variable, invert = False)
+
+#     def calculate():
+#         if invert == True:
+#             var = 1/var
+#         return qty * var
+
+# class RemainderCalc():
+#     def calculate():
+#         if ratio > 1:
+#             print("Error:", ratio, "> 1.  This calculation will return a negative number")
+#         else:
+#             if invert == False:
+#                 var = 1 - var
+#             return qty * var
+
+# class MolMassRatioCalc():
+#     def __init__(self, knownQty, fuelType, CombustEff, invert = False)
+
+#     return Formula(unknown).mass / Formula (known).mass * qty
 
 
-class RatioCalc(Calcuation):
-    def calculate():
-        if invert == True:
-            var = 1/var
-        return qty * var
+# class CombustionCalc():
+#     def __init__(self, knownQty, fuelType, CombustEff, invert = False)
 
-class RemainderCalc(Calculation):
-    def calculate():
-        if ratio > 1:
-            print("Error:", ratio, "> 1.  This calculation will return a negative number")
-        else:
-            if invert == False:
-                var = 1 - var
-            return qty * var
+#     def Calculate(knownQty, CombustEff):
+#         if invert == False:
+#             #calculates energy and emissions from given mass quantity of fuel
+#             energyQty = qty * fuelDF['HHV'][fuelType] * CombustEff
+            
+#             outDict['CO2'] += fuelDF['CO2'][fuelType] * qty
+#             outDict['waste heat'] += energyQty * (1 - CombustEff)
+            
+#             return energyQty
 
-class MolMassRatioCalc(Calculation):
-    return Formula(unknown).mass / Formula (known).mass * qty
+#         if invert == True:
+#             #calculates fuel mass and emissions from given quantity of energy
+#             fuelQty = qty / fuelDF['HHV'][known] * (1/CombustEff)
 
+#             outDict['CO2'] += fuelDF['CO2'][known] * fuelQty
+#             outDict['waste heat'] += qty * (1 - CombustEff)
 
-class CombustionCalc(Calculation):
-    #calculates energy and emissions from given mass quantity of fuel
-    energyQty = qty * fuelDF['HHV'][known] * var
-    
-    outDict['CO2'] += fuelDF['CO2'][known] * qty
-    outDict['waste heat'] += energyQty * (1 - var)
-    
-    return energyQty
-
-
-class MJCombustionCalc(Calculation):
-    #calculates fuel mass and emissions from given quantity of energy
-    fuelQty = qty / fuelDF['HHV'][unknown] * (1/var)
-
-    outDict['CO2'] += fuelDF['CO2'][unknown] * fuelQty
-    outDict['waste heat'] += qty * (1 - var)
-
-    return fuelQty
+#             return fuelQty
 
 
 class UnitProcess:
@@ -127,9 +130,11 @@ class UnitProcess:
                 #Check if either quantity is fuel, and substitute fuel type from variable file if so.
                     if known == 'fuel': 
                         known = varDF.at[var_i, 'fuelType']
+                        fuelType = varDF.at[var_i, 'fuelType']
 
                     if calc == 'fuel': 
-                        calc = varDF.at[var_i, 'fuelType']  
+                        calc = varDF.at[var_i, 'fuelType']
+                        fuelType = varDF.at[var_i, 'fuelType']  
 
                 # Check that the specified "known" quantity exists in input/output dictionaries
                     invert = False 
@@ -183,29 +188,25 @@ class UnitProcess:
                     if calcType == 'Ratio':
 
                     # performed specified calculation
-                    if invert == True:
-                        print("\nattempting calculation inversion")
+                    #if invert == True:
+                    #    print("\nattempting calculation inversion")
 
                     if calcType == 'Ratio':
                         qtyCalc = Ratio(qtyKnown, variable, invert)
-                        print("Ratio calculation performed")
+                        #print("Ratio calculation performed")
 
                     elif calcType == 'Remainder':
                         qtyCalc = Remainder(qtyKnown, variable, invert)
-                        print("Remainder calculation performed")
+                        #print("Remainder calculation performed")
 
                     elif calcType == 'MolMassRatio':
                         qtyCalc = MolMassRatio(qtyKnown, known, calc)
-                        print("MolMass calculation performed")
+                        #print("MolMass calculation performed")
 
                     elif calcType  == 'Combustion':
-                        if invert == True:
-                            print("performing combustion calcuation on", known, invert)
-                            qtyCalc = Combustion(qtyKnown, known, outDict, variable, invert=True)
-                        else: 
-                            print("performing combustion calcuation on", calc, invert)
-                            qtyCalc = Combustion(qtyKnown, calc, outDict, variable)
-                        print("Combustion calculation performed")
+                        # print("performing combustion calcuation on", fuelType, invert)
+                        qtyCalc = Combustion(qtyKnown, fuelType, outDict, variable, invert)
+                        # print("Combustion calculation performed")
 
                     else:
                         print(calcType, "is unknown calculation type.")
@@ -214,29 +215,29 @@ class UnitProcess:
                     # assign calculated quantity to approproriate dictionary key
                     if c_to == 'input':
                         inDict[calc] += qtyCalc
-                        print(qtyCalc, calc, "added to", c_to, "dictionary")
+                        # print(qtyCalc, calc, "added to", c_to, "dictionary")
 
                     elif c_to == 'output':
                         outDict[calc] += qtyCalc
-                        print(qtyCalc, calc, "added to", c_to, "dictionary")
+                        # print(qtyCalc, calc, "added to", c_to, "dictionary")
 
                     elif c_to == 'tmp':
                         tmpDict[calc] += qtyCalc
-                        print(qtyCalc, calc, "added to", c_to, "dictionary")
+                        # print(qtyCalc, calc, "added to", c_to, "dictionary")
 
                     else:
-                        print(c_to, "is unknown destination.")
+                        # print(c_to, "is unknown destination.")
                         return False
                     
                     calcDF = calcDF.drop(i)
                     calcDF = calcDF.reset_index(drop=True)
 
-                    print(len(calcDF), "calculations remaining.")
+                    # print(len(calcDF), "calculations remaining.")
                     attempt = 0
 
                     #return dictionaries of inputs and outputs
 
-                print("inputs\n", pan.DataFrame(inDict, index = [0]), "\n")
-                print("outputs\n", pan.DataFrame(outDict, index = [0]), "\n")
-                print("temp\n", pan.DataFrame(tmpDict, index = [0]), "\n")
+                # print("inputs\n", pan.DataFrame(inDict, index = [0]), "\n")
+                # print("outputs\n", pan.DataFrame(outDict, index = [0]), "\n")
+                # print("temp\n", pan.DataFrame(tmpDict, index = [0]), "\n")
                 return inDict, outDict
