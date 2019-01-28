@@ -1,5 +1,5 @@
 fuel	HHV	CO2	biogenic
-units	(mj/t)	(t/t combusted)	(t/t)
+meta-units	(mj/t)	(t/t combusted)	(t/t)
 coal	33.7	3.2	0.0
 charcoal	30	1.8	1.0
 natural gas	40	2.75	0.0

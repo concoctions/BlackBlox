@@ -1,4 +1,4 @@
-name	product	productType	varFile	calcFile	notes
+name	product	productType	varFile	calcFile	meta-notes
 kiln	clinker	output	varFiles/ClinkerKilnVar.tsv	calcFiles/ClinkerKiln.tsv	none
 blender	cement	output	varFiles/CementBlenderVar.tsv	calcFiles/CementBlender.tsv	none
 mixer	meal	output	varFiles/MealMixerVar.tsv	calcFiles/MealMixer.tsv	none
