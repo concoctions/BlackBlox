@@ -1,60 +1,102 @@
 from molmass import Formula
 
 
-# Classes for the Calculations might not make sense, actually
-# It just seems to add lots of extra complication where it's not needed.
-# class RatioCalc():
-#     def __init__(self, knownQty, variable, invert = False)
+class Calculation():
+    def __init__(self, known, knownQty, unknown):
+        self.known = known
+        self.qty = knownQty
+        self.unknown = unknown
 
-#     def calculate():
-#         if invert == True:
-#             var = 1/var
-#         return qty * var
+class Ratio(Calculation):
+    calcType = "Ratio Calculation"
+    formula = "u = k * ratio(u:k)"
 
-# class RemainderCalc():
-#     def calculate():
-#         if ratio > 1:
-#             print("Error:", ratio, "> 1.  This calculation will return a negative number")
-#         else:
-#             if invert == False:
-#                 var = 1 - var
-#             return qty * var
+    def __init__(self, known, knownQty, unknown, ratio, invert = False):
 
-# class MolMassRatioCalc():
-#     def __init__(self, knownQty, fuelType, CombustEff, invert = False)
+        super().__init__(known, knownQty, unknown)
+        if self.invert == True:
+            self.ratio = 1/ratio
+        else:
+            self.ratio = ratio
 
-#     return Formula(unknown).mass / Formula (known).mass * qty
+    def calculate(self):
+        return self.qty * self.ratio
+
+class Remainder(Calculation):
+    calcType = "Reaminder Calculation"
+    formula = "u = k * (1 - ratio(u:k))
+    def __init__(self, known, knownQty, unknown, ratio, invert = False):
+        super().__init__(known, knownQty, unknown, invert)
+        if self.invert == True:
+            self.ratio = 1 - ratio
+        else self.ratio = ratio
+   
+    def calculate(self):
+        if self.ratio > 1:
+            print("Error:", self.ratio, "> 1.  This calculation will return a negative number")
+            return False
+        
+        return self.qty * (1 - self.ratio)
+
+class MolMassRatio(Calculation):
+    calcType = "Molecular Masss Ratio Calculation"
+    formula = "[MolMass](u) / MolMass(k)] * k_qty"
+    def __init__(self, known, knownQty, unknown):
+        super().__init__(known, knownQty, unknown)
+
+    def calculate(self):    
+        return Formula(self.unknown).mass / Formula(self.known).mass * self.qty
 
 
-# class CombustionCalc():
-#     def __init__(self, knownQty, fuelType, CombustEff, invert = False)
+class Combustion(Calculation):
+    calcType = "Combustion Calculation"
+    formula = "Special calculation type:\n \
+    for a given mass or energy content of fuel, calculates and return the other \
+    and, if provided writes emissions to a given emission dictionary
+    def __init__(self, known, knownQty, unknown, combustEff, emissionDict = False)
+        super.__init__(known, knownQty, sunknown)
+        self.combustEff = combustEff
 
-#     def Calculate(knownQty, CombustEff):
-#         if invert == False:
-#             #calculates energy and emissions from given mass quantity of fuel
-#             energyQty = qty * fuelDF['HHV'][fuelType] * CombustEff
-            
-#             outDict['CO2'] += fuelDF['CO2'][fuelType] * qty
-#             outDict['waste heat'] += energyQty * (1 - CombustEff)
-            
-#             return energyQty
+    def calculate(self):
+        if self.known in fuelDF.Index:
+            #calculates energy and emissions from given mass quantity of fuel
+            self.fuelType = self.known
+            self.fuelQty = self.qty
+            self.energyQty = self.qty * fuelDF['HHV'][self.fuelType] * self.combustEff
+            self.returnQty = self.energyQty
 
-#         if invert == True:
-#             #calculates fuel mass and emissions from given quantity of energy
-#             fuelQty = qty / fuelDF['HHV'][known] * (1/CombustEff)
+        elif unknown in fuelDF.Index:
+            #calculates fuel mass and emissions from given quantity of energy
+            self.fuelType = self.unknown
+            self.energyQty = self.qty
+            self.fuelQty = self.energyQty / fuelDF['HHV'][self.fuelType] * (1/self.combustEff)
+            self.returnQty = self.fuelQty
+        
+        else:
+            print('Error:', 'neither', self.known, 'nor', self.unknown, 'is a known fuel type')
+            return False
+        
+        
+        self.CO2emitted = fuelDF['CO2'][self.fuelType] * self.fuelQty
+        self.wasteHeat = self.energyQty * (1 - self.combustEff)
 
-#             outDict['CO2'] += fuelDF['CO2'][known] * fuelQty
-#             outDict['waste heat'] += qty * (1 - CombustEff)
+        if emissionDict != False:
+            emissionDict['CO2'] += self.CO2emitted
+            emissionDict['waste heat'] += self.wasteHeat
+            else:
+                print('\nEmission data not stored: \n \
+                CO2:', self.CO2emitted, '\n \
+                waste heat:', self.wasteHeat )
 
-#             return fuelQty
+        return self.returnQty
 
 
 class UnitProcess:
 
     def __init__(self, name):
         self.name = name
-        self.varDF = makeDF(varDir+df_unitList.at[name,varFile], index = varIndex)
-        self.calcDF = makeDF(calcDir+df_unitList.at[name,calcFile], index = calcIndex)
+        self.varDF = makeDF(df_unitList.at[name,varFile])
+        self.calcDF = makeDF(df_unitList.at[name,calcFile], index = None)
         self.product = product
         self.qty = productQty
         self.IO = str.lower(productIO[0])
@@ -90,13 +132,13 @@ class UnitProcess:
             outDict = defaultdict(float)
             tmpDict = defaultdict(float)
 
-            # verify parameters
+            # Add quantity of desired final product to appropriate dictionary (input or output)
             if str.lower(IO[0]) == 'i':
-            inDict[product] = qty
+                inDict[product] = qty
             elif str.lower(IO[0]):
-            outDict[product] = qty
+                outDict[product] = qty
             else:
-            print('Error:', IO, 'is not a valid input/output identifier')
+                print('Error:', IO, 'is not a valid input/output identifier')
 
             if var_i not in varDF.index.values:
                 print('Error', var_i, 'not found in variables file)
@@ -127,20 +169,18 @@ class UnitProcess:
                     print("Error cannot process", known)
                     return False
 
-                #Check if either quantity is fuel, and substitute fuel type from variable file if so.
-                    if known == 'fuel': 
-                        known = varDF.at[var_i, 'fuelType']
-                        fuelType = varDF.at[var_i, 'fuelType']
-
-                    if calc == 'fuel': 
-                        calc = varDF.at[var_i, 'fuelType']
-                        fuelType = varDF.at[var_i, 'fuelType']  
+                # HARD CODED SPECIAL CASE: FUEL TYPE 
+                # Check if either quantity is fuel, and substitute fuel type from variable file if so.
+                    if known == 'fuel':
+                        known = varDF.at[var_i, 'fuelType'] 
+                    if calc == 'fuel'
+                        calc = varDF.at[var_i, 'fuelType'] 
 
                 # Check that the specified "known" quantity exists in input/output dictionaries
                     invert = False 
                     if k_from == "output" and outDict[known] > 0:
-                    qtyKnown = outDict[known]
-                    #print(known, "confirmed in output dictionary, qty:", qtyKnown)
+                        qtyKnown = outDict[known]
+                        #print(known, "confirmed in output dictionary, qty:", qtyKnown)
 
                     elif k_from == "input" and inDict[known] > 0:
                         qtyKnown = inDict[known]
@@ -156,21 +196,20 @@ class UnitProcess:
                         k_from, c_to = c_to, k_from
                         invert = True
                         qtyKnown = outDict[known]
-                        #print(calc, "\nnot found in dictionary; checking for potential inversion...\n", known, "confirmed in output dictionary, qty:", qtyKnown)
-
                     elif c_to == "input" and inDict[calc] > 0:
                         known, calc = calc, known
                         k_from, c_to = c_to, k_from
                         invert = True
-                        qtyKnown = inDict[known]
-                        #print(calc, "\nnot found in dictionary; checking for potential inversion...\n", known, "confirmed in input dictionary, qty:", qtyKnown)
-            
+                        qtyKnown = inDict[known]            
                     elif c_to == "tmp" and tmpDict[calc] > 0:
                         known, calc = calc, known
                         k_from, c_to = c_to, k_from
                         invert = True
                         qtyKnown = tmpDict[known]
-                        #print(calc, "\nnot found in dictionary; checking for potential inversion...\n", known, "confirmed in tmp dictionary, qty:", qtyKnown)
+
+
+                    #if invert == True:
+                        #print(calc, "\nnot found in dictionary; checking for potential inversion...\n", known, "found, qty:", qtyKnown)
 
                     #if substance isn't found start again from the beginning
                     else:
