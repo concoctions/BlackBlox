@@ -4,11 +4,11 @@ from IOfunctions import makeDF
 from BBconfig import *
 
 
-# CALCULATi_oN TYPES
+# CALCULATION TYPES
 class Calculation():
     def __init__(self, known, knownQty, unknown):
-        if knownQty <= 0:
-            print("Error: quantity must be > 0.")
+        if knownQty < 0:
+            print("Error: quantity must be >= 0.")
             return False
         self.known = known
         self.qty = knownQty
@@ -179,10 +179,13 @@ class UnitProcess:
         
         #initalize counters
         i = 0
-        attempt = 1
+        attempt = 0
     
 
         while len(calcDF) > 0:
+                       
+            if i >= len(calcDF):     # if at end of list, loop around
+                i = 0
 
             # simplify variables
             known = calcDF.at[i, c_known]
@@ -191,12 +194,8 @@ class UnitProcess:
             unknown = calcDF.at[i, c_unknown]
             calcType = str.lower(calcDF.at[i, c_calcType])
 
-           
-            if i >= len(calcDF):     # if at end of list, loop around
-                i = 0
-            # print("current index:", i, "current product:", known, '\n')
+           # print("current index:", i, "current product:", known, '\n')
 
-           
             if attempt >= len(calcDF):  # prevent infinite loops by terminating afer a complete loop through
                 print("Error cannot process", known)
                 return False
@@ -209,32 +208,32 @@ class UnitProcess:
 
             # Check that the specified "known" quantity exists in input/output dictionaries
             invert = False 
-            if k_from == 'o' and outDict[known] > 0:
+            if k_from == 'o' and known in outDict:
                 qtyKnown = outDict[known]
                 #print(known, "confirmed in output dictionary, qty:", qtyKnown)
 
-            elif k_from == "i" and inDict[known] > 0:
+            elif k_from == "i" and known in inDict:
                 qtyKnown = inDict[known]
                 #print(known, "confirmed in input dictionary, qty:", qtyKnown)
 
-            elif k_from == "t" and tmpDict[known] > 0:
+            elif k_from == "t" and known in tmpDict:
                 qtyKnown = tmpDict[known]
                 #print(known, "confirmed in tmp dictionary, qty:", qtyKnown)  
 
             # If not, check for the "unknown" quantity, and, if so attempt to invert the calculation
-            elif u_to == "o" and outDict[unknown] > 0:
+            elif u_to == "o" and unknown in outDict:
                 known, unknown = unknown, known
                 k_from, u_to = u_to, k_from
                 invert = True
                 qtyKnown = outDict[known]
 
-            elif u_to == "i" and inDict[unknown] > 0:
+            elif u_to == "i" and unknown in inDict:
                 known, unknown = unknown, known
                 k_from, u_to = u_to, k_from
                 invert = True
                 qtyKnown = inDict[known]    
 
-            elif u_to == "t" and tmpDict[unknown] > 0:
+            elif u_to == "t" and unknown in tmpDict:
                 known, unknown = unknown, known
                 k_from, u_to = u_to, k_from
                 invert = True
@@ -242,7 +241,7 @@ class UnitProcess:
 
             
             else:   #if substance isn't found start again from the beginning
-                #print("\n neither", known, "nor", calc, "not found, skipping for now\n")
+               # print("\n neither", known, "nor", unknown, "not found, skipping for now\n")
                 i += 1
                 attempt += 1
                 continue
@@ -251,12 +250,12 @@ class UnitProcess:
             if calcDF.at[i, c_var] not in ignoreVar:  
                 var = self.varDF.at[var_i, calcDF.at[i, c_var]] 
             else: var = False
-            #print("\nknown qty of", known, "and unknown qty of", calc)
+            #print("\nknown qty of", known, "and unknown qty of", unknown)
 
 
             # performed specified calculation
-            if invert == True:
-                        print("\nattempting calculation with inversion")
+            # if invert == True:
+                # print("\nattempting calculation with inversion")
 
             if calcType == 'ratio':
                 qtyCalc = Ratio(known, qtyKnown, unknown, var, invert).calculate()
@@ -282,19 +281,19 @@ class UnitProcess:
             # assign calculated quantity to approproriate dictionary key
             if u_to == 'i':
                 inDict[unknown] += qtyCalc
-                # print(qtyCalc, unknown, "added to input dictionary")
+               # print(qtyCalc, unknown, "added to input dictionary")
 
             elif u_to == 'o':
                 outDict[unknown] += qtyCalc
-                # print(qtyCalc, unknown, "added to output dictionary")
+               # print(qtyCalc, unknown, "added to output dictionary")
 
             elif u_to == 't':
                 tmpDict[unknown] += qtyCalc
-                # print(qtyCalc, unknown, "added to temp dictionary")
+               # print(qtyCalc, unknown, "added to temp dictionary")
 
 
             else:
-                # print(u_to, "is unknown destination.")
+                print(u_to, "is unknown destination.")
                 return False
             
             calcDF = calcDF.drop(i)
