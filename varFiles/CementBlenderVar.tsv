@@ -1,5 +1,5 @@
 scenario	elecDemand	clinkerFract
-units	(mj/t)	(t/t)
+meta-units	(mj/t)	(t/t)
 EU-bat	0.1	0.75
 EU-typ	0.15	0.80
 EU-old	0.2	0.95

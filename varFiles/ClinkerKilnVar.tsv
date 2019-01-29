@@ -1,5 +1,5 @@
 scenario	fuelDemand	fuelType	CaO_Clinker	CaCO3_Meal	combustEff	elecDemand
-units	(mj /t clinker)	name	(t/t)	(t/t)	(%)	(mj/t clinker)
+meta-units	(mj /t clinker)	name	(t/t)	(t/t)	(%)	(mj/t clinker)
 EU-old	3.6	coal	0.75	0.8	1.0	0.2
 EU-bat	3.0	charcoal	0.65	0.8	1.0	0.1
 EU-typ	3.2	coal	0.67	0.8	1.0	0.1
