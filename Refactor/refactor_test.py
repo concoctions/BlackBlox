@@ -174,3 +174,5 @@ for i in range(runs):
             
 
 
+    print(u1_in)
+    print(u1_out)
