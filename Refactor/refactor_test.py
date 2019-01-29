@@ -161,8 +161,16 @@ for i in range(runs):
     print(u1_out)
 
 # Add for random non-fuel input and output
-    # product = random.choice(u1.inputs)
-    # i_o = "IN"
-    # qty = random.uniform(0.001, 1000)
+    product = random.choice(u1.inputs)
+    i_o = "IN"
+    qty = random.uniform(0.001, 1000)
+    
+    while product == 'fuel' and 'CO2' in u1.outputs:    #fuel combustion calcs writes CO2 to output in balance; this can mess up numbers if there's something else that writes to CO2. fix this later.
+        if len(u1.inputs) > 1:
+            product = random.choice(u1.inputs)
+        else:
+            product = False
+            sys.exit("Something went wrong with trying to [not] balance on the fuel input")
+            
 
 
