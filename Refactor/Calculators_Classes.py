@@ -2,127 +2,127 @@ from molmass import Formula
 from collections import defaultdict
 from IOfunctions import makeDF
 from BBconfig import *
-from Calculators_Classes import *
+import
 
 
-# # CALCULATION TYPES
-# class Calculation():
-#     def __init__(self, known, knownQty, unknown):
-#         if knownQty < 0:
-#             print("Error: quantity must be >= 0.")
-#             return False
-#         self.known = known
-#         self.qty = knownQty
-#         self.unknown = unknown
+# CALCULATION TYPES
+class Calculation():
+    def __init__(self, known, knownQty, unknown):
+        if knownQty < 0:
+            print("Error: quantity must be >= 0.")
+            return False
+        self.known = known
+        self.qty = knownQty
+        self.unknown = unknown
 
 
 
-# class Ratio(Calculation):
-#     explain = "Ratio Calculation\n", \
-#      "u = k * ratio(u:k)"
+class Ratio(Calculation):
+    explain = "Ratio Calculation\n", \
+     "u = k * ratio(u:k)"
 
-#     def __init__(self, known, knownQty, unknown, ratio, invert = False):
+    def __init__(self, known, knownQty, unknown, ratio, invert = False):
 
-#         super().__init__(known, knownQty, unknown)
-#         if ratio < 0:
-#             print("Error: ratio must be >= 0.\n", \
-#             "Currently", ratio, "for", known, "and", unknown)
-#             return False            
-#         if invert == True:
-#             self.ratio = 1/ratio
-#         else:
-#             self.ratio = ratio
+        super().__init__(known, knownQty, unknown)
+        if ratio < 0:
+            print("Error: ratio must be >= 0.\n", \
+            "Currently", ratio, "for", known, "and", unknown)
+            return False            
+        if invert == True:
+            self.ratio = 1/ratio
+        else:
+            self.ratio = ratio
 
-#     def calculate(self):
-#         return self.qty * self.ratio
+    def calculate(self):
+        return self.qty * self.ratio
 
 
-# class Remainder(Calculation):
-#     explain = "Reaminder Calculation\n", \
-#     "u = k * (1 - ratio(u:k))"
-#     def __init__(self, known, knownQty, unknown, ratio, invert = False):
-#         super().__init__(known, knownQty, unknown)
-#         if ratio > 1 or ratio < 0:
-#             print("Error: For remainder calculations ratio must be between 0 and 1",\
-#             "Currently", ratio, "for", known, "and", unknown)
-#             return False
-#         self.ratio = 1 - ratio
-#         self.invert = invert
+class Remainder(Calculation):
+    explain = "Reaminder Calculation\n", \
+    "u = k * (1 - ratio(u:k))"
+    def __init__(self, known, knownQty, unknown, ratio, invert = False):
+        super().__init__(known, knownQty, unknown)
+        if ratio > 1 or ratio < 0:
+            print("Error: For remainder calculations ratio must be between 0 and 1",\
+            "Currently", ratio, "for", known, "and", unknown)
+            return False
+        self.ratio = 1 - ratio
+        self.invert = invert
    
-#     def calculate(self):        
-#         if self.invert == True:
-#             return self.qty / self.ratio
-#         else:
-#             return self.qty * self.ratio
+    def calculate(self):        
+        if self.invert == True:
+            return self.qty / self.ratio
+        else:
+            return self.qty * self.ratio
 
 
-# class MolMassRatio(Calculation):
-#     explain = "Molecular Masss Ratio Calculation\n", \
-#     "[MolMass](u) / MolMass(k)] * k_qty"
-#     def __init__(self, known, knownQty, unknown):
-#         super().__init__(known, knownQty, unknown)
+class MolMassRatio(Calculation):
+    explain = "Molecular Masss Ratio Calculation\n", \
+    "[MolMass](u) / MolMass(k)] * k_qty"
+    def __init__(self, known, knownQty, unknown):
+        super().__init__(known, knownQty, unknown)
 
-#     def calculate(self):    
-#         return self.qty * (Formula(self.unknown).mass / Formula(self.known).mass)
+    def calculate(self):    
+        return self.qty * (Formula(self.unknown).mass / Formula(self.known).mass)
 
 
-# class Combustion(Calculation):
-#     explain = "Combustion Calculation", \
-#     "for a given mass or energy content of fuel, calculates and return the other \
-#     and can write CO2 and waste heat emissions to a given emission dictionary, if provided.\n", \
-#     "Requires 'df_fuels' lookup dictionary to exist, with an index of the fuel name, \
-#     and columns for 'HHV', and 'CO2."
-#     def __init__(self, known, knownQty, unknown, combustEff, emissionsDict = False):
+class Combustion(Calculation):
+    explain = "Combustion Calculation", \
+    "for a given mass or energy content of fuel, calculates and return the other \
+    and can write CO2 and waste heat emissions to a given emission dictionary, if provided.\n", \
+    "Requires 'df_fuels' lookup dictionary to exist, with an index of the fuel name, \
+    and columns for 'HHV', and 'CO2."
+    def __init__(self, known, knownQty, unknown, combustEff, emissionsDict = False):
        
-#         if known not in df_fuels.index and unknown not in df_fuels.index:
-#             print('Error:', 'neither', known, 'nor', unknown, 'is a known fuel type')
-#             return False
-#         if known in df_fuels.index and unknown in df_fuels.index:
-#             print('Error:',  'Both', known, 'and', unknown, 'are known fuel type. \
-#             \nOnly one value should be a fuel.')
-#             return False
+        if known not in df_fuels.index and unknown not in df_fuels.index:
+            print('Error:', 'neither', known, 'nor', unknown, 'is a known fuel type')
+            return False
+        if known in df_fuels.index and unknown in df_fuels.index:
+            print('Error:',  'Both', known, 'and', unknown, 'are known fuel type. \
+            \nOnly one value should be a fuel.')
+            return False
 
-#         super().__init__(known, knownQty, unknown)
-#         if combustEff > 1 or combustEff <= 0:
-#             print("Error: combustEff must be between 0 and 1")
-#             return False
-#         self.combustEff = combustEff
-#         self.emissionsDict = emissionsDict
+        super().__init__(known, knownQty, unknown)
+        if combustEff > 1 or combustEff <= 0:
+            print("Error: combustEff must be between 0 and 1")
+            return False
+        self.combustEff = combustEff
+        self.emissionsDict = emissionsDict
 
-#     def calculate(self):
-#         if self.known in df_fuels.index:
-#             #calculates energy and emissions from given mass quantity of fuel
-#             fuelType = self.known
-#             fuelQty = self.qty
-#             energyQty = self.qty * df_fuels.at[fuelType, 'HHV'] * self.combustEff
-#             returnQty = energyQty
+    def calculate(self):
+        if self.known in df_fuels.index:
+            #calculates energy and emissions from given mass quantity of fuel
+            fuelType = self.known
+            fuelQty = self.qty
+            energyQty = self.qty * df_fuels.at[fuelType, 'HHV'] * self.combustEff
+            returnQty = energyQty
 
-#         elif self.unknown in df_fuels.index:
-#             #calculates fuel mass and emissions from given quantity of energy
-#             fuelType = self.unknown
-#             energyQty = self.qty
-#             fuelQty = energyQty / df_fuels.at[fuelType, 'HHV'] * (1/self.combustEff)
-#             returnQty = fuelQty
+        elif self.unknown in df_fuels.index:
+            #calculates fuel mass and emissions from given quantity of energy
+            fuelType = self.unknown
+            energyQty = self.qty
+            fuelQty = energyQty / df_fuels.at[fuelType, 'HHV'] * (1/self.combustEff)
+            returnQty = fuelQty
         
-#         else:
-#             print('Error:', 'neither', self.known, 'nor', self.unknown, 'is a known fuel type')
-#             return False
+        else:
+            print('Error:', 'neither', self.known, 'nor', self.unknown, 'is a known fuel type')
+            return False
         
         
-#         CO2emitted = df_fuels.at[fuelType, 'CO2'] * fuelQty
-#         wasteHeat = energyQty * (1 - self.combustEff)
+        CO2emitted = df_fuels.at[fuelType, 'CO2'] * fuelQty
+        wasteHeat = energyQty * (1 - self.combustEff)
 
-#         if type(self.emissionsDict) == defaultdict:
-#             self.emissionsDict['CO2'] += CO2emitted
-#             self.emissionsDict['waste heat'] += wasteHeat
+        if type(self.emissionsDict) == defaultdict:
+            self.emissionsDict['CO2'] += CO2emitted
+            self.emissionsDict['waste heat'] += wasteHeat
         
-#         # else:
-#             # print('\nEmission data discarded: \n \
-#             # CO2:', CO2emitted, '\n \
-#             # waste heat:', wasteHeat )
+        # else:
+            # print('\nEmission data discarded: \n \
+            # CO2:', CO2emitted, '\n \
+            # waste heat:', wasteHeat )
 
 
-#         return returnQty
+        return returnQty
 
 # UNIT PROCESS
 class UnitProcess:
