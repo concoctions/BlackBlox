@@ -21,9 +21,16 @@ class UnitProcess:
     quantities of the unit process inputs and outputs to balance the given product quantity.
     """
 
-    def __init__(self, name):
+    def __init__(self, name, varDF = False, calcDF = False):
         self.name = name
-        self.varDF = makeDF(df_unitList.at[name,ul_varFileLoc])
+
+        if isinstance(varDF, pan.DataFrame):
+            self.varDF = varDF
+        else:
+            self.varDF = makeDF(df_unitList.at[name,ul_varFileLoc])
+
+        if isinstance(calc, pan.DataFrame):
+            self.calcDF = calcDF
         self.calcDF = makeDF(df_unitList.at[name,ul_calcFileLoc], index=None)
 
         #create sets of process inputs and outputs
@@ -160,3 +167,19 @@ class UnitProcess:
 
         #return dictionaries of inputs and outputs
         return ioDicts['i'], ioDicts['o']
+
+
+class ProductChain:
+        """
+    UnitProcess objects have a set of inputs and outputs, with the relationship between them 
+    expressed in a DataFrame of calculations and a DataFrame of variables to use in the calculations.
+
+    The sets of inputs and outputs is derived from the list of calculation supplied by the user.
+
+    UnitProcess.balance allows the user to specify a specific quantity of an input and , and a specific
+    set of calculation variables to use, and the function will return dictionaries (defaultdict) of the 
+    quantities of the unit process inputs and outputs to balance the given product quantity.
+    """
+
+    def __init__(self, name, chainDF, unitListDF = False):
+        self.name = name
