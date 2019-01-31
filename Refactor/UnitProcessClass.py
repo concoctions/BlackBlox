@@ -2,7 +2,7 @@ from molmass import Formula
 from collections import defaultdict
 from IOfunctions import makeDF
 from BBconfig import *
-from Calculators_Functions import *
+from Calculators import *
 import logging
 
 logging.basicConfig(filename='refactor.log',level=logging.DEBUG)
