@@ -1,3 +1,16 @@
-.vscode/settings.json
+#VS code stuff
+.vscode/
 scratch.py
-.vscode/settings.json
+
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+__pycache__/
+Refactor/__pycache__/
+
+#sphinx stuff
+docs/_build/
+
+#logs
+*.log
+
+#others
