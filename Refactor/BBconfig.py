@@ -24,7 +24,7 @@ c_unknown = 'UnknownQty'
 c_uTo = 'u_QtyTo'
 c_calcType = 'Calculation'
 c_var = 'Variable'
-ignoreVar = ['none', 'None', 'NONE', 'False', 'false', 'FALSE', 'na', 'NA'] #values that indicate there is no applicalbe variable
+ignoreVar = ['none', 'false', 'na', '-'] #values that indicate there is no applicalbe variable
 
 
 # Specify lookup variables (if seen in calc file, replaces with specific value from variable file)

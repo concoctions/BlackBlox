@@ -2,7 +2,6 @@ from molmass import Formula
 from collections import defaultdict
 from IOfunctions import makeDF
 from BBconfig import *
-import
 
 
 # CALCULATION TYPES

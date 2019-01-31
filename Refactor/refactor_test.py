@@ -9,7 +9,7 @@ import random
 
 # import other BlackBlox modules
 from BBconfig import *
-from BlackBloxClasses import *
+from UnitProcClass_CalcDef import *
 from molmass import Formula
 
 #specify number of test runs
