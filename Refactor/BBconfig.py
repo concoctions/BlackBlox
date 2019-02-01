@@ -17,7 +17,6 @@ ul_varFileLoc = 'varFile'
 ul_calcFileLoc = 'calcFile'
 
 # specify calculation file column headers:
-
 c_known = 'KnownQty'
 c_kFrom = 'k_QtyFrom'
 c_unknown = 'UnknownQty'
@@ -25,6 +24,10 @@ c_uTo = 'u_QtyTo'
 c_calcType = 'Calculation'
 c_var = 'Variable'
 ignoreVar = ['none', 'false', 'na', '-'] #values that indicate there is no applicalbe variable
+
+# specify flow files column headers
+origin = 'From'
+destination = 'To'
 
 
 # Specify lookup variables (if seen in calc file, replaces with specific value from variable file)
