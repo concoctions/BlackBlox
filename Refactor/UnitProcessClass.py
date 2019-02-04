@@ -229,17 +229,17 @@ class ProductChain:
         processList = []
 
         if str.lower(flowDF.at[0, origin]) == 'start':
-            pass
+            self.i_o = "input based with {} to {} as default".format(flowDF.at[0, 'What'], flowDF.at[0, destination])
 
         # if the chain is written from end to start, reverse it
         elif str.lower(flowDF.at[0, destination]) == 'end':
+            self.i_o = "output based with {} from {} as default".format(flowDF.at[0, 'What'], flowDF.at[0, destination])
             flowDF = flowDF[::-1]
 
         else:
             raise Exception("First line of flow must contain a 'start' in {} \
                 or 'end' in {}.".format(origin, destination))
         
-
         for i in range(len(flowDF.index)):
             destination = unitProcess(flowDF.at[i, destination])
             output = flowDF.at[i, 'What']
@@ -256,7 +256,7 @@ class ProductChain:
                     raise Exception("{} not found in {} inputs".format\
                         (output, destination.name))       
 
-            processList.append(origin, output) #unitProcess #output frrom process
+            processList.append(origin, output) #unitProcess #output from process
             
             origin = destination       
             
@@ -267,28 +267,29 @@ class ProductChain:
 
 
     
-    def balance(self, product, productQty, i_o, var_i="default", show = "False"):
+    def balance(self, productQty, product=False, i_o= self.i_o , var_i="default", show = "False"):
     """
 
     """
         if self.processList == False:
             self.checkFlow()
 
+
+        i_o = str.lower(i_o)[0]
+
         # Check that specify product exists, and ensure list of unit processes
         # are in calculation order 
-        if str.lower(i_o).startswith("o"):
+        if i_o == "o":
             chain = self.processList.reverse()
-            start = chain[0]
 
-            if product not in start.outputs:
-                raise Exception("{} not in {} outputs".format(product, start.name))
+            if product not in chain[0].outputs:
+                raise Exception("{} not in {} outputs".format(product, chain[0].name))
         
-        elif str.loweer(i_o).startswwith("i"):
+        elif i_o == "i":
             chain = self.processList
-            start = chain[0]
 
-            if product not in start.inputs:
-                raise Exception("{} not in {} inputs".format(product, start.name))
+            if product not in chain[0].inputs:
+                raise Exception("{} not in {} inputs".format(product, chain[0].name))
         
         else:
             raise Exception("{} not found as input or output of chain.")
@@ -298,11 +299,13 @@ class ProductChain:
         inDict = ddict(lambda: ddict(float))
         outDict = ddict(lambda: ddict(float))
 
+        ioDicts = {"i": inDict, "o": outDict}
+        product = product
         qty = productQty      
 
         for unit in chain:
-            inDict[unit.name], outDict[unit.name] = unit.balance(product, qty, i_o, var_i='default', show='False')
-        
+            inDict[unit.name], outDict[unit.name] = unit.balance(product, qty, i_o, var_i, show='False')
+            product =  
 
 
         
