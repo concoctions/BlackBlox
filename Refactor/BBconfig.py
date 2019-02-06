@@ -28,6 +28,7 @@ ignoreVar = ['none', 'false', 'na', '-'] #values that indicate there is no appli
 # specify flow files column headers
 origin = 'From'
 destination = 'To'
+what = 'What'
 
 
 # Specify lookup variables (if seen in calc file, replaces with specific value from variable file)
