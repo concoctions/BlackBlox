@@ -2,9 +2,9 @@ from molmass import Formula
 from collections import defaultdict
 from io_functions import makeDF
 from dataconfig import *
-import logging
+from bb_log import get_logger
 
-logging.basicConfig(filename='refactor.log',level=logging.DEBUG)
+logger = get_logger("Calculators")
 
 # shared functions
 def CheckQty(qty, fraction = False):
@@ -34,7 +34,7 @@ def Ratio(qty, var, invert = False, **kwargs):
     X = Y * (ratio X:Y)
     """
 
-    logging.info("Attempting ratio calcuation using qty: {}, ratio: {}, invert: {}".format(qty, var, invert))
+    logger.info("Attempting ratio calcuation using qty: {}, ratio: {}, invert: {}".format(qty, var, invert))
 
     CheckQty(qty)
     CheckQty(var)
@@ -57,7 +57,7 @@ def Remainder(qty, var, invert = False, **kwargs):
     X = Y / (1 - ratio[X:X+Y])
     """
 
-    logging.info("Attempting remainder calcuation using qty: {}, ratio: {}, invert: {}".format(qty, var, invert))
+    logger.info("Attempting remainder calcuation using qty: {}, ratio: {}, invert: {}".format(qty, var, invert))
 
     CheckQty(qty)
     CheckQty(var, fraction = True)
@@ -76,7 +76,7 @@ def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
 
     Y = X * (MolMass[X] / MolMass[Y])
     """
-    logging.info("Attempting mol mass ratio calcuation using {} ({}) and {}".format(known_substance, qty, unknown_substance))
+    logger.info("Attempting mol mass ratio calcuation using {} ({}) and {}".format(known_substance, qty, unknown_substance))
 
     return qty * (Formula(unknown_substance).mass / Formula(known_substance).mass)
 
@@ -89,7 +89,7 @@ def Combustion(known_substance, qty, unknown_substance, var, emissions_dict=Fals
     This function can write CO2 and waste heat emissions to a given emission dictionary, if provided.
     Requires 'df_fuels' lookup dictionary to exist, with an index of the fuel name, and columns for 'HHV', and 'CO2.
     """
-    logging.info("Attempting combustion calcuation for {} using qty {} of {} and efficiency of {}".format(unknown_substance, qty, known_substance, var))
+    logger.info("Attempting combustion calcuation for {} using qty {} of {} and efficiency of {}".format(unknown_substance, qty, known_substance, var))
 
     if known_substance not in fuels_dict.index and unknown_substance not in fuels_dict.index:
         raise Exception("Neither {} nor {} is a known_substance fuel type".format(known_substance, unknown_substance))
@@ -122,7 +122,7 @@ def Combustion(known_substance, qty, unknown_substance, var, emissions_dict=Fals
         emissions_dict['waste heat'] += wasteHeat
     
     else:
-        logging.info("Emission Data discarded: \n \
+        logger.info("Emission Data discarded: \n \
             CO2: {}, waste heat: {}".format(CO2emitted, wasteHeat))
 
     return return_qty

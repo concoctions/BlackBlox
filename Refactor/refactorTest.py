@@ -10,7 +10,7 @@ import random
 # import other BlackBlox modules
 from dataconfig import *
 from unitprocess import *
-#from multiprocess import *
+from multiprocess import *
 from molmass import Formula
 
 #specify number of test runs

@@ -1,9 +1,5 @@
 from io_functions import makeDF
 
-# see README.txt for specified file foramts
-
-# File Settings
-
  
 # get list of unit processes
 df_unit_processes = makeDF('unitList.tsv')
@@ -42,7 +38,5 @@ lookup_variables_dict = {
 
 # Specify shortcut names for lookup dataFrames:
 df_fuels = lookup_variables_dict['fuel']['data_frame']
-
-
 
 

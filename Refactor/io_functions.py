@@ -15,3 +15,18 @@ def makeDF(filePath, sep='\t', index=0, header='infer', metaprefix = "meta", T =
     df = df.apply(pan.to_numeric, errors = 'ignore')
 
     return df
+
+
+def check_if_df(data, index=0):
+        if isinstance(data, pan.DataFrame):
+            return data
+
+        else:
+            return makeDF(data, index=index)
+
+# def write_df_to_excel(df_list)
+    # """
+    # using xlsxwriter
+    # """
+#     if isinstance(df_list, pan.DataFrame):
+#         df_list = [df_list]
