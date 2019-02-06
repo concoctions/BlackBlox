@@ -1,8 +1,9 @@
 from io_functions import makeDF
+from pathlib import Path
 
- 
+
 # get list of unit processes
-df_unit_processes = makeDF('unitList.tsv')
+df_unit_processes = makeDF(Path('globalData/unitList.tsv'))
 
 # specify unitListTSV column headers:
 unit_name_col = 'name'
@@ -33,7 +34,7 @@ process_col = 'Process'
 
 # Specify lookup variables (if seen in calc file, replaces with specific value from variable file)
 lookup_variables_dict = {
-    'fuel': dict(data_frame=makeDF('fuels.tsv'), lookup_var='fuelType')  #keyword string in calc file to trigger lookup: (dataframe of lookup data, column name in variable table to replace with) 
+    'fuel': dict(data_frame=makeDF(Path('globalData/fuels.tsv')), lookup_var='fuelType')  #keyword string in calc file to trigger lookup: (dataframe of lookup data, column name in variable table to replace with) 
     }
 
 # Specify shortcut names for lookup dataFrames:

@@ -4,9 +4,10 @@
 import logging
 import sys
 from logging.handlers import TimedRotatingFileHandler
+from pathlib import Path
 
 FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s")
-LOG_FILE = "BlackBlox.log"
+LOG_FILE = Path("logs/BlackBlox.log")
 
 def get_console_handler():
    console_handler = logging.StreamHandler(sys.stdout)

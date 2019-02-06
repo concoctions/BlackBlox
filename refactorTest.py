@@ -213,7 +213,7 @@ runs = 5
 
 print("\nFlow Test\n")
 
-flowTSV = "Refactor/cementFlowRefactor.tsv"
+flowTSV = "chainFiles/cementFlowRefactor.tsv"
 
 cementChain = ProductChain(flowTSV, "cement production")
 
