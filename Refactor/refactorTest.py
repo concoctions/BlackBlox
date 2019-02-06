@@ -8,12 +8,13 @@ import sys
 import random
 
 # import other BlackBlox modules
-from BBconfig import *
-from UnitProcessClass import *
+from dataconfig import *
+from unitprocess import *
+#from multiprocess import *
 from molmass import Formula
 
 #specify number of test runs
-runs = 10
+runs = 5
 
 # print("\ninititalizing test of refactored blackblox.py\n")
 
@@ -136,75 +137,95 @@ runs = 10
 #         print("ERROR:", combustTest2, "!=", knownQty)
 #         sys.exit("Something went wrong")
 
-print("\nUnit Process Test")
+# print("\nUnit Process Test")
 
-units = df_unitList.index.tolist()
+# units =df_unit_processes.index.tolist()
 
-for i in range(runs):
-    name = random.choice(units)
-    product = df_unitList.at[name, ul_product]
-    i_o = df_unitList.at[name, ul_productIO]
-    qty = random.uniform(0.001, 1000)
-    varDF = makeDF(df_unitList.at[name,ul_varFileLoc])
-    scenarios = varDF.index.tolist()
-    s = random.choice(scenarios)
+# for i in range(runs):
+#     name = random.choice(units)
+#     # product = df_unit_processes.at[name, default_product_col]
+#     # i_o = df_unit_processes.at[name, default_product_io_col]
+#     qty = random.uniform(0.001, 1000)
+#     varDF = makeDF(df_unit_processes.at[name, variables_filepath_col])
+#     scenarios = varDF.index.tolist()
+#     s = random.choice(scenarios)
 
-    print("\nUsing:",\
-    name, product, i_o, qty, s)
 
-    unit1 = UnitProcess(name)
-    print(unit1.name, "inputs:", unit1.inputs)
-    print(unit1.name, "outputs:", unit1.outputs)
+#     unit1 = UnitProcess(name)
 
-    u_in, u_out = unit1.balance(product, qty, i_o, s)
-    print(u_in)
-    print(u_out)
+#     print("\nUsing:", unit1.name, unit1.default_product, qty, unit1.default_io, s)
 
-# Add for random input
-    product = random.choice(tuple(unit1.inputs))
-    # while (product == 'fuel' and len(unit1.inputs) > 1):   #fuel combustion calcs writes CO2 to output in balance; this can mess up numbers if there's something else that writes to CO2. fix this later.
-    #     product = random.choice(tuple(unit1.inputs))
-    qty = u_in[product]
+#     print(unit1.name, "inflows:", unit1.inflows)
+#     print(unit1.name, "outflows:", unit1.outflows)
 
-    if product == 'fuel':
-        qty = u_in[unit1.varDF.at[s, 'fuelType']]
+#     u_in, u_out = unit1.balance(qty)
+#     print(u_in)
+#     print(u_out)
+
+# # Add for random input
+#     product = random.choice(tuple(unit1.inflows))
+#     # while (product == 'fuel' and len(unit1.inflows) > 1):   #fuel combustion calcs writes CO2 to output in balance; this can mess up numbers if there's something else that writes to CO2. fix this later.
+#     #     product = random.choice(tuple(unit1.inflows))
+#     qty = u_in[product]
+
+#     if product == 'fuel':
+#         qty = u_in[unit1.variables_df.at[s, 'fuelType']]
 
     
     
-    i_o = "IN"
+#     i_o = "IN"
 
-    print("\nUsing:",\
-    name, product, i_o, qty, s)
+#     print("\nUsing:",\
+#     name, product, i_o, qty, s)
     
 
-    u1_in, u1_out = unit1.balance(product, qty, i_o, s) 
+#     u1_in, u1_out = unit1.balance(qty, product, i_o, s) 
 
-    if u1_in == u_in and u1_out == u_out:
-        print("Same input/output as above")
-    else:
-        print("not equivelent to above")
-        print(u1_in)
-        print(u1_out)
+#     if u1_in == u_in and u1_out == u_out:
+#         print("Same input/output as above")
+#     else:
+#         print("not equivelent to above")
+#         print(u1_in)
+#         print(u1_out)
 
-# Add for random output
-    product = random.choice(tuple(unit1.outputs))
+# # Add for random output
+#     product = random.choice(tuple(unit1.outflows))
     
-    qty = u_out[product]
+#     qty = u_out[product]
     
-    if product == 'fuel':
-        qty = u_outn[unit1.varDF.at[s, 'fuelType']]
+#     if product == 'fuel':
+#         qty = u_out[unit1.varDF.at[s, 'fuelType']]
      
-    i_o = "Out!"
+#     i_o = "Out!"
 
 
-    print("\nUsing:",\
-    name, product, i_o, qty, s)
+#     print("\nUsing:",\
+#     name, product, i_o, qty, s)
     
-    u1_in, u1_out = unit1.balance(product, qty, i_o, s) 
+#     u1_in, u1_out = unit1.balance(qty, product, i_o, s) 
 
-    if u1_in == u_in and u1_out == u_out:
-        print("Same input/output as above")
-    else:
-        print("not equivelent to above")
-        print(u1_in)
-        print(u1_out)
+#     if u1_in == u_in and u1_out == u_out:
+#         print("Same input/output as above")
+#     else:
+#         print("not equivelent to above")
+#         print(u1_in)
+#         print(u1_out)
+
+print("\nFlow Test\n")
+
+flowTSV = "Refactor/cementFlowRefactor.tsv"
+
+cementChain = ProductChain(flowTSV, "cement production")
+
+print(cementChain.name)
+print(cementChain.process_chain_df)
+print(cementChain.process_list)
+
+cementChain.initialize_chain()
+print(cementChain.process_list)
+
+io_dicts = cementChain.balance(1.0, var_i="EU-bat")
+
+print("inputs\n", pan.DataFrame(io_dicts["i"]), "\n")
+print("outputs\n", pan.DataFrame(io_dicts["o"]), "\n")
+

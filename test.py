@@ -16,8 +16,8 @@ from collections import defaultdict as ddict
 
 # flows with 
 df_unitList = pan.read_csv('unitList.tsv', sep='\t', index_col = 0)
-df_flowIO = pan.read_csv('CO2CapFlow.tsv', sep='\t')
-df_flowOI = pan.read_csv('cementProdFlow.tsv', sep='\t')
+df_flowIO = pan.read_csv('CO2CapFlow.tsv', sep='\t', index_col=None)
+df_flowOI = pan.read_csv('cementProdFlow.tsv', sep='\t', index_col=None)
 
 print("\n")
 
@@ -69,7 +69,7 @@ print("inputs\n", pan.DataFrame(inDict), "\n")
 print("outputs\n", pan.DataFrame(outDict), "\n")
 
 print("input-based chain: Cement Prod\n")
-inDict, outDict = bb.runChain(df_flowOI, df_unitList, 1.0, 'EU-bat')
+inDict, outDict = bb.runChain(df_flowOI, df_unitList, 10, 'default')
 
 print("inputs\n", pan.DataFrame(inDict), "\n")
 print("outputs\n", pan.DataFrame(outDict), "\n")
