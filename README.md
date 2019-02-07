@@ -1,5 +1,5 @@
 # BlackBlox
-Simple simulator for black box process models.
+Simple simulator for multi-chain black box process models.
 
 # Current Features
 * Perform mass balance on a single unit process based on a specified output (or input) and a set of specified calculations

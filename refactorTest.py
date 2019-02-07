@@ -12,14 +12,20 @@ from dataconfig import *
 from unitprocess import *
 from multiprocess import *
 from molmass import Formula
+from bb_log import get_logger
+
+logger = get_logger("testing")
 
 #specify number of test runs
-runs = 5
+runs = 3
+
+logger.info(f"\n\n\nRunning new test with {runs} runs")
+
 
 # print("\ninititalizing test of refactored blackblox.py\n")
 
 # print("unitlist:")
-# print(df_unitList,'\n')
+# print(df_unit_processes,'\n')
 
 # print("fuel list:")
 # print(df_fuels,'\n')
@@ -229,3 +235,14 @@ io_dicts = cementChain.balance(1.0, var_i="EU-bat")
 print("inputs\n", pan.DataFrame(io_dicts["i"]), "\n")
 print("outputs\n", pan.DataFrame(io_dicts["o"]), "\n")
 
+io_dicts = cementChain.balance(0.452447, product="CaCO3", var_i="EU-bat")
+
+print("inputs\n", pan.DataFrame(io_dicts["i"]), "\n")
+print("outputs\n", pan.DataFrame(io_dicts["o"]), "\n")
+
+io_dicts = cementChain.balance(0.174018, product="clay", var_i="EU-bat")
+
+print("inputs\n", pan.DataFrame(io_dicts["i"]), "\n")
+print("outputs\n", pan.DataFrame(io_dicts["o"]), "\n")
+
+cementChain.diagram()

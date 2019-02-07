@@ -14,4 +14,8 @@ docs/_build/
 *.log
 logs/
 
+#output files
+*.gv
+*gv.pdf
+
 #others

@@ -1,6 +1,7 @@
 import pandas as pan
 from molmass import Formula
 from collections import defaultdict
+from graphviz import Digraph
 from io_functions import *
 from dataconfig import *
 from calculators import *
@@ -61,27 +62,28 @@ class ProductChain:
                 logger.info(f"No default product found for {self.name}.")
 
     
-    def balance(self, product_qty, product=False,
-                var_i="default"):
+    def balance(self, product_qty, product=False, var_i="default"):
         """
 
         """
         if not self.process_list:
             self.initialize_chain()
 
-        chain = self.process_list
+        chain = self.process_list.copy()
 
         if not product:
             product = self.default_product
 
-        if product in self.process_list[0]['process'].inflows:
-            i_o = "i"
-            io_opposite = "o"
-
-        elif product in self.process_list[-1]['process'].outflows:
+        
+        if product in chain[-1]['process'].outflows:
             chain.reverse()
             i_o = "o"
             io_opposite = "i"
+
+
+        elif product in chain[0]['process'].inflows:
+            i_o = "i"
+            io_opposite = "o"
         
         else:
             raise KeyError(f"{product} not found as input or outflow of chain.")
@@ -124,12 +126,12 @@ class ProductChain:
             process = unit['process']
 
             if i != 0:
-                intermediate_product = unit[io_opposite]
-                totals[io_opposite][intermediate_product] -= io_dicts[io_opposite][process.name][intermediate_product]
-
-            if i != len(chain) - 1:
                 intermediate_product = unit[i_o]
                 totals[i_o][intermediate_product] -= io_dicts[i_o][process.name][intermediate_product]
+
+            if i != len(chain) - 1:
+                intermediate_product = unit[io_opposite]
+                totals[io_opposite][intermediate_product] -= io_dicts[io_opposite][process.name][intermediate_product]
 
 
         io_dicts["i"]["chain inputs"] = totals["i"]
@@ -138,10 +140,61 @@ class ProductChain:
         return io_dicts
 
 
-    # def diagram(self):
+    def diagram(self):
 
-    #     if not self.chainProcesses:
-    #         self initialize_chain()
+        if not self.process_list:
+            self.initialize_chain()
+
+        diagram = Digraph(comment=f"{self.name}")
+
+        for i, unit in enumerate(self.process_list):
+            inflows = '\n'.join(unit['process'].inflows)
+            outflows = '\n'.join(unit['process'].outflows)
+
+            if i == 0:
+                diagram.attr('node', color='white', fontcolor='')
+                diagram.node(inflows)
+                diagram.attr('node', shape='box', style='', color='', fontcolor='')
+                diagram.edge(inflows, unit['process'].name)
+
+                if outflows != unit['o']:
+                    diagram.attr('node', color='white', fontcolor='grey')
+                    if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
+                    outflows = outflows.replace(unit['o'], '')
+                    diagram.edge(unit['process'].name, outflows)
+
+            elif i < len(self.process_list) - 1:
+                diagram.attr('node', shape='box', style='', color='', fontcolor='')
+                diagram.edge(prevunit['process'].name, unit['process'].name, label=' '+unit['i'])
+
+                if inflows != unit['i']:
+                    diagram.attr('node', color='white', fontcolor='grey')
+                    inflows = inflows.replace(unit['i'], '')
+                    if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
+                    diagram.edge(inflows, unit['process'].name, color='grey')
+
+                if outflows != unit['o']:
+                    diagram.attr('node', color='white', fontcolor='grey')
+                    outflows = outflows.replace(unit['o'], '')
+                    if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
+                    diagram.edge(unit['process'].name, outflows, color='grey')
+
+            else:
+                diagram.attr('node', shape='box', style='', color='', fontcolor='')
+                diagram.edge(prevunit['process'].name, unit['process'].name, label=' '+unit['i'])
+
+                if inflows != unit['i']:
+                    diagram.attr('node', color='white', fontcolor='grey')
+                    inflows = inflows.replace(unit['i'], '')
+                    if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
+                    diagram.edge(inflows, unit['process'].name)
+
+                diagram.attr('node', color='white', fontcolor='')
+                diagram.edge(unit['process'].name, outflows)
+
+            prevunit = unit
+
+            diagram.view()
 
 
 
