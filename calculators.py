@@ -1,8 +1,9 @@
 from molmass import Formula
 from collections import defaultdict
 from io_functions import makeDF
-from dataconfig import *
 from bb_log import get_logger
+
+import dataconfig as dat
 
 logger = get_logger("Calculators")
 
@@ -81,7 +82,7 @@ def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
     return qty * (Formula(unknown_substance).mass / Formula(known_substance).mass)
 
 
-def Combustion(known_substance, qty, unknown_substance, var, emissions_dict=False, fuels_dict=df_fuels, **kwargs):
+def Combustion(known_substance, qty, unknown_substance, var, emissions_dict=False, fuels_dict=dat.df_fuels, **kwargs):
     """
     Combustion Calculation", 
     var: Efficiency of combustion
@@ -128,7 +129,7 @@ def Combustion(known_substance, qty, unknown_substance, var, emissions_dict=Fals
     return return_qty
 
 #Calculation Type lookup dictionary
-calculation_types_dict = {
+calculations_dict = {
     'ratio': Ratio,
     'remainder': Remainder,
     'molmassratio': MolMassRatio,

@@ -1,10 +1,13 @@
 import pandas as pan
 from molmass import Formula
 from collections import defaultdict
-from io_functions import *
-from dataconfig import *
-from calculators import *
+
 from bb_log import get_logger
+
+import io_functions as iof
+import dataconfig as dat
+import calculators  as calc
+
 
 logger = get_logger("Unit Process")
 
@@ -25,29 +28,29 @@ class UnitProcess:
     unit process inflows and outflows to balance the given product quantity.
     """
 
-    def __init__(self, name, variables_df=False, calculations_df=False, unit_processes_df=df_unit_processes):
+    def __init__(self, name, variables_df=False, calculations_df=False, unit_processes_df=dat.df_unit_processes):
         self.name = name
 
         if isinstance(variables_df, pan.DataFrame):
             self.variables_df = variables_df
         else:
-            self.variables_df = makeDF(unit_processes_df.at[name, variables_filepath_col])
+            self.variables_df = iof.makeDF(unit_processes_df.at[name, dat.variables_filepath_col])
 
         if isinstance(calculations_df, pan.DataFrame):
             self.calculations_df = calculations_df
         else:
-            self.calculations_df = makeDF(unit_processes_df.at[name, calculations_filepath_col], index=None)
+            self.calculations_df = iof.makeDF(unit_processes_df.at[name, dat.calculations_filepath_col], index=None)
 
         #create sets of process inflows and outflows
-        self.default_product = unit_processes_df.at[name,default_product_col]
-        self.default_io = unit_processes_df.at[name,default_product_io_col]
+        self.default_product = unit_processes_df.at[name, dat.default_product_col]
+        self.default_io = unit_processes_df.at[name, dat.default_product_io_col]
         
         self.inflows = set() 
         self.outflows = set() 
         
         for i in self.calculations_df.index: 
-            products = [ (self.calculations_df.at[i, known_substance_col], str.lower(self.calculations_df.at[i, known_io_col])),\
-                 (self.calculations_df.at[i, unknown_substance_col],str.lower(self.calculations_df.at[i, unknown_io_col]))]
+            products = [ (self.calculations_df.at[i, dat.known_substance_col], str.lower(self.calculations_df.at[i, dat.known_io_col])),\
+                 (self.calculations_df.at[i, dat.unknown_substance_col],str.lower(self.calculations_df.at[i, dat.unknown_io_col]))]
             for product, i_o in products:
                 if i_o.startswith('i'):
                     self.inflows.add(product)
@@ -71,7 +74,7 @@ class UnitProcess:
         if i_o is False:
             i_o = self.default_io
         if var_i is False:
-            var_i = default_scenario
+            var_i = dat.default_scenario
 
         #verify input
         if product not in self.inflows and product not in self.outflows:
@@ -83,8 +86,8 @@ class UnitProcess:
         if str.lower(i_o[0]) not in ['i', 'o', 't', 'e']:
             raise Exception(f'{i_o} not valid product destination')
 
-        if product in lookup_variables_dict:
-                product = self.variables_df.at[var_i, lookup_variables_dict[product]['lookup_var']]   
+        if product in dat.lookup_variables_dict:
+                product = self.variables_df.at[var_i, dat.lookup_variables_dict[product]['lookup_var']]   
         
         logger.info(f"\nAttempting to balance {self.name} on {qty} of {product} ({i_o}) using {var_i} variables")
 
@@ -110,16 +113,16 @@ class UnitProcess:
                 i = 0
 
             # setup loop variables
-            known_substance = calculations_df.at[i, known_substance_col]
-            known_io =str.lower(calculations_df.at[i, known_io_col][0]) # shortens to i, o, or t (lower case)
-            unknown_io = str.lower(calculations_df.at[i, unknown_io_col][0]) # shortens to i, o or t (lower case)
-            unknown_substance = calculations_df.at[i, unknown_substance_col]
-            calculation_type = str.lower(calculations_df.at[i, calculation_type_col])
+            known_substance = calculations_df.at[i, dat.known_substance_col]
+            known_io =str.lower(calculations_df.at[i, dat.known_io_col][0]) # shortens to i, o, or t (lower case)
+            unknown_io = str.lower(calculations_df.at[i, dat.unknown_io_col][0]) # shortens to i, o or t (lower case)
+            unknown_substance = calculations_df.at[i, dat.unknown_substance_col]
+            calculation_type = str.lower(calculations_df.at[i, dat.calculation_type_col])
             invert = False
             var = False
 
-            if str.lower(calculations_df.at[i, variable_col]) not in variables_to_ignore:
-                var = self.variables_df.at[var_i, calculations_df.at[i, variable_col]] 
+            if str.lower(calculations_df.at[i, dat.variable_col]) not in dat.variables_to_ignore:
+                var = self.variables_df.at[var_i, calculations_df.at[i, dat.variable_col]] 
 
 
             logger.info(f"current index: {i}, current product: {known_substance}")
@@ -129,10 +132,10 @@ class UnitProcess:
 
             # check whether either quantity is a specified lookup variable,
             # and substitute from variable file, if so
-            if known_substance in lookup_variables_dict:
-                known_substance = self.variables_df.at[var_i, lookup_variables_dict[known_substance]['lookup_var']] 
-            if unknown_substance in lookup_variables_dict:
-                unknown_substance = self.variables_df.at[var_i, lookup_variables_dict[unknown_substance]['lookup_var']] 
+            if known_substance in dat.lookup_variables_dict:
+                known_substance = self.variables_df.at[var_i, dat.lookup_variables_dict[known_substance]['lookup_var']] 
+            if unknown_substance in dat.lookup_variables_dict:
+                unknown_substance = self.variables_df.at[var_i, dat.lookup_variables_dict[unknown_substance]['lookup_var']] 
 
             # Check that the specified "known_substance" quantity exists in input/outflow dictionaries
             if known_substance in io_dicts[known_io]:
@@ -156,13 +159,13 @@ class UnitProcess:
             # performed specified calculation
             qty_known = io_dicts[known_io][known_substance]
 
-            if calculation_type not in calculation_types_dict:
+            if calculation_type not in calc.calculations_dict:
                 raise Exception(f"{calculation_type} is an unknown_substance calculation type")
 
             kwargs = dict(qty=qty_known, var=var, known_substance=known_substance, unknown_substance=unknown_substance,
                 invert=invert, emissions_dict=io_dicts['e'])
                 
-            qty_calculated = calculation_types_dict[calculation_type](**kwargs)
+            qty_calculated = calc.calculations_dict[calculation_type](**kwargs)
 
             # assign calculated quantity to approproriate dictionary key
             if unknown_io not in io_dicts:

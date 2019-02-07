@@ -2,11 +2,14 @@ import pandas as pan
 from molmass import Formula
 from collections import defaultdict
 from graphviz import Digraph
-from io_functions import *
-from dataconfig import *
-from calculators import *
-from unitprocess import *
+
 from bb_log import get_logger
+
+import io_functions as iof
+import dataconfig as dat
+import calculators as calc
+import unitprocess as unit
+
 
 logger = get_logger("Multi Process")
 
@@ -24,7 +27,7 @@ class ProductChain:
     def __init__(self, chain_data, name="Product Chain"):
         self.name = name
 
-        self.process_chain_df = check_if_df(chain_data, index=None)
+        self.process_chain_df = iof.check_if_df(chain_data, index=None)
 
         self.default_product = False
         self.process_list = False
@@ -37,9 +40,9 @@ class ProductChain:
         process_list = []
 
         for index, process_row in self.process_chain_df.iterrows():
-            process = UnitProcess(process_row[process_col])
-            inflow = process_row[inflow_col]
-            outflow = process_row[outflow_col]
+            process = unit.UnitProcess(process_row[dat.process_col])
+            inflow = process_row[dat.inflow_col]
+            outflow = process_row[dat.outflow_col]
 
             if inflow not in process.inflows and index != 0:
                 raise KeyError(f"{inflow} not found in {process.name} inflows")            
@@ -145,56 +148,64 @@ class ProductChain:
         if not self.process_list:
             self.initialize_chain()
 
-        diagram = Digraph(comment=f"{self.name}")
+        diagram = Digraph(name=self.name, directory='outputFiles', format='png')
+        product_flow = Digraph('mainflow')
+        product_flow.graph_attr.update(rank='same')
+        product_flow.attr('node', shape='box', style='', color='', fontcolor='')
+        diagram.attr('node', shape='box')
 
         for i, unit in enumerate(self.process_list):
             inflows = '\n'.join(unit['process'].inflows)
             outflows = '\n'.join(unit['process'].outflows)
 
             if i == 0:
-                diagram.attr('node', color='white', fontcolor='')
-                diagram.node(inflows)
-                diagram.attr('node', shape='box', style='', color='', fontcolor='')
-                diagram.edge(inflows, unit['process'].name)
+                product_flow.node(inflows, color='white')
+                product_flow.node(unit['process'].name)
+                product_flow.edge(inflows, unit['process'].name)
 
                 if outflows != unit['o']:
-                    diagram.attr('node', color='white', fontcolor='grey')
                     if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
                     outflows = outflows.replace(unit['o'], '')
+                    diagram.node(outflows, color='white', fontcolor='grey')
                     diagram.edge(unit['process'].name, outflows)
 
             elif i < len(self.process_list) - 1:
-                diagram.attr('node', shape='box', style='', color='', fontcolor='')
-                diagram.edge(prevunit['process'].name, unit['process'].name, label=' '+unit['i'])
+                product_flow.node(unit['process'].name)
+                product_flow.edge(prevunit['process'].name, unit['process'].name, label=unit['i'])
 
                 if inflows != unit['i']:
-                    diagram.attr('node', color='white', fontcolor='grey')
                     inflows = inflows.replace(unit['i'], '')
                     if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
+                    diagram.node(inflows, color='white', fontcolor='grey')
                     diagram.edge(inflows, unit['process'].name, color='grey')
 
                 if outflows != unit['o']:
-                    diagram.attr('node', color='white', fontcolor='grey')
                     outflows = outflows.replace(unit['o'], '')
                     if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
+                    diagram.node(outflows, color='white', fontcolor='grey')
                     diagram.edge(unit['process'].name, outflows, color='grey')
 
             else:
-                diagram.attr('node', shape='box', style='', color='', fontcolor='')
-                diagram.edge(prevunit['process'].name, unit['process'].name, label=' '+unit['i'])
+                product_flow.node(unit['process'].name)
+                product_flow.edge(prevunit['process'].name, unit['process'].name, label=unit['i'])
 
                 if inflows != unit['i']:
-                    diagram.attr('node', color='white', fontcolor='grey')
                     inflows = inflows.replace(unit['i'], '')
                     if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
-                    diagram.edge(inflows, unit['process'].name)
+                    diagram.node(inflows, color='white', fontcolor='grey')
+                    diagram.edge(inflows, unit['process'].name, color='grey')
 
-                diagram.attr('node', color='white', fontcolor='')
-                diagram.edge(unit['process'].name, outflows)
+                product_flow.node(outflows, color='white')
+                product_flow.edge(unit['process'].name, outflows)
 
             prevunit = unit
 
-            diagram.view()
+            
+        diagram.subgraph(product_flow)
+        diagram.view()
+
+        diagram.format = 'svg'
+        diagram.render()
 
 
 
@@ -209,7 +220,7 @@ class ProductChain:
 #     def __init__(self, factory_data, name="Factory"):
 #         self.name = name
 
-#         self.factory_df = check_if_df(chain_data, index=None)
+#         self.factory_df = iof.check_if_df(chain_data, index=None)
    
 #         self.default_product = False
 #         self.chain_list = False

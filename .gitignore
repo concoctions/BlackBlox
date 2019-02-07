@@ -17,5 +17,6 @@ logs/
 #output files
 *.gv
 *gv.pdf
+outputFiles/
 
 #others
