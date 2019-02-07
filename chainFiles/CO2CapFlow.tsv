@@ -1,3 +1,3 @@
-From	What	To
-START	IN	CO2cap
-CO2cap	OUT	END
+Inflow	Process	Outflow
+CO2	CO2Capture	capturedCO2
+capturedCO2	CO2Compression	compressedCO2

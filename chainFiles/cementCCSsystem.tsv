@@ -1,4 +1,0 @@
-Name	Type	Prodct	ConnectsTo	IO	File
-cement	main	cement	none	output  cementProdFlow.tsv
-CO2Cap	aux	CO2	kiln	input	CO2CapFlow.tsv
-power	aux-multi	electricity	all	ouput	powerStation.tsv

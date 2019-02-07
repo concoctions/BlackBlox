@@ -17,9 +17,12 @@ def makeDF(filePath, sep='\t', index=0, header='infer', metaprefix = "meta", T =
     return df
 
 
-def check_if_df(data, index=0):
+def check_if_df(data, alt_data=False, index=0):
         if isinstance(data, pan.DataFrame):
             return data
+
+        elif alt_data:
+              return makeDF(alt_data, index=index)  
 
         else:
             return makeDF(data, index=index)

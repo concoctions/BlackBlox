@@ -35,7 +35,7 @@ def Ratio(qty, var, invert = False, **kwargs):
     X = Y * (ratio X:Y)
     """
 
-    logger.info("Attempting ratio calcuation using qty: {}, ratio: {}, invert: {}".format(qty, var, invert))
+    logger.debug("Attempting ratio calcuation using qty: {}, ratio: {}, invert: {}".format(qty, var, invert))
 
     CheckQty(qty)
     CheckQty(var)
@@ -58,7 +58,7 @@ def Remainder(qty, var, invert = False, **kwargs):
     X = Y / (1 - ratio[X:X+Y])
     """
 
-    logger.info("Attempting remainder calcuation using qty: {}, ratio: {}, invert: {}".format(qty, var, invert))
+    logger.debug("Attempting remainder calcuation using qty: {}, ratio: {}, invert: {}".format(qty, var, invert))
 
     CheckQty(qty)
     CheckQty(var, fraction = True)
@@ -77,7 +77,7 @@ def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
 
     Y = X * (MolMass[X] / MolMass[Y])
     """
-    logger.info("Attempting mol mass ratio calcuation using {} ({}) and {}".format(known_substance, qty, unknown_substance))
+    logger.debug("Attempting mol mass ratio calcuation using {} ({}) and {}".format(known_substance, qty, unknown_substance))
 
     return qty * (Formula(unknown_substance).mass / Formula(known_substance).mass)
 
@@ -90,7 +90,7 @@ def Combustion(known_substance, qty, unknown_substance, var, emissions_dict=Fals
     This function can write CO2 and waste heat emissions to a given emission dictionary, if provided.
     Requires 'df_fuels' lookup dictionary to exist, with an index of the fuel name, and columns for 'HHV', and 'CO2.
     """
-    logger.info("Attempting combustion calcuation for {} using qty {} of {} and efficiency of {}".format(unknown_substance, qty, known_substance, var))
+    logger.debug("Attempting combustion calcuation for {} using qty {} of {} and efficiency of {}".format(unknown_substance, qty, known_substance, var))
 
     if known_substance not in fuels_dict.index and unknown_substance not in fuels_dict.index:
         raise Exception("Neither {} nor {} is a known_substance fuel type".format(known_substance, unknown_substance))
@@ -123,13 +123,13 @@ def Combustion(known_substance, qty, unknown_substance, var, emissions_dict=Fals
         emissions_dict['waste heat'] += wasteHeat
     
     else:
-        logger.info("Emission Data discarded: \n \
+        logger.debug("Emission Data discarded: \n \
             CO2: {}, waste heat: {}".format(CO2emitted, wasteHeat))
 
     return return_qty
 
 #Calculation Type lookup dictionary
-calculations_dict = {
+calcs_dict = {
     'ratio': Ratio,
     'remainder': Remainder,
     'molmassratio': MolMassRatio,

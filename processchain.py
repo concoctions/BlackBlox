@@ -37,6 +37,7 @@ class ProductChain:
         Checks the given process chain to ensure that the inflows and outflows
         specified exist in the corresponding unit processes.
         """
+        logger.debug(f"initializing chain for {self.name}")
         process_list = []
 
         for index, process_row in self.process_chain_df.iterrows():
@@ -62,7 +63,7 @@ class ProductChain:
                 self.default_product = process_list[-1]["i"]
 
             else:
-                logger.info(f"No default product found for {self.name}.")
+                logger.debug(f"No default product found for {self.name}.")
 
     
     def balance(self, product_qty, product=False, var_i="default"):
@@ -99,13 +100,12 @@ class ProductChain:
         # balancing individual unit processes in chain
         for i, unit in enumerate(chain):
             process = unit['process']
-            print(f"balancing {process.name}")
 
             if i != 0:
                 product = unit[i_o]
                 product_qty = io_dicts[io_opposite][previous_process.name][product]
 
-            logger.info(f"balancing {process.name} on {product_qty} of {product}({i_o}) using {var_i} variables.")
+            logger.debug(f"balancing {process.name} on {product_qty} of {product}({i_o}) using {var_i} variables.")
 
             io_dicts["i"][process.name], io_dicts["o"][process.name] = process.balance(
              product_qty, product, i_o, var_i)
@@ -163,11 +163,16 @@ class ProductChain:
                 product_flow.node(unit['process'].name)
                 product_flow.edge(inflows, unit['process'].name)
 
-                if outflows != unit['o']:
+                if len(self.process_list) == 1:
+                    product_flow.node(outflows, color='white')
+                    product_flow.edge(unit['process'].name, outflows)
+
+                elif outflows != unit['o']:
                     if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
                     outflows = outflows.replace(unit['o'], '')
                     diagram.node(outflows, color='white', fontcolor='grey')
                     diagram.edge(unit['process'].name, outflows)
+
 
             elif i < len(self.process_list) - 1:
                 product_flow.node(unit['process'].name)
@@ -206,43 +211,3 @@ class ProductChain:
 
         diagram.format = 'svg'
         diagram.render()
-
-
-
-# class Factory:
-#     """
-#     Factories are made up of one or more product chains, and balance on a specified
-#     output product. Product chains that are not the main output product balance
-#     on the relevent inputs and outputs of the main product. All product chains in
-#     a factory should be run using variables from the same scenario
-#     """
-
-#     def __init__(self, factory_data, name="Factory"):
-#         self.name = name
-
-#         self.factory_df = iof.check_if_df(chain_data, index=None)
-   
-#         self.default_product = False
-#         self.chain_list = False
-
-#     def initalize_factory(self):
-
-#     def run_scenarios(self, scenario_list=[default_scenario]):
-
-#     def diagram(self):
-
-
-# class Industry:
-#     """
-#     Industries are made up of one or more factories, and are balanced on one or more
-#     factory products. Factories within an industry can run with different scenario
-#     data. Industries can change over time.
-#     """
-
-#     def __init__(self, industry_data, name='Industry'):
-
-#     def run_scenarios(self, scenario_list=[default_scenario]):
-
-#     def evolve(self, start_scenarios, end_scenarios):
-
-    
