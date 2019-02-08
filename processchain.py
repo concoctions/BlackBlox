@@ -56,17 +56,17 @@ class ProductChain:
         self.process_list = process_list
 
         if not self.default_product:
-            if process_list[-1]["o"] in process_list[-1]["process"].outflows:
-                self.default_product = process_list[-1]["o"]
+            if process_list[-1]['o'] in process_list[-1]['process'].outflows:
+                self.default_product = process_list[-1]['o']
 
-            elif process_list[0]["i"] in process_list[0]["process"].inflows:
-                self.default_product = process_list[-1]["i"]
+            elif process_list[0]['i'] in process_list[0]['process'].inflows:
+                self.default_product = process_list[-1]['i']
 
             else:
                 logger.debug(f"No default product found for {self.name}.")
 
     
-    def balance(self, product_qty, product=False, var_i="default"):
+    def balance(self, qty, product=False, i_o=False, var_i='default'):
         """
 
         """
@@ -78,24 +78,28 @@ class ProductChain:
         if not product:
             product = self.default_product
 
+        if i_o:
+            i_o = str.lower(i_o[0])
         
-        if product in chain[-1]['process'].outflows:
+        if product in chain[-1]['process'].outflows and i_o != 'i':
             chain.reverse()
-            i_o = "o"
-            io_opposite = "i"
+            i_o = 'o'
+            io_opposite = 'i'
 
 
-        elif product in chain[0]['process'].inflows:
-            i_o = "i"
-            io_opposite = "o"
+        elif product in chain[0]['process'].inflows and i_o != 'o':
+            i_o = 'i'
+            io_opposite = 'o'
         
         else:
             raise KeyError(f"{product} not found as input or outflow of chain.")
 
         io_dicts = {
-            "i": defaultdict(lambda: defaultdict(float)), 
-            "o": defaultdict(lambda: defaultdict(float))
+            'i': defaultdict(lambda: defaultdict(float)), 
+            'o': defaultdict(lambda: defaultdict(float))
             }
+
+        intermediate_product_dict = defaultdict(float)
 
         # balancing individual unit processes in chain
         for i, unit in enumerate(chain):
@@ -103,44 +107,50 @@ class ProductChain:
 
             if i != 0:
                 product = unit[i_o]
-                product_qty = io_dicts[io_opposite][previous_process.name][product]
+                qty = io_dicts[io_opposite][previous_process.name][product]
+                intermediate_product_dict[product] = qty
 
-            logger.debug(f"balancing {process.name} on {product_qty} of {product}({i_o}) using {var_i} variables.")
+            logger.debug(f"balancing {process.name} on {qty} of {product}({i_o}) using {var_i} variables.")
 
-            io_dicts["i"][process.name], io_dicts["o"][process.name] = process.balance(
-             product_qty, product, i_o, var_i)
+            io_dicts['i'][process.name], io_dicts['o'][process.name] = process.balance(
+             qty, product, i_o, var_i)
 
             previous_process = process
 
         totals = {
-            "i": defaultdict(float),
-            "o": defaultdict(float)
+            'i': defaultdict(float),
+            'o': defaultdict(float)
             }
 
-        for process, inflows_dict in io_dicts["i"].items():
+        for process, inflows_dict in io_dicts['i'].items():
             for inflow, qty in inflows_dict.items():
-                totals["i"][inflow] += qty
+                totals['i'][inflow] += qty
     
-        for process, outflows_dict in io_dicts["o"].items():
+        for process, outflows_dict in io_dicts['o'].items():
             for outflow, qty in outflows_dict.items():
-                totals["o"][outflow] += qty
+                totals['o'][outflow] += qty
 
-        for i, unit in enumerate(chain): # removes intermediate products
-            process = unit['process']
+        for io_dict in totals:
+            for product, qty in intermediate_product_dict.items():
+                totals[io_dict][product] -= qty
 
-            if i != 0:
-                intermediate_product = unit[i_o]
-                totals[i_o][intermediate_product] -= io_dicts[i_o][process.name][intermediate_product]
-
-            if i != len(chain) - 1:
-                intermediate_product = unit[io_opposite]
-                totals[io_opposite][intermediate_product] -= io_dicts[io_opposite][process.name][intermediate_product]
-
-
-        io_dicts["i"]["chain inputs"] = totals["i"]
-        io_dicts["o"]["chain outputs"] = totals["o"]
         
-        return io_dicts
+        # for i, unit in enumerate(chain): 
+        #     process = unit['process']
+
+        #     if i != 0:
+        #         intermediate_product = unit[i_o]
+        #         totals[i_o][intermediate_product] -= io_dicts[i_o][process.name][intermediate_product]
+
+        #     if i != len(chain) - 1:
+        #         intermediate_product = unit[io_opposite]
+        #         totals[io_opposite][intermediate_product] -= io_dicts[io_opposite][process.name][intermediate_product]
+
+
+        io_dicts['i']["chain totals"] = totals['i']
+        io_dicts['o']["chain totals"] = totals['o']
+        
+        return io_dicts['i'], io_dicts['o']
 
 
     def diagram(self):

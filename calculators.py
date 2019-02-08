@@ -71,6 +71,9 @@ def Remainder(qty, var, invert = False, **kwargs):
     else:
         return qty * ratioRemaining
 
+def ReturnSame(qty, **kwargs):
+    return qty
+
 def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
     """
     Molecultar Mass Ratio Calculation
@@ -133,5 +136,6 @@ calcs_dict = {
     'ratio': Ratio,
     'remainder': Remainder,
     'molmassratio': MolMassRatio,
-    'combustion': Combustion
+    'combustion': Combustion,
+    'returnsame': ReturnSame
 }

@@ -1,4 +1,4 @@
 ChainName	ChainProduct	Product_IO	ChainFile
-cement	main	cement	outflow	chainFiles/cementFlow.tsv
-CO2capture	aux	CO2	inflow	chainFiles/CO2CapFlow.tsv
-power	aux	electricity	outflow	chainFiles/powerFlow.tsv
+cement	cement	outflow	chainFiles/cementFlow.tsv
+CO2capture	CO2	inflow	chainFiles/CO2CapFlow.tsv
+power	electricity	outflow	chainFiles/powerFlow.tsv

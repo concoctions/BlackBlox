@@ -1,3 +1,5 @@
-OriginChain	OriginProcess	Product	Product_IO_of_Origin	DestinationChain
-cement	kiln	CO2	outflow	CO2capture
-all	all	electricity	inflow	power
+OriginChain	OriginProcess	Product	Product_IO_of_Origin	Product_IO_of_Destination	DestinationChain
+cement	kiln	CO2	outflow	inflow	CO2capture
+cement	all	electricity	inflow	outflow	power
+CO2capture	all	electricity	inflow	outflow	power
+

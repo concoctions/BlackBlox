@@ -154,7 +154,7 @@ class UnitProcess:
             # performed specified calculation
             
             if calc_type not in calc.calcs_dict:
-                raise Exception(f"{calculation_type} is an unknown_substance calculation type")
+                raise Exception(f"{calc_type} is an unknown_substance calculation type")
 
             qty_known = io_dicts[known_io][known_substance]
             kwargs = dict(qty=qty_known, var=var, known_substance=known_substance, 

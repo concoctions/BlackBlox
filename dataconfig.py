@@ -30,7 +30,7 @@ outflow_col = 'Outflow'
 process_col = 'Process'
 
 # specify factory files column headers
-chain_name_col = 'ChainName'
+chain_name = 'ChainName'
 chain_product = 'ChainType'
 chain_product = 'ChainProduct'
 chain_io = 'Product_IO'
@@ -43,7 +43,8 @@ origin_chain = "OriginChain"
 origin_process = "OriginProcess"
 dest_chain = "DestinationChain"
 connect_product = "Product"
-connect_io = "Product_IO_of_Origin"
+origin_io = "Product_IO_of_Origin"
+destination_io = "Product_IO_of_Destination"
 connect_all = 'all'
 
 # Specify lookup variables (if seen in calc file, replaces with specific value from variable file)
