@@ -1,4 +1,5 @@
 import pandas as pan
+import dataconfig as dat
 
 
 def makeDF(filePath, sheet=None, sep='\t', index=0, metaprefix = "meta", T = False):
@@ -57,7 +58,7 @@ def check_if_df(data, sheet=None, index=0):
     else:
         return makeDF(data, sheet=sheet, index=index)
 
-def write_to_excel(df_or_df_list, sheet_list=None, filedir= '', filename='output'):
+def write_to_excel(df_or_df_list, sheet_list=None, filedir='outputFiles', filename='output'):
     """writes one or more dataframes to a single excel file
 
     args:
@@ -73,7 +74,6 @@ def write_to_excel(df_or_df_list, sheet_list=None, filedir= '', filename='output
     """
     if isinstance(df_or_df_list, pan.DataFrame):
         df_or_df_list.to_excel(filedir+filename+'.xlsx')
-
     
     else:
         with pan.ExcelWriter(filedir+filename+'.xlsx') as writer:

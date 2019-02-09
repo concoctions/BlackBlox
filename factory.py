@@ -2,6 +2,7 @@ import pandas as pan
 from molmass import Formula
 from collections import defaultdict
 from graphviz import Digraph
+from datetime import datetime
 
 from bb_log import get_logger
 
@@ -69,7 +70,7 @@ class Factory:
 
         self.chain_dict = chain_dict
 
-    def balance(self, main_product_qty, var_i=dat.default_scenario):
+    def balance(self, main_product_qty, var_i=dat.default_scenario, write_to_xls=True):
         if not self.chain_dict:
             self.initalize_factory()
 
@@ -88,7 +89,7 @@ class Factory:
         io_dicts['i'][m['name']], io_dicts['o'][m['name']] = m['chain'].balance(
             main_product_qty, product= m['product'], var_i=var_i)
 
-        for i, c in self.connections_df.iterrows():    
+        for dummy_index, c in self.connections_df.iterrows():    
             qty = False
             o_io = iof.fl(c[dat.origin_io])
             d_io = iof.fl(c[dat.dest_io])
@@ -110,7 +111,7 @@ class Factory:
                 
                 intermediate_product_dict[product] += qty
                 
-                print(f"{qty} of {product} as product from {o['name']} ({o_io}) to {d['name']} ({d_io})")
+                logger.debug(f"{qty} of {product} as product from {o['name']} ({o_io}) to {d['name']} ({d_io})")
 
                 i_tmp, o_tmp = d['chain'].balance(qty, product=product, i_o=d_io, var_i=var_i)
 
@@ -146,13 +147,56 @@ class Factory:
                 print(product, qty)
                 totals[io_dict][product] -= qty
 
-        io_dicts['i']["factory inflows"]['factory totals'] = totals['i']
-        io_dicts['o']["factory outflows"]['factory totals'] = totals['o']
+        io_dicts['i']['factory inflows']['factory totals'] = totals['i']
+        io_dicts['o']['factory outflows']['factory totals'] = totals['o']
+
+        if write_to_xls is True:
+            filename = f'f_{self.name}_{var_i}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
+
+            totals = defaultdict(lambda: defaultdict(float))
+            totals['factory inflows'] = io_dicts['i']['factory inflows']['factory totals']
+            totals['factory outflows'] = io_dicts['o']['factory outflows']['factory totals']
+            totalsDF = pan.DataFrame(totals)
+
+            df_list = [totalsDF]
+            sheet_list = [f'{self.name} totals']
+
+            all_inflows = defaultdict(lambda: defaultdict(float))
+            all_outflows = defaultdict(lambda: defaultdict(float))
+
+            for chain_dict in io_dicts['i']:
+                if chain_dict != 'factory inflows':
+                    chain_inflow_df = pan.DataFrame(io_dicts['i'][chain_dict])
+                    df_list.append(chain_inflow_df)
+                    sheet_list.append(chain_dict+" inflows")
+
+                    chain_outflow_df = pan.DataFrame(io_dicts['o'][chain_dict])
+                    df_list.append(chain_outflow_df)
+                    sheet_list.append(chain_dict+" outflows")
+
+                for process_dict in io_dicts['i'][chain_dict]:
+                    if 'total' not in process_dict:
+                        for substance, qty in io_dicts['i'][chain_dict][process_dict].items():
+                            all_inflows[process_dict][substance] = qty
+                        for substance, qty in io_dicts['o'][chain_dict][process_dict].items():
+                            all_outflows[process_dict][substance] = qty
+
+            all_outflows_df = pan.DataFrame(all_outflows)
+            df_list.insert(1,all_outflows_df)
+            sheet_list.insert(1, "unit outflow matrix")
+
+            print(all_inflows)
+            all_inflows_df = pan.DataFrame(all_inflows)
+            print(all_inflows_df)
+            df_list.insert(1, all_inflows_df)
+            sheet_list.insert(1, "unit inflow matrix")
+
+            iof.write_to_excel(df_list, sheet_list=sheet_list, 
+                               filedir=dat.outdir, filename=filename)
+
         
         return io_dicts['i'], io_dicts['o']
 
-
-    # def run_scenarios(self, scenario_list=[default_scenario]):
 
     def diagram(self):
         """ Outputs a diagram of the factory flows to file.
@@ -214,7 +258,7 @@ class Factory:
                 inflows = '\n'.join(unit['process'].inflows)
                 outflows = '\n'.join(unit['process'].outflows)
 
-                for index, c in self.connections_df.iterrows():
+                for dummy_index, c in self.connections_df.iterrows():
                     if chain == c[dat.origin_chain]:
                         if process == c[dat.origin_process] or c[dat.origin_process] == dat.connect_all:
                             if iof.fl(c[dat.origin_io]) == 'i':

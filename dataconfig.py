@@ -1,6 +1,9 @@
 from io_functions import makeDF
 from pathlib import Path
 
+# output directory  
+outdir = 'outputFiles/'
+
 # global data file
 globalData = 'excelData/globalData.xlsx'
 

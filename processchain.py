@@ -117,6 +117,21 @@ class ProductChain:
 
             previous_process = process
 
+        if i_o == 'o':
+            # as of python 3.7 dictionary iteration is guaranteed to be in insertion order
+            # so reversing the dictionaries of output-based chains allows the dictionary
+            # to be iterated in the order of chain processes.
+            rev_inflows_dict = defaultdict(lambda: defaultdict(float))
+            rev_outflows_dict = defaultdict(lambda: defaultdict(float))
+
+            for p in self.process_list:
+                rev_inflows_dict[p['process'].name] = io_dicts['i'][p['process'].name]
+                rev_outflows_dict[p['process'].name] = io_dicts['o'][p['process'].name]
+            
+            io_dicts.clear()
+            io_dicts['i'] = rev_inflows_dict
+            io_dicts['o'] = rev_outflows_dict
+            
         totals = {
             'i': defaultdict(float),
             'o': defaultdict(float)
@@ -133,18 +148,6 @@ class ProductChain:
         for io_dict in totals:
             for product, qty in intermediate_product_dict.items():
                 totals[io_dict][product] -= qty
-
-        
-        # for i, unit in enumerate(chain): 
-        #     process = unit['process']
-
-        #     if i != 0:
-        #         intermediate_product = unit[i_o]
-        #         totals[i_o][intermediate_product] -= io_dicts[i_o][process.name][intermediate_product]
-
-        #     if i != len(chain) - 1:
-        #         intermediate_product = unit[io_opposite]
-        #         totals[io_opposite][intermediate_product] -= io_dicts[io_opposite][process.name][intermediate_product]
 
 
         io_dicts['i']["chain totals"] = totals['i']

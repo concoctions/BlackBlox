@@ -316,7 +316,7 @@ factory.initalize_factory()
 print("\nchain dict:",factory.chain_dict)
 print("\nmain chain:",factory.chain_dict[factory.main_chain])
 
-inflows, outflows = factory.balance(1.0, var_i='default')
+inflows, outflows = factory.balance(1.0, var_i='default', write_to_xls=False)
 
 print('factory inflows dictionaries')
 
@@ -327,5 +327,7 @@ for inflow_dict in inflows:
 for outflow_dict in outflows:
 #    print(outflows[outflow_dict], "\n")
     print(pan.DataFrame(outflows[outflow_dict]), "\n")
+
+factory.balance(1.0, var_i='default')
 
 factory.diagram()
