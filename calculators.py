@@ -71,12 +71,17 @@ def Remainder(qty, var, invert = False, **kwargs):
     else:
         return qty * ratioRemaining
 
-def ReturnSame(qty, **kwargs):
+def ReturnValue(qty, **kwargs):
+    """
+    Returns the value passed as the qty argument. Useful for creating temporary
+    values with unique names in the unit process's temporary dictionary if
+    substance of same name exists in both input and output dictionary.
+    """
     return qty
 
 def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
     """
-    Molecultar Mass Ratio Calculation
+    Molecular Mass Ratio Calculation
 
     Y = X * (MolMass[X] / MolMass[Y])
     """
@@ -137,5 +142,5 @@ calcs_dict = {
     'remainder': Remainder,
     'molmassratio': MolMassRatio,
     'combustion': Combustion,
-    'returnsame': ReturnSame
+    'returnvalue': ReturnValue
 }

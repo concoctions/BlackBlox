@@ -44,7 +44,7 @@ origin_process = "OriginProcess"
 dest_chain = "DestinationChain"
 connect_product = "Product"
 origin_io = "Product_IO_of_Origin"
-destination_io = "Product_IO_of_Destination"
+dest_io = "Product_IO_of_Destination"
 connect_all = 'all'
 
 # Specify lookup variables (if seen in calc file, replaces with specific value from variable file)

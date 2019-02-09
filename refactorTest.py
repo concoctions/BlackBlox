@@ -219,23 +219,23 @@ logger = get_logger("testing")
 #         print(u1_in)
 #         print(u1_out)
 
-print("\nFlow Test\n")
+# print("\nFlow Test\n")
 
 flowTSV = "chainFiles/cementFlow.tsv"
 
 chain = ProductChain(flowTSV, "cement production")
 
-print(chain.name)
+# print(chain.name)
 # print(chain.process_chain_df)
 # print(chain.process_list)
 
 # chain.initialize_chain()
 # print(chain.process_list)
 
-inflows, outflows = chain.balance(1.0, var_i="default")
+# inflows, outflows = chain.balance(1.0, var_i="default")
 
-print("inputs\n", pan.DataFrame(inflows), "\n")
-print("outputs\n", pan.DataFrame(outflows), "\n")
+# print("inputs\n", pan.DataFrame(inflows), "\n")
+# print("outputs\n", pan.DataFrame(outflows), "\n")
 
 # inflows, outflows = chain.balance(0.452447, product="CaCO3", var_i="EU-bat")
 
@@ -247,22 +247,22 @@ print("outputs\n", pan.DataFrame(outflows), "\n")
 # print("inputs\n", pan.DataFrame(inflows), "\n")
 # print("outputs\n", pan.DataFrame(outflows), "\n")
 
-# chain.diagram()
+chain.diagram()
 
 
-flowTSV = "chainFiles/CO2CapFlow.tsv"
+# flowTSV = "chainFiles/CO2CapFlow.tsv"
 
-chain = ProductChain(flowTSV, "CO2 capture")
+# chain = ProductChain(flowTSV, "CO2 capture")
 
-print(chain.name)
+# print(chain.name)
 # print(chain.process_chain_df)
 # print(chain.process_list)
 
 
-inflows, outflows = chain.balance(0.744351, product="CO2", i_o="i", var_i='default')
+# inflows, outflows = chain.balance(0.744351, product="CO2", i_o="i", var_i='default')
 
-print("inputs\n", pan.DataFrame(inflows), "\n")
-print("outputs\n", pan.DataFrame(outflows), "\n")
+# print("inputs\n", pan.DataFrame(inflows), "\n")
+# print("outputs\n", pan.DataFrame(outflows), "\n")
 
 # inflows, outflows = chain.balance(1.0, product="compressedCO2", var_i="EU-bat")
 
@@ -276,11 +276,11 @@ print("outputs\n", pan.DataFrame(outflows), "\n")
 
 # chain.diagram()
 
-flowTSV = "chainFiles/powerFlow.tsv"
+# flowTSV = "chainFiles/powerFlow.tsv"
 
-chain = ProductChain(flowTSV, "Electricity Generation")
+# chain = ProductChain(flowTSV, "Electricity Generation")
 
-print(chain.name)
+# print(chain.name)
 # print(chain.process_chain_df)
 # print(chain.process_list)
 
@@ -289,10 +289,10 @@ print(chain.name)
 # print("inputs\n", pan.DataFrame(inflows), "\n")
 # print("outputs\n", pan.DataFrame(outflows), "\n")
 
-inflows, outflows = chain.balance(180.093237, product="electricity", var_i="default")
+# inflows, outflows = chain.balance(180.093237, product="electricity", var_i="default")
 
-print("inputs\n", pan.DataFrame(inflows), "\n")
-print("outputs\n", pan.DataFrame(outflows), "\n")
+# print("inputs\n", pan.DataFrame(inflows), "\n")
+# print("outputs\n", pan.DataFrame(outflows), "\n")
 
 # inflows, outflows = chain.balance(0.174018, product="fuel", var_i="EU-old")
 
@@ -306,9 +306,9 @@ print("\nFactory Test\n")
 factory = Factory('chainFiles/cementFactoryChains.tsv', 
         'chainFiles/cementFactoryConnections.tsv', name='cement factory')
 
-# print("\nname",factory.name,"\n")
-# print("\nchain DF\n",factory.chains_df)
-# print("\nchain DF\n",factory.connections_df)
+print("\nname",factory.name,"\n")
+print("\nchain DF\n",factory.chains_df)
+print("\nchain DF\n",factory.connections_df)
 
 factory.initalize_factory()
 
@@ -326,3 +326,5 @@ for inflow_dict in inflows:
 for outflow_dict in outflows:
 #    print(outflows[outflow_dict], "\n")
     print(pan.DataFrame(outflows[outflow_dict]), "\n")
+
+factory.diagram()

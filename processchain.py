@@ -153,71 +153,79 @@ class ProductChain:
         return io_dicts['i'], io_dicts['o']
 
 
-    def diagram(self):
+    def diagram(self, view_diagram=True, return_diagram=False):
+
+        c = self.name
 
         if not self.process_list:
             self.initialize_chain()
 
-        diagram = Digraph(name=self.name, directory='outputFiles', format='png')
-        product_flow = Digraph('mainflow')
+        chain_diagram = Digraph(name=self.name, directory='outputFiles', format='png')
+        product_flow = Digraph('mainflow_'+self.name)
         product_flow.graph_attr.update(rank='same')
-        product_flow.attr('node', shape='box', style='', color='', fontcolor='')
-        diagram.attr('node', shape='box')
+        product_flow.attr('node', shape='box')
+        chain_diagram.attr('node', shape='box')
 
         for i, unit in enumerate(self.process_list):
+            name = unit['process'].name
             inflows = '\n'.join(unit['process'].inflows)
             outflows = '\n'.join(unit['process'].outflows)
 
             if i == 0:
-                product_flow.node(inflows, color='white')
-                product_flow.node(unit['process'].name)
-                product_flow.edge(inflows, unit['process'].name)
+                chain_diagram.node(c+name+inflows, label=inflows, color='white')
+                product_flow.node(c+name, label=name)
+                chain_diagram.edge(c+name+inflows, c+name)
 
                 if len(self.process_list) == 1:
-                    product_flow.node(outflows, color='white')
-                    product_flow.edge(unit['process'].name, outflows)
+                    chain_diagram.node(c+name+outflows, label=outflows, color='white')
+                    chain_diagram.edge(c+name, c+name+outflows)
 
                 elif outflows != unit['o']:
-                    if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
                     outflows = outflows.replace(unit['o'], '')
-                    diagram.node(outflows, color='white', fontcolor='grey')
-                    diagram.edge(unit['process'].name, outflows)
+                    if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
+                    chain_diagram.node(c+name+outflows, label=outflows, color='white')
+                    chain_diagram.edge(c+name, c+name+outflows)
 
 
             elif i < len(self.process_list) - 1:
-                product_flow.node(unit['process'].name)
-                product_flow.edge(prevunit['process'].name, unit['process'].name, label=unit['i'])
+                product_flow.node(c+name, label=name)
+                product_flow.edge(c+prevunit, c+name, label=unit['i'])
 
                 if inflows != unit['i']:
                     inflows = inflows.replace(unit['i'], '')
                     if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
-                    diagram.node(inflows, color='white', fontcolor='grey')
-                    diagram.edge(inflows, unit['process'].name, color='grey')
+                    chain_diagram.node(c+name+inflows, label=inflows, color='white')
+                    chain_diagram.edge(c+name+inflows, c+name)
 
                 if outflows != unit['o']:
                     outflows = outflows.replace(unit['o'], '')
                     if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
-                    diagram.node(outflows, color='white', fontcolor='grey')
-                    diagram.edge(unit['process'].name, outflows, color='grey')
+                    chain_diagram.node(c+name+outflows, label=outflows, color='white')
+                    chain_diagram.edge(c+name, c+name+outflows)
 
             else:
-                product_flow.node(unit['process'].name)
-                product_flow.edge(prevunit['process'].name, unit['process'].name, label=unit['i'])
+                product_flow.node(c+name, label=name)
+                product_flow.edge(c+prevunit, c+name, label=unit['i'])
 
                 if inflows != unit['i']:
                     inflows = inflows.replace(unit['i'], '')
                     if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
-                    diagram.node(inflows, color='white', fontcolor='grey')
-                    diagram.edge(inflows, unit['process'].name, color='grey')
+                    chain_diagram.node(c+name+inflows, label=inflows, color='white')
+                    chain_diagram.edge(c+name+inflows, c+name)
 
-                product_flow.node(outflows, color='white')
-                product_flow.edge(unit['process'].name, outflows)
+                chain_diagram.node(c+name+outflows, label=outflows, color='white')
+                chain_diagram.edge(c+name, c+name+outflows)
 
-            prevunit = unit
+            prevunit = name
 
-            
-        diagram.subgraph(product_flow)
-        diagram.view()
+        chain_diagram.subgraph(product_flow)
 
-        diagram.format = 'svg'
-        diagram.render()
+        if view_diagram is True:
+            chain_diagram.view()
+
+
+        chain_diagram.format = 'svg'
+        chain_diagram.render()
+
+        if return_diagram:
+            return product_flow
