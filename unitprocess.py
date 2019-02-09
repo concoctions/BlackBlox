@@ -33,11 +33,19 @@ class UnitProcess:
         logger.debug(f"creating unit process object for {name}")
         self.name = name
 
-        self.var_df = iof.check_if_df(var_df, 
-            alt_data=units_df.at[name, dat.var_filepath])
+        if var_df is not False:
+            self.var_df = var_df
+        else:
+            v_sheet = iof.check_sheet(units_df, dat.var_sheetname, name)
+            self.var_df = iof.makeDF(units_df.at[name, dat.var_filepath], 
+                          sheet=v_sheet)
 
-        self.calc_df = iof.check_if_df(calc_df, 
-            alt_data=units_df.at[name, dat.calc_filepath], index=None)
+        if calc_df is not False:
+            self.calc_df = calc_df
+        else:
+            c_sheet = iof.check_sheet(units_df, dat.calc_sheetname, name)
+            self.calc_df = iof.makeDF(units_df.at[name, dat.calc_filepath], 
+                               sheet=c_sheet, index=None)
 
         #create sets of process inflows and outflows
         self.default_product = units_df.at[name, dat.unit_product]
@@ -48,26 +56,24 @@ class UnitProcess:
         
         for i in self.calc_df.index: 
             products = [ (self.calc_df.at[i, dat.known], 
-                str.lower(self.calc_df.at[i, dat.known_io])),
+                iof.fl(self.calc_df.at[i, dat.known_io])),
                  (self.calc_df.at[i, dat.unknown],
-                 str.lower(self.calc_df.at[i, dat.unknown_io]))]
+                 iof.fl(self.calc_df.at[i, dat.unknown_io]))]
 
             for product, i_o in products:
-                if i_o.startswith('i'):
+                if i_o == 'i':
                     self.inflows.add(product)
-                elif i_o.startswith('o'):
+                elif i_o == 'o':
                     self.outflows.add(product)
             
  
     def balance(self, qty, product=False, i_o=False, 
-                var_i=False, show=False):
+                var_i=False):
         """
         # product: final input or outflow on which to balance the calculations
         # qty: desired final quantity of product
         # i_o: whether product is an input (i) or outflow (o)
         # var_i: row index of variables files to use
-        # show: whether to display the formatted inflows and outflows in the 
-        # python terminal
         """
 
         #verifies arguments
@@ -84,7 +90,7 @@ class UnitProcess:
         if var_i not in self.var_df.index.values:
             raise Exception(f'{var_i} not found in variables file')
 
-        if str.lower(i_o[0]) not in ['i', 'o', 't', 'e']:
+        if iof.fl(i_o) not in ['i', 'o', 't', 'e']:
             raise Exception(f'{i_o} not valid product destination')
 
         if product in dat.lookup_var_dict:
@@ -102,7 +108,7 @@ class UnitProcess:
             'e' : defaultdict(float)     # emissions dictionary - adds value to outflow dictionary at end of function
         }
 
-        io_dicts[str.lower(i_o[0])][product] = qty
+        io_dicts[iof.fl(i_o)][product] = qty
                
         i = 0
         attempt = 0
@@ -116,14 +122,14 @@ class UnitProcess:
 
             # setup loop variables
             known_substance = calc_df.at[i, dat.known]
-            known_io =str.lower(calc_df.at[i, dat.known_io][0]) # shortens to i, o, or t (lower case)
-            unknown_io = str.lower(calc_df.at[i, dat.unknown_io][0]) # shortens to i, o or t (lower case)
+            known_io =iof.fl(calc_df.at[i, dat.known_io]) # shortens to i, o, or t (lower case)
+            unknown_io = iof.fl(calc_df.at[i, dat.unknown_io]) # shortens to i, o or t (lower case)
             unknown_substance = calc_df.at[i, dat.unknown]
-            calc_type = str.lower(calc_df.at[i, dat.calc_type])
+            calc_type = iof.s_l(calc_df.at[i, dat.calc_type])
             invert = False
             var = False
 
-            if str.lower(calc_df.at[i, dat.calc_var]) not in dat.no_var:
+            if iof.s_l(calc_df.at[i, dat.calc_var]) not in dat.no_var:
                 var = self.var_df.at[var_i, calc_df.at[i, dat.calc_var]] 
 
             logger.debug(f"current index: {i}, current product: {known_substance}")
@@ -151,8 +157,6 @@ class UnitProcess:
                 logger.debug(f"neither {known_substance} nor {unknown_substance} found, skipping for now")
                 continue
             
-            # performed specified calculation
-            
             if calc_type not in calc.calcs_dict:
                 raise Exception(f"{calc_type} is an unknown_substance calculation type")
 
@@ -160,6 +164,7 @@ class UnitProcess:
             kwargs = dict(qty=qty_known, var=var, known_substance=known_substance, 
             unknown_substance=unknown_substance, invert=invert, emissions_dict=io_dicts['e'])
 
+            logger.debug(f"Attempting {calc_type} calculation for {unknown_substance} using {qty} of {known_substance}")
             qty_calculated = calc.calcs_dict[calc_type](**kwargs)
 
             if unknown_io not in io_dicts:
@@ -170,7 +175,7 @@ class UnitProcess:
             calc_df = calc_df.drop(i)
             calc_df = calc_df.reset_index(drop=True)
 
-            logger.debug(f"{len(calc_df)} calculations remaining.")
+            logger.debug(f"{qty_calculated} of {unknown_substance} calculated. {len(calc_df)} calculations remaining.")
             attempt = 0
 
 

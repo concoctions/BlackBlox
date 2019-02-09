@@ -221,9 +221,9 @@ logger = get_logger("testing")
 
 # print("\nFlow Test\n")
 
-flowTSV = "chainFiles/cementFlow.tsv"
+# flowTSV = "chainFiles/cementFlow.tsv"
 
-chain = ProductChain(flowTSV, "cement production")
+# chain = ProductChain(flowTSV, "cement production")
 
 # print(chain.name)
 # print(chain.process_chain_df)
@@ -247,7 +247,7 @@ chain = ProductChain(flowTSV, "cement production")
 # print("inputs\n", pan.DataFrame(inflows), "\n")
 # print("outputs\n", pan.DataFrame(outflows), "\n")
 
-chain.diagram()
+# chain.diagram()
 
 
 # flowTSV = "chainFiles/CO2CapFlow.tsv"
@@ -303,12 +303,13 @@ chain.diagram()
 
 print("\nFactory Test\n")
 
-factory = Factory('chainFiles/cementFactoryChains.tsv', 
-        'chainFiles/cementFactoryConnections.tsv', name='cement factory')
+factory = Factory('excelData/cementFactory.xlsx', 'excelData/cementFactory.xlsx', 'Chain List', 'Connections', name="cement factory")
+# factory = Factory('chainFiles/cementFactoryChains.tsv', 
+#         'chainFiles/cementFactoryConnections.tsv', name='cement factory')
 
 print("\nname",factory.name,"\n")
 print("\nchain DF\n",factory.chains_df)
-print("\nchain DF\n",factory.connections_df)
+print("\nconnections DF\n",factory.connections_df)
 
 factory.initalize_factory()
 

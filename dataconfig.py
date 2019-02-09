@@ -1,16 +1,20 @@
 from io_functions import makeDF
 from pathlib import Path
 
+# global data file
+globalData = 'excelData/globalData.xlsx'
 
 # get list of unit processes
-df_unit_library = makeDF(Path('globalData/unitList.tsv'))
+df_unit_library = makeDF(globalData, sheet='Unit Processes')
 
 # specify unitListTSV column headers:
 unit_name_col = 'name'
 unit_product = 'product'
 unit_product_io = 'productType'
 var_filepath = 'varFile'
+var_sheetname = 'varSheet'
 calc_filepath = 'calcFile'
+calc_sheetname = 'calcSheet'
 
 # specify calculation file column headers:
 known = 'KnownQty'
@@ -35,6 +39,7 @@ chain_product = 'ChainType'
 chain_product = 'ChainProduct'
 chain_io = 'Product_IO'
 chain_filepath = 'ChainFile'
+chain_sheetname = 'ChainSheet'
 main_chain = 'main'
 aux_chain_sig = 'aux'
 multiconnect_aux_chain_sig = 'multi-aux'
@@ -49,7 +54,7 @@ connect_all = 'all'
 
 # Specify lookup variables (if seen in calc file, replaces with specific value from variable file)
 lookup_var_dict = {
-    'fuel': dict(data_frame=makeDF(Path('globalData/fuels.tsv')), lookup_var='fuelType')  #keyword string in calc file to trigger lookup: (dataframe of lookup data, column name in variable table to replace with) 
+    'fuel': dict(data_frame=makeDF(globalData, sheet='Fuels'), lookup_var='fuelType')  #keyword string in calc file to trigger lookup: (dataframe of lookup data, column name in variable table to replace with) 
     }
 
 # Specify shortcut names for lookup dataFrames:

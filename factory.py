@@ -15,17 +15,36 @@ import processchain as cha
 logger = get_logger("Factory")
 
 class Factory:
-    """
-    Factories are made up of one or more product chains, and balance on a specified
-    output product. Product chains that are not the main output product balance
-    on the relevent inputs and outputs of the main product. All product chains in
-    a factory should be run using variables from the same scenario.
+    """Factories are groups of one or more connected process chains
+
+    Factories balance on a specified output product. Product chains that 
+    are not the main output product balance on the relevent inputs and 
+    outputs of the main product. All product chains in a factory are run 
+    using variables from the same scenario.
+
+    Args:
+        chains_file: Table detailing the chains used in the factory. 
+            Must contain columns for:
+            [Chain Name, Chain Product, Product_IO, ChainFile]
+        connections_file: Table detailing the connections between
+            chains in the factory. Must contain data for:
+            [OriginChain, OriginProcess, Product, Product_IO_of_Origin, 
+            Product_IO_of_Destination, DestinationChain]    
+        name (str, optional): The name of the factory. Defaults to False.
+
+    Attributes:
+        name
+        chains_df
+        connections_df
+        main_chain
+        chain_dict
     """
 
-    def __init__(self, factory_chains_data, factory_connections_data, name="Factory"):
+    def __init__(self, chains_file, connections_file, chains_sheet=None, 
+                 connections_sheet=None, name="Factory"):
         self.name = name
-        self.chains_df = iof.check_if_df(factory_chains_data, index=None)
-        self.connections_df = iof.check_if_df(factory_connections_data, index=None)
+        self.chains_df = iof.check_if_df(chains_file, chains_sheet, index=None)
+        self.connections_df = iof.check_if_df(connections_file, connections_sheet, index=None)
         self.main_chain = False
         self.chain_dict = False
 
@@ -38,11 +57,15 @@ class Factory:
             name = c[dat.chain_name] 
             if i == 0:
                 self.main_chain = name
+            
+            chain_sheet = iof.check_sheet(self.chains_df, dat.chain_sheetname, i)
+ 
                 
-            chain_dict[name] = dict(chain=cha.ProductChain(c[dat.chain_filepath], name), 
+            chain_dict[name] = dict(chain=cha.ProductChain(c[dat.chain_filepath], 
+                                    name=name, xls_sheet=chain_sheet), 
                                     name=name, 
                                     product=c[dat.chain_product], 
-                                    i_o=str.lower(c[dat.chain_io][0]))
+                                    i_o=iof.fl(c[dat.chain_io]))
 
         self.chain_dict = chain_dict
 
@@ -67,8 +90,8 @@ class Factory:
 
         for i, c in self.connections_df.iterrows():    
             qty = False
-            o_io = str.lower(c[dat.origin_io][0])
-            d_io = str.lower(c[dat.dest_io][0])
+            o_io = iof.fl(c[dat.origin_io])
+            d_io = iof.fl(c[dat.dest_io])
 
             if c[dat.origin_chain] == dat.connect_all:
                 pass
@@ -132,11 +155,13 @@ class Factory:
     # def run_scenarios(self, scenario_list=[default_scenario]):
 
     def diagram(self):
+        """ Outputs a diagram of the factory flows to file.
+        """
 
         if not self.chain_dict:
             self.initalize_factory()
 
-        factory_diagram = Digraph(name="factory", directory='outputFiles', format='png')
+        factory_diagram = Digraph(name="factory")
         factory_diagram.attr('node', shape='box', color='black')
         factory_diagrams = dict()
         io_diagram = Digraph(name=self.name, directory='outputFiles/pfd/factories', format='png',)
@@ -157,8 +182,8 @@ class Factory:
         for i, c in self.connections_df.iterrows():
             product = c[dat.connect_product]
             origin_chain = c[dat.origin_chain]
-            o_io = str.lower(c[dat.origin_io][0])
-            d_io = str.lower(c[dat.dest_io][0])
+            o_io = iof.fl(c[dat.origin_io])
+            d_io = iof.fl(c[dat.dest_io])
             if d_io == 'i':
                 dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][0]['process'].name
             elif d_io == 'o':
@@ -192,15 +217,15 @@ class Factory:
                 for index, c in self.connections_df.iterrows():
                     if chain == c[dat.origin_chain]:
                         if process == c[dat.origin_process] or c[dat.origin_process] == dat.connect_all:
-                            if str.lower(c[dat.origin_io][0]) == 'i':
+                            if iof.fl(c[dat.origin_io]) == 'i':
                                 inflows = inflows.replace(c[dat.connect_product], '')
-                            if str.lower(c[dat.origin_io][0]) == 'o':
+                            if iof.fl(c[dat.origin_io]) == 'o':
                                 outflows = outflows.replace(c[dat.connect_product], '')
                         
                     if chain == c[dat.dest_chain]:
-                        if str.lower(c[dat.dest_io][0]) == 'i' and unit == process_list[0]:
+                        if iof.fl(c[dat.dest_io]) == 'i' and unit == process_list[0]:
                             inflows = inflows.replace(c[dat.connect_product], '')
-                        if str.lower(c[dat.dest_io][0]) == 'o' and unit == process_list[-1]:
+                        if iof.fl(c[dat.dest_io]) == 'o' and unit == process_list[-1]:
                             outflows = outflows.replace(c[dat.connect_product], '')
 
                 if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
@@ -212,7 +237,6 @@ class Factory:
                         factory_diagram.edge(chain+process+inflows, chain+process, color='black')
 
                     if len(process_list) == 1:
-                        print(outflows.isspace())
                         if outflows and not outflows.isspace():
                             io_diagram.node(chain+process+outflows, label=outflows)
                             factory_diagram.edge(chain+process, chain+process+outflows)
