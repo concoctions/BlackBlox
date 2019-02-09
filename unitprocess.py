@@ -1,5 +1,3 @@
-import pandas as pan
-from molmass import Formula
 from collections import defaultdict
 
 from bb_log import get_logger

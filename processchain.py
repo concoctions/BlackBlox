@@ -1,5 +1,3 @@
-import pandas as pan
-from molmass import Formula
 from collections import defaultdict
 from graphviz import Digraph
 
@@ -7,7 +5,6 @@ from bb_log import get_logger
 
 import io_functions as iof
 import dataconfig as dat
-import calculators as calc
 import unitprocess as unit
 
 
@@ -32,7 +29,7 @@ class ProductChain:
         self.default_product = False
         self.process_list = False
     
-    def initialize_chain(self):
+    def initialize(self):
         """
         Checks the given process chain to ensure that the inflows and outflows
         specified exist in the corresponding unit processes.
@@ -71,7 +68,7 @@ class ProductChain:
 
         """
         if not self.process_list:
-            self.initialize_chain()
+            self.initialize()
 
         chain = self.process_list.copy()
 
@@ -161,7 +158,7 @@ class ProductChain:
         c = self.name
 
         if not self.process_list:
-            self.initialize_chain()
+            self.initialize()
 
         chain_diagram = Digraph(name=self.name, directory='outputFiles/pfd/chains', format='png')
         product_flow = Digraph('mainflow_'+self.name)

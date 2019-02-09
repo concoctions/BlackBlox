@@ -1,6 +1,4 @@
 import pandas as pan
-import dataconfig as dat
-
 
 def makeDF(filePath, sheet=None, sep='\t', index=0, metaprefix = "meta", T = False):
     """ Creates a dataframe from an excel file or tab or comma seperated text file.

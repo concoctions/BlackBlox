@@ -311,7 +311,7 @@ print("\nname",factory.name,"\n")
 print("\nchain DF\n",factory.chains_df)
 print("\nconnections DF\n",factory.connections_df)
 
-factory.initalize_factory()
+factory.initalize()
 
 print("\nchain dict:",factory.chain_dict)
 print("\nmain chain:",factory.chain_dict[factory.main_chain])
@@ -328,6 +328,6 @@ for outflow_dict in outflows:
 #    print(outflows[outflow_dict], "\n")
     print(pan.DataFrame(outflows[outflow_dict]), "\n")
 
-factory.balance(1.0, var_i='default')
+# factory.balance(1.0, var_i='default')
 
-factory.diagram()
+# factory.diagram()

@@ -1,5 +1,4 @@
 import pandas as pan
-from molmass import Formula
 from collections import defaultdict
 from graphviz import Digraph
 from datetime import datetime
@@ -8,8 +7,6 @@ from bb_log import get_logger
 
 import io_functions as iof
 import dataconfig as dat
-import calculators as calc
-import unitprocess as unit
 import processchain as cha
 
 
@@ -41,15 +38,19 @@ class Factory:
         chain_dict
     """
 
-    def __init__(self, chains_file, connections_file, chains_sheet=None, 
+    def __init__(self, chains_file, connections_file=None, chains_sheet=None, 
                  connections_sheet=None, name="Factory"):
         self.name = name
+        self.chains_file = chains_file
         self.chains_df = iof.check_if_df(chains_file, chains_sheet, index=None)
-        self.connections_df = iof.check_if_df(connections_file, connections_sheet, index=None)
+        if connections_file is None:
+            self.connections_df = iof.check_if_df(chains_file, connections_sheet, index=None)
+        else:
+            self.connections_df = iof.check_if_df(connections_file, connections_sheet, index=None)
         self.main_chain = False
         self.chain_dict = False
 
-    def initalize_factory(self):
+    def initalize(self):
         logger.debug(f"initializing factory for {self.name}")
         
         chain_dict = defaultdict(dict)
@@ -60,9 +61,13 @@ class Factory:
                 self.main_chain = name
             
             chain_sheet = iof.check_sheet(self.chains_df, dat.chain_sheetname, i)
- 
+
+            if dat.chain_filepath not in self.chains_df or iof.s_l(c[dat.chain_filepath]) in dat.same_xls:
+                chain_file = self.chains_file
+            else:
+                chain_file = c[dat.chain_filepath]
                 
-            chain_dict[name] = dict(chain=cha.ProductChain(c[dat.chain_filepath], 
+            chain_dict[name] = dict(chain=cha.ProductChain(chain_file, 
                                     name=name, xls_sheet=chain_sheet), 
                                     name=name, 
                                     product=c[dat.chain_product], 
@@ -72,7 +77,7 @@ class Factory:
 
     def balance(self, main_product_qty, var_i=dat.default_scenario, write_to_xls=True):
         if not self.chain_dict:
-            self.initalize_factory()
+            self.initalize()
 
         logger.debug(f"balancing factory on {main_product_qty} of {self.chain_dict[self.main_chain]['product']}")
 
@@ -144,7 +149,6 @@ class Factory:
 
         for io_dict in totals:
             for product, qty in intermediate_product_dict.items():
-                print(product, qty)
                 totals[io_dict][product] -= qty
 
         io_dicts['i']['factory inflows']['factory totals'] = totals['i']
@@ -185,9 +189,7 @@ class Factory:
             df_list.insert(1,all_outflows_df)
             sheet_list.insert(1, "unit outflow matrix")
 
-            print(all_inflows)
             all_inflows_df = pan.DataFrame(all_inflows)
-            print(all_inflows_df)
             df_list.insert(1, all_inflows_df)
             sheet_list.insert(1, "unit inflow matrix")
 
@@ -203,7 +205,7 @@ class Factory:
         """
 
         if not self.chain_dict:
-            self.initalize_factory()
+            self.initalize()
 
         factory_diagram = Digraph(name="factory")
         factory_diagram.attr('node', shape='box', color='black')
@@ -332,19 +334,3 @@ class Factory:
         io_diagram.engine = 'circo'
         
         io_diagram.view()
-
-            
-
-
-# class Industry:
-#     """
-#     Industries are made up of one or more factories, and are balanced on one or more
-#     factory products. Factories within an industry can run with different scenario
-#     data. Industries can change over time.
-#     """
-
-#     def __init__(self, industry_data, name='Industry'):
-
-#     def run_scenarios(self, scenario_list=[default_scenario]):
-
-#     def evolve(self, start_scenarios, end_scenarios):
