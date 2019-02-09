@@ -160,7 +160,7 @@ class ProductChain:
         if not self.process_list:
             self.initialize_chain()
 
-        chain_diagram = Digraph(name=self.name, directory='outputFiles', format='png')
+        chain_diagram = Digraph(name=self.name, directory='outputFiles/pfd/chains', format='png')
         product_flow = Digraph('mainflow_'+self.name)
         product_flow.graph_attr.update(rank='same')
         product_flow.attr('node', shape='box')

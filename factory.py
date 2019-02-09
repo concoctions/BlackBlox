@@ -139,7 +139,7 @@ class Factory:
         factory_diagram = Digraph(name="factory", directory='outputFiles', format='png')
         factory_diagram.attr('node', shape='box', color='black')
         factory_diagrams = dict()
-        io_diagram = Digraph(name=self.name, directory='outputFiles', format='png')
+        io_diagram = Digraph(name=self.name, directory='outputFiles/pfd/factories', format='png',)
         io_diagram.attr('node', shape='box', color='white')
         
 
@@ -240,7 +240,7 @@ class Factory:
                             io_diagram.node(chain+process+outflows, label=outflows)
                             factory_diagram.edge(chain+process, chain+process+outflows)
 
-                elif i == len(process_list):
+                else:
                     if inflows != unit['i']:
                         inflows = inflows.replace(unit['i'], '')
                         if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
@@ -260,6 +260,8 @@ class Factory:
         i += 1
 
         io_diagram.subgraph(factory_diagram)
+
+        io_diagram.engine = 'circo'
         
         io_diagram.view()
 
