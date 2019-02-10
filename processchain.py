@@ -153,14 +153,14 @@ class ProductChain:
         return io_dicts['i'], io_dicts['o']
 
 
-    def diagram(self, view_diagram=True, return_diagram=False):
+    def diagram(self, view_diagram=True, return_diagram=False, outdir=f'{dat.outdir}/pfd'):
 
         c = self.name
 
         if not self.process_list:
             self.initialize()
 
-        chain_diagram = Digraph(name=self.name, directory='outputFiles/pfd/chains', format='png')
+        chain_diagram = Digraph(name=self.name, directory=outdir, format='png')
         product_flow = Digraph('mainflow_'+self.name)
         product_flow.graph_attr.update(rank='same')
         product_flow.attr('node', shape='box')
@@ -223,7 +223,7 @@ class ProductChain:
         if view_diagram is True:
             chain_diagram.view()
 
-
+        chain_diagram.render()
         chain_diagram.format = 'svg'
         chain_diagram.render()
 

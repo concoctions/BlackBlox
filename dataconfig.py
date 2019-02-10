@@ -2,7 +2,7 @@ from io_functions import makeDF
 from pathlib import Path
 
 # DEFAULT FILEPATHS 
-outdir = 'outputFiles/' # default output directory 
+outdir = 'outputFiles' # default output directory 
 globalData = 'excelData/globalData.xlsx'  # global data file
 
 # get list of unit processes
@@ -51,16 +51,21 @@ dest_io = "Product_IO_of_Destination"
 # industry tables
 factory_name = "Factory Name"
 factory_filepath = "Factory File"
-chains_filepath = "Chains File"
-chains_sheet = "Chains Sheet"
-connections_filepath = "Connections File"
-connections_sheet = "Connections Sheet"
+f_chain_list_file = "Chains File"
+f_chains_sheet = "Factory Chains Sheet"
+f_connections_file = "Connections File"
+f_connections_sheet = "Factory Connections Sheet"
+
+f_product = "Factory Product"
+f_product_qty = "Product Qty"
+f_scenario = "Scenario"
 
 
 # SPECIAL FILE VARIALBES
 default_scenario = "default" # in unit process variable table
 connect_all = 'all' # in factory connections table (for origin_process only)
-no_var = ['none', 'false', 'na', '-'] # no variable marker for unit process calculations table
+all_factories = ['industry', 'all', 'factories']
+no_var = ['none', 'false', 'na', '-', '', 'nan'] # no variable marker for unit process calculations table
 same_xls = ['thisfile', 'same', 'here'] # data in same workbook
 
 lookup_var_dict = { # lookup variables for unit processcalculations table (replaces variable with specific value from variable file)

@@ -38,16 +38,17 @@ class Factory:
         chain_dict
     """
 
-    def __init__(self, chains_file, connections_file=None, chains_sheet=None, 
+    def __init__(self, chain_list_file, connections_file=None, chain_list_sheet=None, 
                  connections_sheet=None, name="Factory"):
         self.name = name
-        self.chains_file = chains_file
-        self.chains_df = iof.check_if_df(chains_file, chains_sheet, index=None)
+        self.chains_file = chain_list_file
+        self.chains_df = iof.check_if_df(chain_list_file, chain_list_sheet, index=None)
         if connections_file is None:
-            self.connections_df = iof.check_if_df(chains_file, connections_sheet, index=None)
+            self.connections_df = iof.check_if_df(chain_list_file, connections_sheet, index=None)
         else:
             self.connections_df = iof.check_if_df(connections_file, connections_sheet, index=None)
         self.main_chain = False
+        self.main_product = False
         self.chain_dict = False
 
     def initalize(self):
@@ -59,6 +60,7 @@ class Factory:
             name = c[dat.chain_name] 
             if i == 0:
                 self.main_chain = name
+                self.main_product = c[dat.chain_product]
             
             chain_sheet = iof.check_sheet(self.chains_df, dat.chain_sheetname, i)
 
@@ -75,15 +77,15 @@ class Factory:
 
         self.chain_dict = chain_dict
 
-    def balance(self, main_product_qty, var_i=dat.default_scenario, write_to_xls=True):
+    def balance(self, main_product_qty, var_i=dat.default_scenario, write_to_xls=True, outdir=dat.outdir):
         if not self.chain_dict:
             self.initalize()
 
         logger.debug(f"balancing factory on {main_product_qty} of {self.chain_dict[self.main_chain]['product']}")
 
         io_dicts = {
-            'i': defaultdict(lambda: defaultdict(lambda: defaultdict(float))), 
-            'o': defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
+            'i': iof.nested_dicts(3, float),
+            'o': iof.nested_dicts(3, float)
             }
 
         intermediate_product_dict = defaultdict(float)
@@ -91,6 +93,7 @@ class Factory:
 
         m = self.chain_dict[self.main_chain]
         
+        # balances main chain
         io_dicts['i'][m['name']], io_dicts['o'][m['name']] = m['chain'].balance(
             main_product_qty, product= m['product'], var_i=var_i)
 
@@ -151,16 +154,17 @@ class Factory:
             for product, qty in intermediate_product_dict.items():
                 totals[io_dict][product] -= qty
 
-        io_dicts['i']['factory inflows']['factory totals'] = totals['i']
-        io_dicts['o']['factory outflows']['factory totals'] = totals['o']
 
+        # OPTIONAL: writes to spreadsheet
         if write_to_xls is True:
+            if outdir == dat.outdir:
+                outdir = f'{dat.outdir}/{self.name}'
             filename = f'f_{self.name}_{var_i}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
 
-            totals = defaultdict(lambda: defaultdict(float))
-            totals['factory inflows'] = io_dicts['i']['factory inflows']['factory totals']
-            totals['factory outflows'] = io_dicts['o']['factory outflows']['factory totals']
-            totalsDF = pan.DataFrame(totals)
+            totals_dict = defaultdict(lambda: defaultdict(float))
+            totals_dict['factory inflows'] = totals['i']
+            totals_dict['factory outflows'] = totals['o']
+            totalsDF = pan.DataFrame(totals_dict)
 
             df_list = [totalsDF]
             sheet_list = [f'{self.name} totals']
@@ -169,14 +173,13 @@ class Factory:
             all_outflows = defaultdict(lambda: defaultdict(float))
 
             for chain_dict in io_dicts['i']:
-                if chain_dict != 'factory inflows':
-                    chain_inflow_df = pan.DataFrame(io_dicts['i'][chain_dict])
-                    df_list.append(chain_inflow_df)
-                    sheet_list.append(chain_dict+" inflows")
+                chain_inflow_df = pan.DataFrame(io_dicts['i'][chain_dict])
+                df_list.append(chain_inflow_df)
+                sheet_list.append(chain_dict+" inflows")
 
-                    chain_outflow_df = pan.DataFrame(io_dicts['o'][chain_dict])
-                    df_list.append(chain_outflow_df)
-                    sheet_list.append(chain_dict+" outflows")
+                chain_outflow_df = pan.DataFrame(io_dicts['o'][chain_dict])
+                df_list.append(chain_outflow_df)
+                sheet_list.append(chain_dict+" outflows")
 
                 for process_dict in io_dicts['i'][chain_dict]:
                     if 'total' not in process_dict:
@@ -194,15 +197,18 @@ class Factory:
             sheet_list.insert(1, "unit inflow matrix")
 
             iof.write_to_excel(df_list, sheet_list=sheet_list, 
-                               filedir=dat.outdir, filename=filename)
+                               filedir=outdir, filename=filename)
 
         
-        return io_dicts['i'], io_dicts['o']
+        return totals['i'], totals['o']
 
 
-    def diagram(self):
+    def diagram(self, outdir=dat.outdir, view=False):
         """ Outputs a diagram of the factory flows to file.
         """
+
+        if outdir == dat.outdir:
+            outdir = f'{outdir}/{self.name}/pfd'
 
         if not self.chain_dict:
             self.initalize()
@@ -210,14 +216,16 @@ class Factory:
         factory_diagram = Digraph(name="factory")
         factory_diagram.attr('node', shape='box', color='black')
         factory_diagrams = dict()
-        io_diagram = Digraph(name=self.name, directory='outputFiles/pfd/factories', format='png',)
+        io_diagram = Digraph(name=self.name, directory=outdir, format='png',)
         io_diagram.attr('node', shape='box', color='white')
         
 
         # gets product chains
         for c in self.chain_dict:
-            diagram_dict = dict(diagram=self.chain_dict[c]['chain'].diagram(
-                                return_diagram=True, view_diagram=False),
+            d_kwargs = dict(return_diagram=True,
+                            view_diagram=False,
+                            outdir=f'{outdir}/{self.name}')
+            diagram_dict = dict(diagram=self.chain_dict[c]['chain'].diagram(**d_kwargs),
                                 process_list=self.chain_dict[c]['chain'].process_list, 
                                 name=self.chain_dict[c]['name'], connect=[])
             if diagram_dict['name'] == self.main_chain:
@@ -333,4 +341,9 @@ class Factory:
 
         io_diagram.engine = 'circo'
         
-        io_diagram.view()
+        if view is True:
+            io_diagram.view()
+
+        io_diagram.render()
+        io_diagram.format = 'svg'
+        io_diagram.render()

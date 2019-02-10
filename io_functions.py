@@ -1,4 +1,6 @@
 import pandas as pan
+from pathlib import Path
+from collections import defaultdict
 
 def makeDF(filePath, sheet=None, sep='\t', index=0, metaprefix = "meta", T = False):
     """ Creates a dataframe from an excel file or tab or comma seperated text file.
@@ -70,11 +72,13 @@ def write_to_excel(df_or_df_list, sheet_list=None, filedir='outputFiles', filena
         filename (optional, str): desired excel file name, without extension.
             Defaults to 'output'
     """
+    Path(filedir).mkdir(parents=True, exist_ok=True) 
+
     if isinstance(df_or_df_list, pan.DataFrame):
-        df_or_df_list.to_excel(filedir+filename+'.xlsx')
+        df_or_df_list.to_excel(filedir+'/'+filename+'.xlsx')
     
     else:
-        with pan.ExcelWriter(filedir+filename+'.xlsx') as writer:
+        with pan.ExcelWriter(filedir+'/'+filename+'.xlsx') as writer:
             for i, df in enumerate(df_or_df_list):
                 if sheet_list:
                     sheet = sheet_list[i]
@@ -115,3 +119,11 @@ def check_sheet(df, sheetcol, index):
             return df.loc[index, sheetcol]
 
     return None
+
+
+def nested_dicts(levels=2, final=float):
+    """returns a nested defaultdict of the specified number of levels
+    source: https://goo.gl/Wq5kLq
+    """
+    return (defaultdict(final) if levels <2 else
+            defaultdict(lambda: nested_dicts(levels - 1, final)))

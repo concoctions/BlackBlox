@@ -12,6 +12,7 @@ from dataconfig import *
 from unitprocess import *
 from processchain import *
 from factory import *
+from industry import *
 from molmass import Formula
 from bb_log import get_logger
 from calculators import *
@@ -301,33 +302,63 @@ logger = get_logger("testing")
 
 # chain.diagram()
 
-print("\nFactory Test\n")
+# print("\nFactory Test\n")
 
-factory = Factory('excelData/cementFactory.xlsx', 'excelData/cementFactory.xlsx', 'Chain List', 'Connections', name="cement factory")
-# factory = Factory('chainFiles/cementFactoryChains.tsv', 
-#         'chainFiles/cementFactoryConnections.tsv', name='cement factory')
+# factory = Factory('excelData/cementFactory.xlsx', 'excelData/cementFactory.xlsx', 'Chain List', 'Connections', name="cement factory")
 
-print("\nname",factory.name,"\n")
-print("\nchain DF\n",factory.chains_df)
-print("\nconnections DF\n",factory.connections_df)
+# print("\nname",factory.name,"\n")
+# print("\nchain DF\n",factory.chains_df)
+# print("\nconnections DF\n",factory.connections_df)
 
-factory.initalize()
+# factory.initalize()
 
-print("\nchain dict:",factory.chain_dict)
-print("\nmain chain:",factory.chain_dict[factory.main_chain])
+# print("\nchain dict:",factory.chain_dict)
+# print("\nmain chain:",factory.chain_dict[factory.main_chain])
 
-inflows, outflows = factory.balance(1.0, var_i='default', write_to_xls=False)
+# inflows, outflows = factory.balance(1.0, var_i='default', write_to_xls=False)
 
-print('factory inflows dictionaries')
+# print('factory inflows dictionaries')
 
-for inflow_dict in inflows:
-#    print(inflows[inflow_dict], "\n")
-    print(pan.DataFrame(inflows[inflow_dict]), "\n")
+# for inflow_dict in inflows:
+#     print(pan.DataFrame(inflows[inflow_dict]), "\n")
 
-for outflow_dict in outflows:
-#    print(outflows[outflow_dict], "\n")
-    print(pan.DataFrame(outflows[outflow_dict]), "\n")
+# for outflow_dict in outflows:
+#     print(pan.DataFrame(outflows[outflow_dict]), "\n")
 
 # factory.balance(1.0, var_i='default')
 
 # factory.diagram()
+
+print("\nIndustry Test\n")
+
+i_kwargs = dict(factory_list_file='excelData/cementIndustry.xlsx',
+                factory_list_sheet='Factory List', 
+                connections_sheet='Factory Connections', 
+                name='Cement Industry')
+
+industry = Industry(**i_kwargs)
+
+industry.initalize()
+
+# for factory, details in industry.factory_dict.items():
+#     print(factory, details)
+
+# ioDicts= industry.balance(products_sheet='1990-Absolute', write_to_xls=True, 
+#                 file_id='1990-Absolute', diagrams=True)
+
+
+# ioDicts= industry.balance(products_sheet='2010-Relative', write_to_xls=True, 
+#                 file_id='2010-Relative', diagrams=True)
+
+# ioDicts= industry.balance(products_sheet='2010-Relative', write_to_xls=True, 
+#                 file_id='2010-Relative-default', force_scenario='default', diagrams=True)
+
+s_list = ['default', 'EU-typ', 'EU-bat']
+
+s_kwargs = dict(scenario_list=s_list, 
+                products_sheet='1990-Relative', 
+                write_to_xls=True, 
+                file_id='1990-Relative', 
+                diagrams=False)
+
+industry.run_scenarios(**s_kwargs)
