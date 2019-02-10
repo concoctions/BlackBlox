@@ -159,12 +159,13 @@ class Factory:
         if write_to_xls is True:
             if outdir == dat.outdir:
                 outdir = f'{dat.outdir}/{self.name}'
+                
             filename = f'f_{self.name}_{var_i}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
 
             totals_dict = defaultdict(lambda: defaultdict(float))
             totals_dict['factory inflows'] = totals['i']
             totals_dict['factory outflows'] = totals['o']
-            totalsDF = pan.DataFrame(totals_dict)
+            totalsDF = iof.makeDF(totals_dict, drop_zero=True)
 
             df_list = [totalsDF]
             sheet_list = [f'{self.name} totals']
@@ -173,11 +174,11 @@ class Factory:
             all_outflows = defaultdict(lambda: defaultdict(float))
 
             for chain_dict in io_dicts['i']:
-                chain_inflow_df = pan.DataFrame(io_dicts['i'][chain_dict])
+                chain_inflow_df = iof.makeDF(io_dicts['i'][chain_dict], drop_zero=True)
                 df_list.append(chain_inflow_df)
                 sheet_list.append(chain_dict+" inflows")
 
-                chain_outflow_df = pan.DataFrame(io_dicts['o'][chain_dict])
+                chain_outflow_df = iof.makeDF(io_dicts['o'][chain_dict], drop_zero=True)
                 df_list.append(chain_outflow_df)
                 sheet_list.append(chain_dict+" outflows")
 
@@ -188,11 +189,11 @@ class Factory:
                         for substance, qty in io_dicts['o'][chain_dict][process_dict].items():
                             all_outflows[process_dict][substance] = qty
 
-            all_outflows_df = pan.DataFrame(all_outflows)
+            all_outflows_df = iof.makeDF(all_outflows, drop_zero=True)
             df_list.insert(1,all_outflows_df)
             sheet_list.insert(1, "unit outflow matrix")
 
-            all_inflows_df = pan.DataFrame(all_inflows)
+            all_inflows_df = iof.makeDF(all_inflows, drop_zero=True)
             df_list.insert(1, all_inflows_df)
             sheet_list.insert(1, "unit inflow matrix")
 

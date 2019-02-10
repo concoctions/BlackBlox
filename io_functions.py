@@ -1,17 +1,22 @@
 import pandas as pan
 from pathlib import Path
 from collections import defaultdict
+import numpy as np
 
-def makeDF(filePath, sheet=None, sep='\t', index=0, metaprefix = "meta", T = False):
+def makeDF(data, sheet=None, sep='\t', index=0, metaprefix = "meta", T = False, drop_zero=False):
     """ Creates a dataframe from an excel file or tab or comma seperated text file.
 
     Args:
-        filePath
-        sheet
-        sep
-        index
-        metaprefix
-        T
+        data: accepts both objects that can be made into dataframes (e.g. nested)
+            dictionaries and strings of filespaths (including excel workbooks, 
+            comma seperated value files, and other delimited text files)
+        sheet: the worksheet of the specified excel workbook
+        sep: the seperator used in non-csv text file. Defaults to tab
+        index: the column of data that is the index
+        metaprefix: 
+        T: Whether to transpose the given data
+        drop_zero: Whether to remove any columns or rows that contain only 
+        zeros or NaNs
 
     Returns:
         df: dataframe
@@ -19,29 +24,39 @@ def makeDF(filePath, sheet=None, sep='\t', index=0, metaprefix = "meta", T = Fal
     """
     # import with specified settings, ignoring columns that start with specified meta prefix
 
-    if filePath.endswith(('.xls', 'xlsx')):
-        df = pan.read_excel(filePath, sheet_name=sheet, index_col=index)
+    if not isinstance(data, str): 
+        df = pan.DataFrame(data)
 
-    elif filePath.endswith('.csv'):
-        df = pan.read_csv(filePath, sep=',', index_col=index)
+    elif data.endswith(('.xls', 'xlsx')):
+        df = pan.read_excel(data, sheet_name=sheet, index_col=index)
+
+    elif data.endswith('.csv'):
+        df = pan.read_csv(data, sep=',', index_col=index)
 
     else:
-        df = pan.read_csv(filePath, sep=sep, index_col=index) 
+        df = pan.read_csv(data, sep=sep, index_col=index) 
                  
     #usecols = lambda x: not str(x).startswith(metaprefix))
 
     # drop meta
-    if index != None:
+    if index is not None:
         df = df[~df.index.str.startswith(metaprefix)]
 
     cols = [col for col in list(df) if not col.startswith(metaprefix)]
     df = df[cols]
 
-    if T == True:
-        df = df.T
-
     #if it looks like a number, make it a number:
     df = df.apply(pan.to_numeric, errors = 'ignore')
+
+    if T is True:
+        df = df.T
+
+    if drop_zero is True:
+        df = df.fillna(0)
+        df = df.loc[:, (df != 0).any(axis=0)]
+        df = df[np.square(df.values).sum(axis=1) != 0] # uses square so that negative numbers aren't an issue
+
+
 
     return df
 

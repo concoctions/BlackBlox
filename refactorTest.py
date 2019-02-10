@@ -353,12 +353,20 @@ industry.initalize()
 # ioDicts= industry.balance(products_sheet='2010-Relative', write_to_xls=True, 
 #                 file_id='2010-Relative-default', force_scenario='default', diagrams=True)
 
-s_list = ['default', 'EU-typ', 'EU-bat']
+# s_list = ['default', 'EU-typ', 'EU-bat']
 
-s_kwargs = dict(scenario_list=s_list, 
-                products_sheet='1990-Relative', 
+# s_kwargs = dict(scenario_list=s_list, 
+#                 products_sheet='1990-Relative', 
+#                 write_to_xls=True, 
+#                 file_id='1990-Relative', 
+#                 diagrams=False)
+
+# industry.run_scenarios(**s_kwargs)
+
+e_kwargs = dict(start_sheet='1990-Absolute', 
+                end_sheet='2010-Absolute',
+                start_step=1990,
+                end_step=2010,
                 write_to_xls=True, 
-                file_id='1990-Relative', 
-                diagrams=False)
-
-industry.run_scenarios(**s_kwargs)
+                diagrams=True)
+industry.evolve(**e_kwargs)

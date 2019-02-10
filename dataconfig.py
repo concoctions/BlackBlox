@@ -1,5 +1,6 @@
 from io_functions import makeDF
 from pathlib import Path
+from datetime import datetime
 
 # DEFAULT FILEPATHS 
 outdir = 'outputFiles' # default output directory 
@@ -77,3 +78,17 @@ lookup_var_dict = { # lookup variables for unit processcalculations table (repla
 df_fuels = lookup_var_dict['fuel']['data_frame']
 
 
+# this is here instead of in io_functions because otherwise, there's a circular
+# depedency error on outdir because this file calls the makeDF function.
+def build_filedir(filedir, subfolder=None, file_id_list=[], time=True):
+    if subfolder is not None:
+        filedir=f'{filedir}/{subfolder}'
+    
+    for file_id in file_id_list:
+        if file_id:
+            filedir = f'{filedir}_{file_id}'
+
+    if time is True:
+        filedir = f'{filedir}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
+
+    return filedir
