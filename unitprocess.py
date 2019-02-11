@@ -9,6 +9,9 @@ import calculators  as calc
 
 logger = get_logger("Unit Process")
 
+# Initalize library of unit processes
+df_unit_library = iof.make_df(dat.unit_process_library_file, 
+                             sheet=dat.unit_process_library_sheet)
 
 # UNIT PROCESS
 class UnitProcess:
@@ -27,22 +30,22 @@ class UnitProcess:
     """
 
     def __init__(self, name, var_df=False, calc_df=False, 
-                units_df=dat.df_unit_library):
+                units_df=df_unit_library):
         logger.debug(f"creating unit process object for {name}")
         self.name = name
 
         if var_df is not False:
             self.var_df = var_df
         else:
-            v_sheet = iof.check_sheet(units_df, dat.var_sheetname, name)
-            self.var_df = iof.makeDF(units_df.at[name, dat.var_filepath], 
+            v_sheet = iof.check_for_col(units_df, dat.var_sheetname, name)
+            self.var_df = iof.make_df(units_df.at[name, dat.var_filepath], 
                           sheet=v_sheet)
 
         if calc_df is not False:
             self.calc_df = calc_df
         else:
-            c_sheet = iof.check_sheet(units_df, dat.calc_sheetname, name)
-            self.calc_df = iof.makeDF(units_df.at[name, dat.calc_filepath], 
+            c_sheet = iof.check_for_col(units_df, dat.calc_sheetname, name)
+            self.calc_df = iof.make_df(units_df.at[name, dat.calc_filepath], 
                                sheet=c_sheet, index=None)
 
         #create sets of process inflows and outflows
@@ -54,9 +57,9 @@ class UnitProcess:
         
         for i in self.calc_df.index: 
             products = [ (self.calc_df.at[i, dat.known], 
-                iof.fl(self.calc_df.at[i, dat.known_io])),
+                iof.sl(self.calc_df.at[i, dat.known_io][0])),
                  (self.calc_df.at[i, dat.unknown],
-                 iof.fl(self.calc_df.at[i, dat.unknown_io]))]
+                 iof.sl(self.calc_df.at[i, dat.unknown_io][0]))]
 
             for product, i_o in products:
                 if i_o == 'i':
@@ -88,7 +91,7 @@ class UnitProcess:
         if var_i not in self.var_df.index.values:
             raise Exception(f'{var_i} not found in variables file')
 
-        if iof.fl(i_o) not in ['i', 'o', 't', 'e']:
+        if iof.sl(i_o[0]) not in ['i', 'o', 't', 'e']:
             raise Exception(f'{i_o} not valid product destination')
 
         if product in dat.lookup_var_dict:
@@ -106,7 +109,7 @@ class UnitProcess:
             'e' : defaultdict(float)     # emissions dictionary - adds value to outflow dictionary at end of function
         }
 
-        io_dicts[iof.fl(i_o)][product] = qty
+        io_dicts[iof.sl(i_o[0])][product] = qty
                
         i = 0
         attempt = 0
@@ -120,14 +123,14 @@ class UnitProcess:
 
             # setup loop variables
             known_substance = calc_df.at[i, dat.known]
-            known_io =iof.fl(calc_df.at[i, dat.known_io]) # shortens to i, o, or t (lower case)
-            unknown_io = iof.fl(calc_df.at[i, dat.unknown_io]) # shortens to i, o or t (lower case)
+            known_io =iof.sl(calc_df.at[i, dat.known_io][0]) # shortens to i, o, or t (lower case)
+            unknown_io = iof.sl(calc_df.at[i, dat.unknown_io][0]) # shortens to i, o or t (lower case)
             unknown_substance = calc_df.at[i, dat.unknown]
-            calc_type = iof.s_l(calc_df.at[i, dat.calc_type])
+            calc_type = iof.sl(calc_df.at[i, dat.calc_type])
             invert = False
             var = False
 
-            if iof.s_l(calc_df.at[i, dat.calc_var]) not in dat.no_var:
+            if iof.sl(calc_df.at[i, dat.calc_var]) not in dat.no_var:
                 var = self.var_df.at[var_i, calc_df.at[i, dat.calc_var]] 
 
             logger.debug(f"current index: {i}, current product: {known_substance}")

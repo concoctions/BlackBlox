@@ -23,7 +23,7 @@ class Industry:
     def __init__(self, factory_list_file, factory_list_sheet=None, name='Industry', **kwargs):
         self.name = name
         self.factory_file = factory_list_file
-        self.factories_df = iof.check_if_df(factory_list_file, factory_list_sheet, index=None)
+        self.factories_df = iof.make_df(factory_list_file, factory_list_sheet, index=None)
         self.product_list = None
         self.factory_dict = None
 
@@ -44,8 +44,8 @@ class Industry:
                 f_chains_file = f[dat.f_chain_list_file]
                 f_connections_file = f[dat.f_connections_file]
 
-            f_chains_sheet = iof.check_sheet(self.factories_df, dat.f_chains_sheet, i)
-            f_connections_sheet = iof.check_sheet(self.factories_df, dat.f_connections_sheet, i)
+            f_chains_sheet = iof.check_for_col(self.factories_df, dat.f_chains_sheet, i)
+            f_connections_sheet = iof.check_for_col(self.factories_df, dat.f_connections_sheet, i)
 
             f_kwargs = dict(chain_list_file=f_chains_file,
                             connections_file=f_connections_file, 
@@ -76,7 +76,7 @@ class Industry:
         if subfolder is True:
             subfolder = self.name
 
-        outdir = dat.build_filedir(outdir, subfolder=subfolder,
+        outdir = iof.build_filedir(outdir, subfolder=subfolder,
                                         file_id_list=[file_id],
                                         time=foldertime)
             
@@ -85,7 +85,7 @@ class Industry:
         elif products_data is None:
             products_data = self.factory_file
 
-        product_df = iof.check_if_df(products_data, sheet=products_sheet)
+        product_df = iof.make_df(products_data, sheet=products_sheet)
         f_production_dict = defaultdict(dict)
 
         fractions = defaultdict(float) 
@@ -95,14 +95,14 @@ class Industry:
 
         for i, f in product_df.iterrows():
             product = f[dat.f_product]
-            if iof.s_l(i) in dat.all_factories: 
+            if iof.sl(i) in dat.all_factories: 
                 if product not in dat.no_var:
                     fractions[product] = f[dat.f_product_qty] # industry-wide product total
-                if isinstance(f[dat.f_scenario], str) and iof.s_l(f[dat.f_scenario]) not in dat.no_var:
+                if isinstance(f[dat.f_scenario], str) and iof.sl(f[dat.f_scenario]) not in dat.no_var:
                     product_scenario[product]=f[dat.f_scenario] #scenario for all factories producing that product
             else:
                 if product in fractions: # product qty should be decimal fraction of total
-                    calc.CheckQty(f[dat.f_product_qty], fraction=True)
+                    calc.check_qty(f[dat.f_product_qty], fraction=True)
                     product_qty = f[dat.f_product_qty] * fractions[product]
                 else:
                     product_qty = f[dat.f_product_qty]
@@ -144,8 +144,8 @@ class Industry:
         if write_to_xls is True:
             filename = f'i_{self.name}_{file_id}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
 
-            inflows_df = iof.makeDF(io_dicts['inflows'], drop_zero=True)
-            outflows_df = iof.makeDF(io_dicts['outflows'], drop_zero=True)
+            inflows_df = iof.make_df(io_dicts['inflows'], drop_zero=True)
+            outflows_df = iof.make_df(io_dicts['outflows'], drop_zero=True)
 
             df_list = [inflows_df, outflows_df]
             sheet_list = [f'{self.name} inflows', f'{self.name} outflows']
@@ -162,7 +162,7 @@ class Industry:
         """Balances the industry on a set of forced industry-wide scenarios
         """
 
-        outdir = dat.build_filedir(outdir, subfolder=self.name,
+        outdir = iof.build_filedir(outdir, subfolder=self.name,
                                     file_id_list=['multiScenario', file_id],
                                     time=True)
 
@@ -184,7 +184,7 @@ class Industry:
         using a specified starting scenario and end scenario
         """
 
-        outdir = dat.build_filedir(outdir, subfolder=self.name,
+        outdir = iof.build_filedir(outdir, subfolder=self.name,
                                     file_id_list=['evolve', start_step, end_step, file_id],
                                     time=True)
 
@@ -250,15 +250,15 @@ class Industry:
             filename = (f'i_{self.name}_{start_step}-{end_step}_{file_id}'
                         f'_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 
-            cumulative_infows_df = iof.makeDF(cumulative_dict['inflows'], drop_zero=True)
-            cumulative_outflows_df = iof.makeDF(cumulative_dict['outflows'], drop_zero=True)
+            cumulative_infows_df = iof.make_df(cumulative_dict['inflows'], drop_zero=True)
+            cumulative_outflows_df = iof.make_df(cumulative_dict['outflows'], drop_zero=True)
 
             df_list = [cumulative_infows_df, cumulative_outflows_df]
             sheet_list = ["cumulative inflows", "cumulative outflows"]
 
             for flow in annual_flows:
                 for factory in annual_flows[flow]:
-                    df = iof.makeDF(annual_flows[flow][factory], drop_zero=True)
+                    df = iof.make_df(annual_flows[flow][factory], drop_zero=True)
                     sheet_name = f'{factory} {flow}'
 
                     if 'total' in factory:

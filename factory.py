@@ -42,11 +42,11 @@ class Factory:
                  connections_sheet=None, name="Factory"):
         self.name = name
         self.chains_file = chain_list_file
-        self.chains_df = iof.check_if_df(chain_list_file, chain_list_sheet, index=None)
+        self.chains_df = iof.make_df(chain_list_file, chain_list_sheet, index=None)
         if connections_file is None:
-            self.connections_df = iof.check_if_df(chain_list_file, connections_sheet, index=None)
+            self.connections_df = iof.make_df(chain_list_file, connections_sheet, index=None)
         else:
-            self.connections_df = iof.check_if_df(connections_file, connections_sheet, index=None)
+            self.connections_df = iof.make_df(connections_file, connections_sheet, index=None)
         self.main_chain = False
         self.main_product = False
         self.chain_dict = False
@@ -62,9 +62,9 @@ class Factory:
                 self.main_chain = name
                 self.main_product = c[dat.chain_product]
             
-            chain_sheet = iof.check_sheet(self.chains_df, dat.chain_sheetname, i)
+            chain_sheet = iof.check_for_col(self.chains_df, dat.chain_sheetname, i)
 
-            if dat.chain_filepath not in self.chains_df or iof.s_l(c[dat.chain_filepath]) in dat.same_xls:
+            if dat.chain_filepath not in self.chains_df or iof.sl(c[dat.chain_filepath]) in dat.same_xls:
                 chain_file = self.chains_file
             else:
                 chain_file = c[dat.chain_filepath]
@@ -73,7 +73,7 @@ class Factory:
                                     name=name, xls_sheet=chain_sheet), 
                                     name=name, 
                                     product=c[dat.chain_product], 
-                                    i_o=iof.fl(c[dat.chain_io]))
+                                    i_o=iof.sl(c[dat.chain_io][0]))
 
         self.chain_dict = chain_dict
 
@@ -99,8 +99,8 @@ class Factory:
 
         for dummy_index, c in self.connections_df.iterrows():    
             qty = False
-            o_io = iof.fl(c[dat.origin_io])
-            d_io = iof.fl(c[dat.dest_io])
+            o_io = iof.sl(c[dat.origin_io][0])
+            d_io = iof.sl(c[dat.dest_io][0])
 
             if c[dat.origin_chain] == dat.connect_all:
                 pass
@@ -165,7 +165,7 @@ class Factory:
             totals_dict = defaultdict(lambda: defaultdict(float))
             totals_dict['factory inflows'] = totals['i']
             totals_dict['factory outflows'] = totals['o']
-            totalsDF = iof.makeDF(totals_dict, drop_zero=True)
+            totalsDF = iof.make_df(totals_dict, drop_zero=True)
 
             df_list = [totalsDF]
             sheet_list = [f'{self.name} totals']
@@ -174,11 +174,11 @@ class Factory:
             all_outflows = defaultdict(lambda: defaultdict(float))
 
             for chain_dict in io_dicts['i']:
-                chain_inflow_df = iof.makeDF(io_dicts['i'][chain_dict], drop_zero=True)
+                chain_inflow_df = iof.make_df(io_dicts['i'][chain_dict], drop_zero=True)
                 df_list.append(chain_inflow_df)
                 sheet_list.append(chain_dict+" inflows")
 
-                chain_outflow_df = iof.makeDF(io_dicts['o'][chain_dict], drop_zero=True)
+                chain_outflow_df = iof.make_df(io_dicts['o'][chain_dict], drop_zero=True)
                 df_list.append(chain_outflow_df)
                 sheet_list.append(chain_dict+" outflows")
 
@@ -189,11 +189,11 @@ class Factory:
                         for substance, qty in io_dicts['o'][chain_dict][process_dict].items():
                             all_outflows[process_dict][substance] = qty
 
-            all_outflows_df = iof.makeDF(all_outflows, drop_zero=True)
+            all_outflows_df = iof.make_df(all_outflows, drop_zero=True)
             df_list.insert(1,all_outflows_df)
             sheet_list.insert(1, "unit outflow matrix")
 
-            all_inflows_df = iof.makeDF(all_inflows, drop_zero=True)
+            all_inflows_df = iof.make_df(all_inflows, drop_zero=True)
             df_list.insert(1, all_inflows_df)
             sheet_list.insert(1, "unit inflow matrix")
 
@@ -237,8 +237,8 @@ class Factory:
         for i, c in self.connections_df.iterrows():
             product = c[dat.connect_product]
             origin_chain = c[dat.origin_chain]
-            o_io = iof.fl(c[dat.origin_io])
-            d_io = iof.fl(c[dat.dest_io])
+            o_io = iof.sl(c[dat.origin_io][0])
+            d_io = iof.sl(c[dat.dest_io][0])
             if d_io == 'i':
                 dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][0]['process'].name
             elif d_io == 'o':
@@ -272,15 +272,15 @@ class Factory:
                 for dummy_index, c in self.connections_df.iterrows():
                     if chain == c[dat.origin_chain]:
                         if process == c[dat.origin_process] or c[dat.origin_process] == dat.connect_all:
-                            if iof.fl(c[dat.origin_io]) == 'i':
+                            if iof.sl(c[dat.origin_io][0]) == 'i':
                                 inflows = inflows.replace(c[dat.connect_product], '')
-                            if iof.fl(c[dat.origin_io]) == 'o':
+                            if iof.sl(c[dat.origin_io][0]) == 'o':
                                 outflows = outflows.replace(c[dat.connect_product], '')
                         
                     if chain == c[dat.dest_chain]:
-                        if iof.fl(c[dat.dest_io]) == 'i' and unit == process_list[0]:
+                        if iof.sl(c[dat.dest_io][0]) == 'i' and unit == process_list[0]:
                             inflows = inflows.replace(c[dat.connect_product], '')
-                        if iof.fl(c[dat.dest_io]) == 'o' and unit == process_list[-1]:
+                        if iof.sl(c[dat.dest_io][0]) == 'o' and unit == process_list[-1]:
                             outflows = outflows.replace(c[dat.connect_product], '')
 
                 if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')

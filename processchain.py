@@ -24,7 +24,7 @@ class ProductChain:
     def __init__(self, chain_data, name="Product Chain", xls_sheet=None,):
         self.name = name
 
-        self.process_chain_df = iof.check_if_df(chain_data, sheet=xls_sheet, index=None)
+        self.process_chain_df = iof.make_df(chain_data, sheet=xls_sheet, index=None)
 
         self.default_product = False
         self.process_list = False
@@ -76,7 +76,7 @@ class ProductChain:
             product = self.default_product
 
         if i_o:
-            i_o = iof.fl(i_o)
+            i_o = iof.sl(i_o[0])
         
         if product in chain[-1]['process'].outflows and i_o != 'i':
             chain.reverse()

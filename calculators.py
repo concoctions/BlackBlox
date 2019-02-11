@@ -1,6 +1,6 @@
 from molmass import Formula
 from collections import defaultdict
-from io_functions import makeDF
+from io_functions import make_df
 from bb_log import get_logger
 
 import dataconfig as dat
@@ -8,7 +8,7 @@ import dataconfig as dat
 logger = get_logger("Calculators")
 
 # shared functions
-def CheckQty(qty, fraction = False):
+def check_qty(qty, fraction = False):
     """
     Checks whether the given quantity is within the required ranges.
     Currently, negative numbers are not supported. 
@@ -37,8 +37,8 @@ def Ratio(qty, var, invert = False, **kwargs):
 
     logger.debug("Attempting ratio calcuation using qty: {}, ratio: {}, invert: {}".format(qty, var, invert))
 
-    CheckQty(qty)
-    CheckQty(var)
+    check_qty(qty)
+    check_qty(var)
 
     if invert == True:
         var = 1/var
@@ -60,8 +60,8 @@ def Remainder(qty, var, invert = False, **kwargs):
 
     logger.debug("Attempting remainder calcuation using qty: {}, ratio: {}, invert: {}".format(qty, var, invert))
 
-    CheckQty(qty)
-    CheckQty(var, fraction = True)
+    check_qty(qty)
+    check_qty(var, fraction = True)
 
     ratioRemaining = 1 - var
 
@@ -106,7 +106,7 @@ def Combustion(known_substance, qty, unknown_substance, var, emissions_dict=Fals
     if known_substance in fuels_dict.index and unknown_substance in fuels_dict.index:
         raise Exception("Both {} and {} are known_substance fuel types.".format(known_substance, unknown_substance))
 
-    CheckQty(var, fraction = True)
+    check_qty(var, fraction = True)
 
     #calculates energy and emissions from given mass quantity of fuel
     if known_substance in fuels_dict.index:

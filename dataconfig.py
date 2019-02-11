@@ -1,13 +1,12 @@
-from io_functions import makeDF
+from io_functions import make_df
 from pathlib import Path
 from datetime import datetime
 
 # DEFAULT FILEPATHS 
 outdir = 'outputFiles' # default output directory 
-globalData = 'excelData/globalData.xlsx'  # global data file
-
-# get list of unit processes
-df_unit_library = makeDF(globalData, sheet='Unit Processes')
+globalData =  'excelData/globalData.xlsx'  # global data file, if one exists
+unit_process_library_file = globalData
+unit_process_library_sheet = 'Unit Processes'
 
 # COLUMN HEADERS
 # unit library table:
@@ -69,26 +68,13 @@ all_factories = ['industry', 'all', 'factories']
 no_var = ['none', 'false', 'na', '-', '', 'nan'] # no variable marker for unit process calculations table
 same_xls = ['thisfile', 'same', 'here'] # data in same workbook
 
-lookup_var_dict = { # lookup variables for unit processcalculations table (replaces variable with specific value from variable file)
-    'fuel': dict(data_frame=makeDF(globalData, sheet='Fuels'), lookup_var='fuelType')  #keyword string in calc file to trigger lookup: (dataframe of lookup data, column name in variable table to replace with) 
+# lookup variables for unit processcalculations table (replaces variable with specific value from variable file)
+# lookup_var is the keyword string in calc file to trigger lookup: (dataframe of lookup data, column name in variable table to replace with) 
+lookup_var_dict = { 
+    'fuel': dict(data_frame=make_df(globalData, sheet='Fuels'), 
+                 lookup_var='fuelType'),
     } 
 
 
 # OTHER SHORTCUT NAMES
 df_fuels = lookup_var_dict['fuel']['data_frame']
-
-
-# this is here instead of in io_functions because otherwise, there's a circular
-# depedency error on outdir because this file calls the makeDF function.
-def build_filedir(filedir, subfolder=None, file_id_list=[], time=True):
-    if subfolder is not None:
-        filedir=f'{filedir}/{subfolder}'
-    
-    for file_id in file_id_list:
-        if file_id:
-            filedir = f'{filedir}_{file_id}'
-
-    if time is True:
-        filedir = f'{filedir}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
-
-    return filedir
