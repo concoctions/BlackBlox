@@ -1,12 +1,21 @@
-from io_functions import make_df
-from pathlib import Path
-from datetime import datetime
+# -*- coding: utf-8 -*-
+""" Data Input and Output default strings
+
+This module contains variables used for default file paths, column headers
+for input data files, as well as special variable strings (generally used)
+to indicate whether something is All or None.
+
+Please note that as of this time, these variables are case and white space
+sensitive.
+
+"""
 
 # DEFAULT FILEPATHS 
-outdir = 'outputFiles' # default output directory 
-globalData =  'excelData/globalData.xlsx'  # global data file, if one exists
-unit_process_library_file = globalData
-unit_process_library_sheet = 'Unit Processes'
+unit_process_library_file = 'excelData/globalData.xlsx' 
+unit_process_library_sheet = 'Unit Processes' # if an excel worksheet, otherwise None
+lookup_var_file = 'excelData/globalData.xlsx' # if an excel workbook, otherwise specify in custom_lookup
+outdir = 'BlackBlox_output' 
+
 
 # COLUMN HEADERS
 # unit library table:
@@ -25,7 +34,6 @@ unknown = 'UnknownQty'
 unknown_io = 'u_QtyTo'
 calc_type = 'Calculation'
 calc_var = 'Variable'
-
 
 # production chain tables:
 inflow_col = 'Inflow'
@@ -48,33 +56,27 @@ connect_product = "Product"
 origin_io = "Product_IO_of_Origin"
 dest_io = "Product_IO_of_Destination"
 
-# industry tables
+# industry data tables
 factory_name = "Factory Name"
 factory_filepath = "Factory File"
 f_chain_list_file = "Chains File"
 f_chains_sheet = "Factory Chains Sheet"
 f_connections_file = "Connections File"
 f_connections_sheet = "Factory Connections Sheet"
-
 f_product = "Factory Product"
 f_product_qty = "Product Qty"
 f_scenario = "Scenario"
 
 
 # SPECIAL FILE VARIALBES
-default_scenario = "default" # in unit process variable table
-connect_all = 'all' # in factory connections table (for origin_process only)
-all_factories = ['industry', 'all', 'factories']
+same_xls = ['thisfile', 'same', 'here'] # for input filepaths; used to indicate that the data is in the same file
+
+default_scenario = "default" # row index in unit process variable table
 no_var = ['none', 'false', 'na', '-', '', 'nan'] # no variable marker for unit process calculations table
-same_xls = ['thisfile', 'same', 'here'] # data in same workbook
 
-# lookup variables for unit processcalculations table (replaces variable with specific value from variable file)
-# lookup_var is the keyword string in calc file to trigger lookup: (dataframe of lookup data, column name in variable table to replace with) 
-lookup_var_dict = { 
-    'fuel': dict(data_frame=make_df(globalData, sheet='Fuels'), 
-                 lookup_var='fuelType'),
-    } 
+connect_all = 'all' # in factory connections table (for origin_process only)
+
+all_factories = ['industry', 'all', 'factories'] # to indicate all factories in a given industry
 
 
-# OTHER SHORTCUT NAMES
-df_fuels = lookup_var_dict['fuel']['data_frame']
+

@@ -9,6 +9,7 @@ import random
 
 # import other BlackBlox modules
 from dataconfig import *
+from custom_lookup import *
 from unitprocess import *
 from processchain import *
 from factory import *

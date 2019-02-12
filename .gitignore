@@ -18,8 +18,10 @@ logs/
 *.gv
 *gv.pdf
 outputFiles/
+BlackBlox_output/
 
 
 #others
 ~$*
 scratch.xlsx
+BlackBlox_output/Cement Industry_evolve_1990_2010_2019-02-12_2028/end_2010/pfd/otherCementFactory/power.gv.svg

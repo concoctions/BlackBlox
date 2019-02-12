@@ -13,6 +13,8 @@ from pathlib import Path
 from collections import defaultdict
 from datetime import datetime
 
+import dataconfig as dat
+
 
 def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta", 
             T = False, drop_zero=False):
@@ -27,16 +29,16 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
             excel workbooks, comma seperated value files, and other delimited 
             text files)
         sheet (str, optional): The worksheet of a specified excel workbook. 
-            Defaults to None.
+            (Defaults to None.)
         sep (str): the seperator used in non-csv text file. 
-            Defaults to \t.
+            (Defaults to tab (\t).)
         index (int or None): the column of data that is the index. 
-            Defaults to 0.
+            (Defaults to 0.)
         metaprefix (str or None): If a column name or row index begins with
             the metaprefix, that row or column is dropped from the data frame.
-            Defaults to 'meta'.
+            (Defaults to 'meta'.)
         T (bool): If True, transposes the data frame before return.
-            Defaults to False.
+            (Defaults to False.)
         drop_zero (bool): If True, converts any NaNs to zeros, and then 
             removes any rows or columns that contain only zeros.
 
@@ -104,12 +106,13 @@ def build_filedir(filedir, subfolder=None, file_id_list=[], time=True):
     Args:
         filedir (str): the base file directory
         subfolder (str): optional subfolder(s)
-            Defaults to None.
+            (Defaults to None.)
         file_id_list (list of str): list of strings to append to the directory
-            name. Defaults to an empty list.
+            name. 
+            (Defaults to an empty list.)
         time (bool): Whether to include a date-time stamp in the file
             directory  name. 
-            Defaults to True.
+            (Defaults to True.)
 
     Returns:
         The built file directory string.
@@ -127,7 +130,7 @@ def build_filedir(filedir, subfolder=None, file_id_list=[], time=True):
     return filedir
 
 
-def write_to_excel(df_or_df_list, sheet_list=None, filedir='outputFiles', 
+def write_to_excel(df_or_df_list, sheet_list=None, filedir=dat.outdir, 
                    filename='output'):
     """Writes one or more data frames to a single excel workbook.
 
@@ -139,11 +142,11 @@ def write_to_excel(df_or_df_list, sheet_list=None, filedir='outputFiles',
             of pandas dataframes.
         sheet_list (optional, list): List of sheetnames that will be used for
             the dataframe at the same index in df_or_df_list. 
-            Defaults to None.
+            (Defaults to None.)
         filedir (optional, str): desired file output directory. 
-            Defaults to current working directory.
+            (Defaults to current working directory.)
         filename (optional, str): desired excel file name, without extension.
-            Defaults to 'output'
+            (Defaults to 'output')
     """
     Path(filedir).mkdir(parents=True, exist_ok=True) 
 

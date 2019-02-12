@@ -5,6 +5,7 @@ from bb_log import get_logger
 import io_functions as iof
 import dataconfig as dat
 import calculators  as calc
+import custom_lookup as lup
 
 
 logger = get_logger("Unit Process")
@@ -94,8 +95,8 @@ class UnitProcess:
         if iof.sl(i_o[0]) not in ['i', 'o', 't', 'e']:
             raise Exception(f'{i_o} not valid product destination')
 
-        if product in dat.lookup_var_dict:
-            product = self.var_df.at[var_i, dat.lookup_var_dict[product]['lookup_var']]   
+        if product in lup.lookup_var_dict:
+            product = self.var_df.at[var_i, lup.lookup_var_dict[product]['lookup_var']]   
         
         logger.debug(f"Attempting to balance {self.name} on {qty} of {product} ({i_o}) using {var_i} variables")
 
@@ -138,12 +139,12 @@ class UnitProcess:
             if attempt >= len(calc_df): 
                 raise Exception(f"Cannot process {known_substance}. Breaking to prevent infinite loop")
 
-            if known_substance in dat.lookup_var_dict:
+            if known_substance in lup.lookup_var_dict:
                 known_substance = self.var_df.at[var_i, 
-                dat.lookup_var_dict[known_substance]['lookup_var']] 
-            if unknown_substance in dat.lookup_var_dict:
+                lup.lookup_var_dict[known_substance]['lookup_var']] 
+            if unknown_substance in lup.lookup_var_dict:
                 unknown_substance = self.var_df.at[var_i, 
-                dat.lookup_var_dict[unknown_substance]['lookup_var']] 
+                lup.lookup_var_dict[unknown_substance]['lookup_var']] 
 
             if known_substance in io_dicts[known_io]:
                 pass
