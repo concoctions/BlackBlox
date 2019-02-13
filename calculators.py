@@ -6,6 +6,11 @@ quantites specified in the user data. The calculation type specified by the
 user must be of one of the type specified here, or one defined by the user in
 custom_lookup.py
 
+Note, the use of **kwargs in the function argument calls is required to 
+allow the functions to work properly, since all possible calculatr variables  
+are provided to the calculator function in unitprocess.py, whether or
+not they are used by that specific function.
+
 Current standrard calculators:
 Ratio
 Remainder
@@ -140,6 +145,7 @@ def ReturnValue(qty, **kwargs):
         qty: literally the exact thing you gave it.
     """
     return qty
+
 
 def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
     """Uses the ratio of molecular mass of two substances to 

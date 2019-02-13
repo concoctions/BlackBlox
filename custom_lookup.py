@@ -1,3 +1,38 @@
+# -*- coding: utf-8 -*-
+""" Custom "lookup" substances and related functions
+
+This module is the place to put special substance names that should not
+be used as-is, but "looked up" in the unit process variables table. 
+Optionally, the substance name can have a data frame associated with it
+that contains further data about the substances, such as may be used in
+any custom calculators.
+
+Additionally, this is the place for custom calculator functions, such 
+as those that manipulate the look-up variables or perform more than
+just standard mathetmatical operations.  Besideds adding the function
+definition, be sure to add the function name to the dictionary at the 
+bottom of the moduel, so the function will be added to the BlackBlox
+calculator dictionary.
+
+When building functions, please note unitprocess.py will provide the 
+following standard arguments. If not all of these are used in the 
+function, be sure to allow the function to accept **kwargs to avoid
+raising a KeyError.
+    qty:
+    var:
+    known_substance:
+    unknown_subtance: 
+
+Currently this file contains the following:
+
+Custom lookup variables:
+fuel: allows fuel type to be specified per scenario. With data frame.
+
+Custom calculator functions:
+Combustion: calculates combustion emissions from qty of energy or fuel mass
+
+"""
+
 from collections import defaultdict
 
 import io_functions as iof
@@ -6,21 +41,36 @@ import dataconfig as dat
 from bb_log import get_logger
 
 logger = get_logger("Custom Lookup")
-
-# lookup variables for unit processcalculations table (replaces variable with specific value from variable file)
-# lookup_var is the keyword string in calc file to trigger lookup: (dataframe of lookup data, column name in variable table to replace with) 
+ 
 # LOOK UP VARIABLES
 lookup_var_dict = { 
     'fuel': dict(data_frame=iof.make_df(dat.lookup_var_file, sheet='Fuels'), 
                  lookup_var='fuelType'),
     } 
+"""dictionary of special lookup substance names
+Lookup_var_dict is a dictionary with the names of substance, that when used
+in the unit process calculations file, will trigger the program to replace
+the lookup substance name with the substance name specified in the unit 
+process's variable data table for the scenario currently in use.
 
-# LOOKUP VARIABLES DICTIONARY SHORTCUT NAMES
+Each entry in this dictionary should be formatted as follows:
+    key (str): the substance name to be used in the calcuations file
+    value (dict): a dictionary of lookup variable attributes.
+        lookup_var (str): the header of the column in the unit process 
+            variable file that contains the value with which to replace
+            the lookup substance word.
+        data_frame (optional): a data frame with additional custom data
+            about the lookup variable, such as to be used in custom functions,
+            below. NOT USED DIRECTLY BY BLACKBLOX.PY.
+"""
+
+# LOOKUP VARIABLES SHORTCUT NAMES
 df_fuels = lookup_var_dict['fuel']['data_frame']
 
 
 # CUSTOM FUNCTIONS
-def Combustion(known_substance, qty, unknown_substance, var, emissions_dict=False, fuels_dict=df_fuels, **kwargs):
+def Combustion(known_substance, qty, unknown_substance, var, 
+               emissions_dict=False, fuels_dict=df_fuels, **kwargs):
     """
     Combustion Calculation", 
     var: Efficiency of combustion
@@ -68,7 +118,19 @@ def Combustion(known_substance, qty, unknown_substance, var, emissions_dict=Fals
     return return_qty
 
 
-# CUSTOM CALCULATORS DICTIONARY (will be added to standard calculators dictionary)
+# CUSTOM CALCULATORS DICTIONARY 
 custom_calcs_dict = {
     'combustion': Combustion,
 }
+
+"""Dictionary of custom calculator functions
+
+The functions in this dictionary will be added to the calculation type
+lookup dictionary created in calculators.py and used by the unitprocess.py
+to calculate 
+
+    key (str): the (lowered) string used to identify the calculation type,
+        used in the unit process calculation tables. Should be unique, 
+        including not repeating 
+    value: The associated function
+"""

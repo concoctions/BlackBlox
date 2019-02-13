@@ -12,9 +12,28 @@ sensitive.
 
 # DEFAULT FILEPATHS 
 unit_process_library_file = 'excelData/globalData.xlsx' 
-unit_process_library_sheet = 'Unit Processes' # if an excel worksheet, otherwise None
-lookup_var_file = 'excelData/globalData.xlsx' # if an excel workbook, otherwise specify in custom_lookup
+"""str: The filepath whre the unit process library file exists.
+"""
+unit_process_library_sheet = 'Unit Processes'
+"""The worksheet of the unit process library, if in an Excel workbook
+
+If not an excel worksheet, this variable should be none.
+"""
+lookup_var_file = 'excelData/globalData.xlsx'
+"""The filepath for any custom "lookup substance" variables tables.
+
+See custom_lookup for more detail. If multiple lookup substances are used, 
+the filepath should either be an excel workbook, the specific filepaths 
+should be specified in custom_lookup.py, or this could be convered to a 
+dictionary.
+"""
+
 outdir = 'BlackBlox_output' 
+"""str: The default output directory.
+
+Unless an absolute path is specified, BlackBlox will create the directory 
+as a subfolder of the current working directory.
+"""
 
 
 # COLUMN HEADERS
@@ -69,14 +88,47 @@ f_scenario = "Scenario"
 
 
 # SPECIAL FILE VARIALBES
-same_xls = ['thisfile', 'same', 'here'] # for input filepaths; used to indicate that the data is in the same file
+same_xls = ['thisfile', 'same', 'here']
+"""list: strings indicating the data is in the current Excel workbook
 
-default_scenario = "default" # row index in unit process variable table
-no_var = ['none', 'false', 'na', '-', '', 'nan'] # no variable marker for unit process calculations table
+Usable as a replacement for a filepath for input data that is in an
+Excel workbook with multiple sheets. The correct Excel sheet must still
+be specified.
+"""
 
-connect_all = 'all' # in factory connections table (for origin_process only)
+default_scenario = "default" 
+"""str: the index used for the default scenario of variables
 
-all_factories = ['industry', 'all', 'factories'] # to indicate all factories in a given industry
+Usable in the unit process variables data tables. 
+If present in the variables data index, the default scenario will be used
+when a scenario of variables is not otherwise specified.
+"""
 
+no_var = ['none', 'false', 'na', '-', '', 'nan'] 
+"""str: indicator that no variable is used in the calculation
 
+Usable in the unit process calculation table, to indicate that the 
+calculation type requires no variable beyond the names of the substances. 
+(e.g. MolMassRatio)
+"""
+
+connect_all = 'all'
+"""str: indicator that all processes of a chain connect to the destination
+
+Usable in the factory connections table, for the "origin process" column.
+Indicates that  every process of the origin chain is connected to the 
+destination chain by the specified product.
+"""
+
+all_factories = ['industry', 'all', 'factories'] 
+"""list: strings indicating all factories in a given industry
+
+Useable as a row index in industry scenario tables to indicate that a
+production quantity or scenario applies to all factories producing the 
+specified product. 
+
+If used to specify an industry-wide total product production quantity, 
+each factory producing that product should specify their production quantity 
+as a fraction of that total as a decimal between 0 and 1.
+"""
 
