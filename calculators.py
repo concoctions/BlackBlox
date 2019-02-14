@@ -64,6 +64,7 @@ def Ratio(qty, var, invert = False, **kwargs):
     Examples:
             >>> Ratio(5, 3)
             15
+
             >>> Ratio(5, 3, invert=True)
             1.6666666666666665
 
@@ -101,6 +102,7 @@ def Remainder(qty, var, invert = False, **kwargs):
     Examples:
         >>> Remainder(5, 0.3)
         3.5
+        
         >>> Remainder(5, 0.3, invert=True)
         7.142857142857143
 
