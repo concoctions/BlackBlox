@@ -64,13 +64,14 @@ Each entry in this dictionary should be formatted as follows:
             below. These are not used elsewhere in BlackBlox.py.
 """
 
-# LOOKUP VARIABLES SHORTCUT NAMES
+# OTHER CUSTOM VARIABLES
 df_fuels = lookup_var_dict['fuel']['data_frame']
+fuel_emissions = ['CO2', 'H2O']
 
 
 # CUSTOM FUNCTIONS
 def Combustion(known_substance, qty, unknown_substance, var, 
-               fuels_df=df_fuels, emissions_dict=False, inflows_dict=False,
+               emissions_dict=False, inflows_dict=False, fuels_df=df_fuels, 
                **kwargs):
     """Calculates fuel or energy quantity and combustion emissions
 
@@ -119,11 +120,8 @@ def Combustion(known_substance, qty, unknown_substance, var,
             and emissions data of the fuel.
             (Defaults to df_fuels)
         
-        Returns:
-            Float: The quantity of the unkown substance (fuel or energy)
-
-    Returns
-    var: Efficiency of combustion
+    Returns:
+        float: The quantity of the unkown substance (fuel or energy)
 
     """
     logger.debug("Attempting combustion calcuation for {} using qty {} of {} and efficiency of {}".format(unknown_substance, qty, known_substance, var))

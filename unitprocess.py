@@ -1,3 +1,20 @@
+# -*- coding: utf-8 -*-
+""" Unit process class
+
+This module contains the Unit Process class, which is the smallest,
+and fundamental, block used in BlackBlox.py.
+
+Each unit process has inflows and outflows, whose abstract relationships 
+are specified in a relationships table. The numeric values for the variables
+used in those relationships are specified in a seperate table, to allow
+for multipe scenarios to be 
+
+The Unit Process class has a single function, which is to balance the
+inflows and outflows given one quantity of an inflow or outflow. Balancing
+the unit process requires that the relationships table is complete.
+
+"""
+
 from collections import defaultdict
 
 from bb_log import get_logger
@@ -10,24 +27,55 @@ import custom_lookup as lup
 
 logger = get_logger("Unit Process")
 
-# Initalize library of unit processes
+
 df_unit_library = iof.make_df(dat.unit_process_library_file, 
                              sheet=dat.unit_process_library_sheet)
+"""dataframe of all unit process names and file locations
 
-# UNIT PROCESS
+This data frame is used by the unit process class to provide the
+locations of the calculations and variable tables for each unit
+process. Data locations for each unit process can also be provided
+invidivually, but if not otherwise specified, the unit process
+__init__ function will look for the data in this data frame.
+
+The names of the unit process should be index column of the data
+frame, and there should also be columns for the file paths of the
+variables table and calculations tables. Columns for sheet names,
+if the data is within excel sheets, will also be used if provided.
+"""
+
+
 class UnitProcess:
-    """
-    UnitProcess objects have a set of inflows and outflows, with the relationship 
-    between them expressed in a DataFrame of calculations and a DataFrame of 
-    variables to use in the calculations.
+    """Unit Processes have  inflows and outflows with defined relationships
 
-    The sets of inflows and outflows is derived from the list of calculation 
-    supplied by the user.
+    Args:
+        name (str): Unique name for the process
+        var_df (str/dataframe/bool): Optional filepath or data frame of
+            variables data table for the unit process. If False, uses
+            unit process library dataframe to fetch data, if available.
+            (Defaults to False)
+        calc_df (str/dataframe/bool): Optional filepath or data frame of
+            relationship data table for the unit process. If False, uses
+            unit process library dataframe to fetch data, if available.
+            (Defaults to False)
+        units_df (dataframe): Unit process library data frame
+            (Defaults to df_unit_library)
 
-    UnitProcess.balance allows the user to specify a specific quantity of an 
-    input and , and a specific set of calculation variables to use, and the 
-    function will return dictionaries (defaultdict) of the quantities of the 
-    unit process inflows and outflows to balance the given product quantity.
+    Attributes:
+        name (str): Name of process
+        var_df (dataframe): Dataframe of relationship variable values
+            indexed by scenario name.
+        calc_df (dataframe): Dataframe of relationships between unit
+            process flows.
+        default_product (str): The primary "product" flow of the unit
+            process. Derived from units_df.
+        default_io (str): Whether the primary product is an inflow
+            or an outflow. Derived from units_df.
+        inflows (set[str]): List of inflows to the unit process. Derived
+            from calc_df.
+        outflows (set[str]): List of outflows to the unit process. Derived
+            from calc_df.
+        
     """
 
     def __init__(self, name, var_df=False, calc_df=False, 
@@ -36,18 +84,19 @@ class UnitProcess:
         self.name = name
 
         if var_df is not False:
-            self.var_df = var_df
+            self.var_df = iof.make_df(var_df)
         else:
             v_sheet = iof.check_for_col(units_df, dat.var_sheetname, name)
             self.var_df = iof.make_df(units_df.at[name, dat.var_filepath], 
-                          sheet=v_sheet)
+                                      sheet=v_sheet)
 
         if calc_df is not False:
             self.calc_df = calc_df
         else:
             c_sheet = iof.check_for_col(units_df, dat.calc_sheetname, name)
             self.calc_df = iof.make_df(units_df.at[name, dat.calc_filepath], 
-                               sheet=c_sheet, index=None)
+                                       sheet=c_sheet, 
+                                       index=None)
 
         #create sets of process inflows and outflows
         self.default_product = units_df.at[name, dat.unit_product]
@@ -71,11 +120,31 @@ class UnitProcess:
  
     def balance(self, qty, product=False, i_o=False, 
                 var_i=False):
-        """
-        # product: final input or outflow on which to balance the calculations
-        # qty: desired final quantity of product
-        # i_o: whether product is an input (i) or outflow (o)
-        # var_i: row index of variables files to use
+        """performs a mass balance on the unit process.
+
+        Except doesn't actually "balance" at the moment; just calculates
+        flow quantities as specified in the relationships table.
+
+        Args:
+            qty (float): The quantity of the specified flow.
+            product (str/bool): the inflow or outflow on which to balance 
+                the calculations. If False, uses the default product.
+                (Defaults to False)
+            i_o (str): 'i' or 'o', depending on whether the specified
+                product is an inflow (i) or outflow (o). If False, uses the 
+                default product's IO.
+                (Defaults to False)
+            var_i (str): row index of var_df to use for the variables value,
+                generally corresponding to the name of the scenario. If
+                False, uses the default scenario index specified in 
+                dataconfig.
+                (Defaults to False)
+
+        Returns:
+            Defaultdict of inflows with substance names as keys and quantities
+                as values
+            Defaultdict of outflows with substance names as keys and quantities
+                as values.
         """
 
         #verifies arguments
@@ -106,26 +175,22 @@ class UnitProcess:
         io_dicts = {
             'i' : defaultdict(float),    # inflows dictionary
             'o' : defaultdict(float),    # outflows dictionary
-            't' : defaultdict(float),    # temp dictionay (discarded values)
-            'e' : defaultdict(float)     # emissions dictionary - adds value to outflow dictionary at end of function
+            't' : defaultdict(float),    # temp dictionay (intermediate values - discarded)
+            'e' : defaultdict(float),    # emissions dictionary (values added to outflows after all calculations)
+            'c' : defaultdict(float),    # co-inflows dictionary (values added to inflows after all calculations)
         }
 
-        io_dicts[iof.sl(i_o[0])][product] = qty
-               
+        io_dicts[iof.sl(i_o[0])][product] = qty # primes inflow or outflow dictionary with product quantity
         i = 0
         attempt = 0
-    
 
-        # perform specified calculations, starting with the known_substance
-        while len(calc_df) > 0:
-                       
-            if i >= len(calc_df):     # if at end of list, loop around
-                i = 0
+        while len(calc_df) > 0:     
+            if i >= len(calc_df):
+                i = 0   # if at end of list, loop around
 
-            # setup loop variables
             known_substance = calc_df.at[i, dat.known]
-            known_io =iof.sl(calc_df.at[i, dat.known_io][0]) # shortens to i, o, or t (lower case)
-            unknown_io = iof.sl(calc_df.at[i, dat.unknown_io][0]) # shortens to i, o or t (lower case)
+            known_io =iof.sl(calc_df.at[i, dat.known_io][0])
+            unknown_io = iof.sl(calc_df.at[i, dat.unknown_io][0]) 
             unknown_substance = calc_df.at[i, dat.unknown]
             calc_type = iof.sl(calc_df.at[i, dat.calc_type])
             invert = False
@@ -150,7 +215,8 @@ class UnitProcess:
                 pass
             elif unknown_substance in io_dicts[unknown_io]:
                 invert = True
-                known_substance, unknown_substance = unknown_substance, known_substance
+                known_substance, unknown_substance = (unknown_substance, 
+                                                      known_substance)
                 known_io, unknown_io = unknown_io, known_io
                 logger.debug(f"{known_substance} not found, but {unknown_substance} found. Inverting calculations")
             else:
@@ -161,16 +227,19 @@ class UnitProcess:
             
             if calc_type not in calc.calcs_dict:
                 raise Exception(f"{calc_type} is an unknown_substance calculation type")
+            if unknown_io not in io_dicts:
+                raise Exception(f"{unknown_io} is an unknown destination")
 
             qty_known = io_dicts[known_io][known_substance]
-            kwargs = dict(qty=qty_known, var=var, known_substance=known_substance, 
-            unknown_substance=unknown_substance, invert=invert, emissions_dict=io_dicts['e'])
+            kwargs = dict(qty=qty_known, 
+                          var=var, 
+                          known_substance=known_substance, 
+                          unknown_substance=unknown_substance, 
+                          invert=invert, 
+                          emissions_dict=io_dicts['e'],)
 
             logger.debug(f"Attempting {calc_type} calculation for {unknown_substance} using {qty} of {known_substance}")
             qty_calculated = calc.calcs_dict[calc_type](**kwargs)
-
-            if unknown_io not in io_dicts:
-                raise Exception(f"{unknown_io} is an unknown destination")
             
             io_dicts[unknown_io][unknown_substance] += qty_calculated
 
@@ -180,11 +249,8 @@ class UnitProcess:
             logger.debug(f"{qty_calculated} of {unknown_substance} calculated. {len(calc_df)} calculations remaining.")
             attempt = 0
 
-
-        #add emissions dictionary to outflow dictionary
-        for substance, qty in io_dicts['e'].items():
+        for substance, qty in io_dicts['e'].items(): #add emissions dictionary to outflow dictionary
             io_dicts['o'][substance] += qty
-
 
         logger.debug(f"{self.name} process balanced on {qty} of {product}")
         logger.debug('Inflows:')
