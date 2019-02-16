@@ -1,5 +1,12 @@
-# hattip: 
-# https://gist.github.com/nguyenkims/e92df0f8bd49973f0c94bddf36ed7fd0
+# -*- coding: utf-8 -*-
+""" Logger generatior
+
+This module defines the logging system used in BlackBlox.py.
+
+Created using the recipe from
+https://gist.github.com/nguyenkims/e92df0f8bd49973f0c94bddf36ed7fd0
+
+"""
 
 import logging
 import sys
@@ -21,8 +28,8 @@ def get_file_handler():
 
 def get_logger(logger_name):
    logger = logging.getLogger(logger_name)
-   logger.setLevel(logging.DEBUG) # better to have too much log than not enough
-#   logger.addHandler(get_console_handler())
+   logger.setLevel(logging.DEBUG)
+   # logger.addHandler(get_console_handler()) #uncomment to output log to console
    logger.addHandler(get_file_handler())
    logger.propagate = False
    return logger

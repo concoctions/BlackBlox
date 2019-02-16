@@ -13,12 +13,17 @@ The Unit Process class has a single function, which is to balance the
 inflows and outflows given one quantity of an inflow or outflow. Balancing
 the unit process requires that the relationships table is complete.
 
+Module Outline:
+
+- import statements and logger
+- module variable: df_units_library (dataframe)
+- class: unit process
+    - class function: Balance
+
 """
 
 from collections import defaultdict
-
 from bb_log import get_logger
-
 import io_functions as iof
 import dataconfig as dat
 import calculators  as calc
@@ -46,17 +51,23 @@ if the data is within excel sheets, will also be used if provided.
 
 
 class UnitProcess:
-    """Unit Processes have  inflows and outflows with defined relationships
+    """Unit processes have inflows and outflows with defined relationships.
+
+    The relationships of the unit process flows must be defined so that
 
     Args:
         name (str): Unique name for the process
-        var_df (str/dataframe/bool): Optional filepath or data frame of
-            variables data table for the unit process. If False, uses
-            unit process library dataframe to fetch data, if available.
+        var_df (str/dataframe/bool): Optional. Dataframe or filepath tof
+            tabular data of the variable values to use when balancing the 
+            unit process. If False, __init__ uses df_unit_library to fetch 
+            data.
             (Defaults to False)
-        calc_df (str/dataframe/bool): Optional filepath or data frame of
-            relationship data table for the unit process. If False, uses
-            unit process library dataframe to fetch data, if available.
+        calc_df (str/dataframe/bool): Optional. Dataframe or filepath to 
+            tabular data the relationships between the flows within the
+            unit process, with each relationship having no more than a
+            single variable. If False, __init__ uses df_unit_library to fetch
+            data. The relationships must be sufficiently specified so that
+            so that there are zero degrees of freedom. 
             (Defaults to False)
         units_df (dataframe): Unit process library data frame
             (Defaults to df_unit_library)
@@ -107,9 +118,9 @@ class UnitProcess:
         
         for i in self.calc_df.index: 
             products = [ (self.calc_df.at[i, dat.known], 
-                iof.sl(self.calc_df.at[i, dat.known_io][0])),
+                iof.clean_str(self.calc_df.at[i, dat.known_io][0])),
                  (self.calc_df.at[i, dat.unknown],
-                 iof.sl(self.calc_df.at[i, dat.unknown_io][0]))]
+                 iof.clean_str(self.calc_df.at[i, dat.unknown_io][0]))]
 
             for product, i_o in products:
                 if i_o == 'i':
@@ -147,31 +158,24 @@ class UnitProcess:
                 as values.
         """
 
-        #verifies arguments
-        if product is False:
-            product = self.default_product
         if i_o is False:
             i_o = self.default_io
+        i_o = iof.clean_str(i_o[0])
+        if i_o not in ['i', 'o', 't']:
+            raise Exception(f'{i_o} not valid product destination')
         if var_i is False:
             var_i = dat.default_scenario
-
-        if product not in self.inflows and product not in self.outflows:
-            raise Exception(f'{product} not found in {self.name} inflows or outflows')
-
         if var_i not in self.var_df.index.values:
             raise Exception(f'{var_i} not found in variables file')
-
-        if iof.sl(i_o[0]) not in ['i', 'o', 't', 'e']:
-            raise Exception(f'{i_o} not valid product destination')
-
+        if product is False:
+            product = self.default_product
+        if product not in self.inflows and product not in self.outflows:
+            raise Exception(f'{product} not found in {self.name} inflows or outflows')
         if product in lup.lookup_var_dict:
             product = self.var_df.at[var_i, lup.lookup_var_dict[product]['lookup_var']]   
-        
+        calc_df = self.calc_df
         logger.debug(f"Attempting to balance {self.name} on {qty} of {product} ({i_o}) using {var_i} variables")
 
-        
-        #setup function variables
-        calc_df = self.calc_df
         io_dicts = {
             'i' : defaultdict(float),    # inflows dictionary
             'o' : defaultdict(float),    # outflows dictionary
@@ -179,8 +183,7 @@ class UnitProcess:
             'e' : defaultdict(float),    # emissions dictionary (values added to outflows after all calculations)
             'c' : defaultdict(float),    # co-inflows dictionary (values added to inflows after all calculations)
         }
-
-        io_dicts[iof.sl(i_o[0])][product] = qty # primes inflow or outflow dictionary with product quantity
+        io_dicts[i_o][product] = qty # primes inflow or outflow dictionary with product quantity
         i = 0
         attempt = 0
 
@@ -189,18 +192,16 @@ class UnitProcess:
                 i = 0   # if at end of list, loop around
 
             known_substance = calc_df.at[i, dat.known]
-            known_io =iof.sl(calc_df.at[i, dat.known_io][0])
-            unknown_io = iof.sl(calc_df.at[i, dat.unknown_io][0]) 
+            known_io =iof.clean_str(calc_df.at[i, dat.known_io][0])
+            unknown_io = iof.clean_str(calc_df.at[i, dat.unknown_io][0]) 
             unknown_substance = calc_df.at[i, dat.unknown]
-            calc_type = iof.sl(calc_df.at[i, dat.calc_type])
+            calc_type = iof.clean_str(calc_df.at[i, dat.calc_type])
             invert = False
             var = False
-
-            if iof.sl(calc_df.at[i, dat.calc_var]) not in dat.no_var:
+            if iof.clean_str(calc_df.at[i, dat.calc_var]) not in dat.no_var:
                 var = self.var_df.at[var_i, calc_df.at[i, dat.calc_var]] 
 
             logger.debug(f"current index: {i}, current product: {known_substance}")
-
             if attempt >= len(calc_df): 
                 raise Exception(f"Cannot process {known_substance}. Breaking to prevent infinite loop")
 
@@ -237,17 +238,14 @@ class UnitProcess:
                           unknown_substance=unknown_substance, 
                           invert=invert, 
                           emissions_dict=io_dicts['e'],)
-
             logger.debug(f"Attempting {calc_type} calculation for {unknown_substance} using {qty} of {known_substance}")
             qty_calculated = calc.calcs_dict[calc_type](**kwargs)
-            
             io_dicts[unknown_io][unknown_substance] += qty_calculated
 
             calc_df = calc_df.drop(i)
             calc_df = calc_df.reset_index(drop=True)
-
-            logger.debug(f"{qty_calculated} of {unknown_substance} calculated. {len(calc_df)} calculations remaining.")
             attempt = 0
+            logger.debug(f"{qty_calculated} of {unknown_substance} calculated. {len(calc_df)} calculations remaining.")
 
         for substance, qty in io_dicts['e'].items(): #add emissions dictionary to outflow dictionary
             io_dicts['o'][substance] += qty

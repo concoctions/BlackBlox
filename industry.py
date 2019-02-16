@@ -27,7 +27,7 @@ class Industry:
         self.product_list = None
         self.factory_dict = None
 
-    def initalize(self):
+    def build(self):
         """ generates the factory, chain, and process objects in the industry
         """
         logger.debug(f"initializing industry for {self.name}")
@@ -71,7 +71,7 @@ class Industry:
         """Balances an industry using one scenario for each factory.
         """
         if self.factory_dict is None:
-            self.initalize()
+            self.build()
 
         if subfolder is True:
             subfolder = self.name
@@ -95,10 +95,10 @@ class Industry:
 
         for i, f in product_df.iterrows():
             product = f[dat.f_product]
-            if iof.sl(i) in dat.all_factories: 
+            if iof.clean_str(i) in dat.all_factories: 
                 if product not in dat.no_var:
                     fractions[product] = f[dat.f_product_qty] # industry-wide product total
-                if isinstance(f[dat.f_scenario], str) and iof.sl(f[dat.f_scenario]) not in dat.no_var:
+                if isinstance(f[dat.f_scenario], str) and iof.clean_str(f[dat.f_scenario]) not in dat.no_var:
                     product_scenario[product]=f[dat.f_scenario] #scenario for all factories producing that product
             else:
                 if product in fractions: # product qty should be decimal fraction of total

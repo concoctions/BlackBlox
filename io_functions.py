@@ -5,6 +5,16 @@ This module contains data manipulation functions used in BlackBlox.py to
 retrieve user input and manipulate it into useable formats, as well as 
 functions used in output file generation.
 
+Module Outline:
+- imports
+- function: make_df
+- function: check_for_col
+- function: build_filedir
+- function: write_to_excel
+- fucntion: sl
+- function: if_str
+- function: nested_dicts
+
 """
 
 import pandas as pan
@@ -12,7 +22,6 @@ import numpy as np
 from pathlib import Path
 from collections import defaultdict
 from datetime import datetime
-
 import dataconfig as dat
 
 
@@ -163,14 +172,21 @@ def write_to_excel(df_or_df_list, sheet_list=None, filedir=dat.outdir,
                 df.to_excel(writer, sheet)
 
 
-def sl(string_to_check):
-    """trims a string of surroudning white space and lowers any capitals
+def clean_str(string_to_check, str_to_cut=False, remove_dblnewline=True):
+    """Multipurpose function to clean user input strings
     
     Used to clean user input. First creates a copy of the string to prevent 
     the original string from being modified unintentionally.
 
     Args:
         string_to_check (str): The string to strip and lower
+        str_to_cut (str/bool): If passed a string, will check for and remove 
+            the cut_str string from the string_to_check. If passed a list of 
+            strings, will check for and remove each from the string_to_check.
+            (Defaults to False.)
+        remove_dblnewlines (bool): If True, looks for and removes instances
+            of double new lines.
+            (Defaults to True.)
 
     Returns
         The input string, stripped of leading and trailing white space 
@@ -180,6 +196,16 @@ def sl(string_to_check):
 
     string = string.strip()
     string = str.lower(string)
+
+    if type(str_to_cut) is str:
+        string = string.replace(str_to_cut, '')
+    if type(str_to_cut) is list:
+        for snip in str_to_cut:
+            string = string.replace(snip, '')
+
+    if remove_dblnewline is True:
+        if '\n\n' in string:
+            string = string.replace('\n\n', '\n')
 
     return string
 

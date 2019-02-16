@@ -230,7 +230,7 @@ print(chain.name)
 print(chain.process_chain_df)
 print(chain.process_list)
 
-chain.initialize()
+chain.build()
 print(chain.process_list)
 
 inflows, outflows = chain.balance(1.0, var_i="default")
@@ -333,7 +333,7 @@ i_kwargs = dict(factory_list_file='excelData/cementIndustry.xlsx',
 
 industry = Industry(**i_kwargs)
 
-industry.initalize()
+industry.build()
 
 for factory, details in industry.factory_dict.items():
     print(factory, details)

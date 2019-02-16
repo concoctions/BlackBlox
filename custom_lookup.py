@@ -23,7 +23,15 @@ raising a KeyError.
     known_substance:
     unknown_subtance: 
 
-Currently this file contains the following:
+Module Outline:
+- imports and logger
+- module variable: lookup_var_dict (dict)
+- module variables for custom fuel combustion functions
+    - df_fuels (dataframe)
+    - fuel_emissions (list)
+- function: Combustion
+- module variable: custom_calcs_dict (dict)
+
 
 Custom lookup variables:
 fuel: allows fuel type to be specified per scenario. With data frame.
@@ -34,10 +42,8 @@ Combustion: calculates combustion emissions from qty of energy or fuel mass
 """
 
 from collections import defaultdict
-
 import io_functions as iof
 import dataconfig as dat
-
 from bb_log import get_logger
 
 logger = get_logger("Custom Lookup")

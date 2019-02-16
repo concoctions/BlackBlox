@@ -64,7 +64,8 @@ class Factory:
             
             chain_sheet = iof.check_for_col(self.chains_df, dat.chain_sheetname, i)
 
-            if dat.chain_filepath not in self.chains_df or iof.sl(c[dat.chain_filepath]) in dat.same_xls:
+            if (dat.chain_filepath not in self.chains_df 
+                or iof.clean_str(c[dat.chain_filepath]) in dat.same_xls):
                 chain_file = self.chains_file
             else:
                 chain_file = c[dat.chain_filepath]
@@ -73,7 +74,7 @@ class Factory:
                                     name=name, xls_sheet=chain_sheet), 
                                     name=name, 
                                     product=c[dat.chain_product], 
-                                    i_o=iof.sl(c[dat.chain_io][0]))
+                                    i_o=iof.clean_str(c[dat.chain_io][0]))
 
         self.chain_dict = chain_dict
 
@@ -99,8 +100,8 @@ class Factory:
 
         for dummy_index, c in self.connections_df.iterrows():    
             qty = False
-            o_io = iof.sl(c[dat.origin_io][0])
-            d_io = iof.sl(c[dat.dest_io][0])
+            o_io = iof.clean_str(c[dat.origin_io][0])
+            d_io = iof.clean_str(c[dat.dest_io][0])
 
             if c[dat.origin_chain] == dat.connect_all:
                 pass
@@ -237,8 +238,8 @@ class Factory:
         for i, c in self.connections_df.iterrows():
             product = c[dat.connect_product]
             origin_chain = c[dat.origin_chain]
-            o_io = iof.sl(c[dat.origin_io][0])
-            d_io = iof.sl(c[dat.dest_io][0])
+            o_io = iof.clean_str(c[dat.origin_io][0])
+            d_io = iof.clean_str(c[dat.dest_io][0])
             if d_io == 'i':
                 dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][0]['process'].name
             elif d_io == 'o':
@@ -272,15 +273,15 @@ class Factory:
                 for dummy_index, c in self.connections_df.iterrows():
                     if chain == c[dat.origin_chain]:
                         if process == c[dat.origin_process] or c[dat.origin_process] == dat.connect_all:
-                            if iof.sl(c[dat.origin_io][0]) == 'i':
+                            if iof.clean_str(c[dat.origin_io][0]) == 'i':
                                 inflows = inflows.replace(c[dat.connect_product], '')
-                            if iof.sl(c[dat.origin_io][0]) == 'o':
+                            if iof.clean_str(c[dat.origin_io][0]) == 'o':
                                 outflows = outflows.replace(c[dat.connect_product], '')
                         
                     if chain == c[dat.dest_chain]:
-                        if iof.sl(c[dat.dest_io][0]) == 'i' and unit == process_list[0]:
+                        if iof.clean_str(c[dat.dest_io][0]) == 'i' and unit == process_list[0]:
                             inflows = inflows.replace(c[dat.connect_product], '')
-                        if iof.sl(c[dat.dest_io][0]) == 'o' and unit == process_list[-1]:
+                        if iof.clean_str(c[dat.dest_io][0]) == 'o' and unit == process_list[-1]:
                             outflows = outflows.replace(c[dat.connect_product], '')
 
                 if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')

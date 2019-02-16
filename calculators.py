@@ -11,20 +11,21 @@ allow the functions to work properly, since all possible calculatr variables
 are provided to the calculator function in unitprocess.py, whether or
 not they are used by that specific function.
 
-Current standrard calculators:
-Ratio
-Remainder
-ReturnValue
-MolMassRation
+Module Outline:
+- imports and logger
+- function: check_qty
+- function: Ratio
+- function: Remainder
+- function: ReturnValue
+- function: MolMassRatio
+- module variable: calcs_dict
 
 """
 
 from molmass import Formula
 from collections import defaultdict
-
 import dataconfig as dat
 import custom_lookup as lup
-
 from bb_log import get_logger
 
 logger = get_logger("Calculators")
@@ -186,9 +187,7 @@ calcs_dict = {
     'molmassratio': MolMassRatio,
     'returnvalue': ReturnValue
 }
-
-#Looks for and adds calculation functions from custom function moduel.
-for calc in lup.custom_calcs_dict:
+for calc in lup.custom_calcs_dict:  #adds calculators from custom_lookup
     if calc in calcs_dict:
         raise KeyError(f"Function with name {calc} exists in both calculators and custom_lookup. Please use unique function names.")
     else:

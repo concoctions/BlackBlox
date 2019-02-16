@@ -8,6 +8,24 @@ to indicate whether something is All or None.
 Please note that as of this time, these variables are case and white space
 sensitive.
 
+Module Outline:
+
+- import statements and logger
+- module variables: default filepaths (str)
+- module variables: column headers (str)
+    - for unit process library tabular data
+    - for unit process relationships tabular data
+    - for product chain linkages tabular data
+    - for factory product chain list tabular data
+    - for factory linkages tabular data
+    - for industry data
+- module variables: reserved words for tabular data
+    - same_xls (list)
+    - default_scenario (str)
+    - no_var (list)
+    - connect_all (str)
+    - all_factories (list)
+
 """
 
 # DEFAULT FILEPATHS 
@@ -37,7 +55,7 @@ as a subfolder of the current working directory.
 
 
 # COLUMN HEADERS
-# unit library table:
+# for unit library tabular data:
 unit_name_col = 'name'
 unit_product = 'product'
 unit_product_io = 'productType'
@@ -46,7 +64,7 @@ var_sheetname = 'varSheet'
 calc_filepath = 'calcFile'
 calc_sheetname = 'calcSheet'
 
-# unit process calculations tables:
+# for unit process relationship tabular data:
 known = 'KnownQty'
 known_io = 'k_QtyFrom'
 unknown = 'UnknownQty'
@@ -54,12 +72,12 @@ unknown_io = 'u_QtyTo'
 calc_type = 'Calculation'
 calc_var = 'Variable'
 
-# production chain tables:
+# for production chain linkages tabular data:
 inflow_col = 'Inflow'
 outflow_col = 'Outflow'
 process_col = 'Process'
 
-# factory chain tables:
+# for factory chain list tabular data:
 chain_name = 'ChainName'
 chain_product = 'ChainType'
 chain_product = 'ChainProduct'
@@ -67,7 +85,7 @@ chain_io = 'Product_IO'
 chain_filepath = 'ChainFile'
 chain_sheetname = 'ChainSheet'
 
-# factory connections tables:
+# for factory connections tabular data:
 origin_chain = "OriginChain"
 origin_process = "OriginProcess"
 dest_chain = "DestinationChain"
@@ -75,7 +93,7 @@ connect_product = "Product"
 origin_io = "Product_IO_of_Origin"
 dest_io = "Product_IO_of_Destination"
 
-# industry data tables
+# for industry tablular data
 factory_name = "Factory Name"
 factory_filepath = "Factory File"
 f_chain_list_file = "Chains File"
