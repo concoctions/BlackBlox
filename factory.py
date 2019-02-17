@@ -1,19 +1,43 @@
+# -*- coding: utf-8 -*-
+""" Factory class
+
+This module contains the Factory class, which are objects that 
+link together (and can generate) a set of product chains. One product chain
+produces the primary product(s) of the factory, whereas other auxillary chains
+provide inflows or processes outflows from the main chain or other auxillary
+chains. Auxillary chains can be attached to any process in any chain in the
+factory.
+
+Module Outline:
+
+- import statements and logger
+- class: Factory
+    - class function: Build
+    - class function: Balance
+    - class function: Diagram
+
+"""
+
 import pandas as pan
 from collections import defaultdict
 from graphviz import Digraph
 from datetime import datetime
-
 from bb_log import get_logger
-
 import io_functions as iof
 import dataconfig as dat
 import processchain as cha
 
-
 logger = get_logger("Factory")
 
 class Factory:
-    """Factories are groups of one or more connected process chains
+    """Factories are sets of one or more connected products chains
+
+    Factories have a primary product chain, and are balanced on a specific
+    outflow of that chain. Auxillary chains link to the main chain (or other
+    auxillary chains) at any or multiple unit processes in the chain, and 
+    balance on a specified inflow or outflow of that unit process(es), i.e.
+    it is assumed the auxillary chain is either providing the inflow or
+    accepting the outflow.
 
     Factories balance on a specified output product. Product chains that 
     are not the main output product balance on the relevent inputs and 
@@ -224,8 +248,7 @@ class Factory:
 
         # gets product chains
         for c in self.chain_dict:
-            d_kwargs = dict(return_diagram=True,
-                            view_diagram=False,
+            d_kwargs = dict(view_diagram=False,
                             outdir=f'{outdir}/{self.name}')
             diagram_dict = dict(diagram=self.chain_dict[c]['chain'].diagram(**d_kwargs),
                                 process_list=self.chain_dict[c]['chain'].process_list, 
@@ -238,7 +261,7 @@ class Factory:
         for i, c in self.connections_df.iterrows():
             product = c[dat.connect_product]
             origin_chain = c[dat.origin_chain]
-            o_io = iof.clean_str(c[dat.origin_io][0])
+#            o_io = iof.clean_str(c[dat.origin_io][0])  # currently unused
             d_io = iof.clean_str(c[dat.dest_io][0])
             if d_io == 'i':
                 dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][0]['process'].name
@@ -255,7 +278,6 @@ class Factory:
             for origin in origin_list:
                 if d_io == 'i':
                     factory_diagram.edge(origin, dest_chain, label=product)
-                    
                 elif d_io == 'o':
                     factory_diagram.edge(dest_chain, origin, label=product)
                 

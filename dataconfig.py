@@ -23,6 +23,7 @@ Module Outline:
     - same_xls (list)
     - default_scenario (str)
     - no_var (list)
+    - massless_flows (list)
     - connect_all (str)
     - all_factories (list)
 
@@ -128,6 +129,12 @@ no_var = ['none', 'false', 'na', '-', '', 'nan']
 Usable in the unit process calculation table, to indicate that the 
 calculation type requires no variable beyond the names of the substances. 
 (e.g. MolMassRatio)
+"""
+
+massless_flows = ['heat', 'energy', 'electricity', 'power']
+"""list: indicator that a substance is not a mass flow
+
+Usable in flow names. Must be used at the beginning or end of the flow name.
 """
 
 connect_all = 'all'

@@ -129,12 +129,19 @@ class UnitProcess:
                     self.outflows.add(product)
             
  
-    def balance(self, qty, product=False, i_o=False, 
-                var_i=False):
+    def balance(self, qty, product=False, i_o=False, var_i=False,
+                ignore_for_balance=dat.massless_flows, raise_imbalance=False):
         """performs a mass balance on the unit process.
 
-        Except doesn't actually "balance" at the moment; just calculates
-        flow quantities as specified in the relationships table.
+        Calculates all inflows and outflows, using the specified variable values
+        and relationship dataframe. Will only work if there are zero degrees of
+        freedom in the specified relationships. Currently, only checks mass
+        flows to see if they are properly balanced.
+
+        Note:
+            If the inflow mass and outflow mass are imbalanced an error will
+            be raised and/or a "UNKNOWN IMBALANCE" flow will be added to
+            the offending flow dictionary with the imbalance quantity.
 
         Args:
             qty (float): The quantity of the specified flow.
@@ -150,6 +157,12 @@ class UnitProcess:
                 False, uses the default scenario index specified in 
                 dataconfig.
                 (Defaults to False)
+            ignore_for_balance (list[str]): If any substance name starts with
+                or ends with a string on this list, the substance will not 
+                be considered when performing the unit process.
+            raise_imbalance (bool): If True, the process will raise an 
+                exception if the inflow and outflow masses are unbalanced.
+                If False, will ignore mass imbalances. 
 
         Returns:
             Defaultdict of inflows with substance names as keys and quantities
@@ -237,8 +250,9 @@ class UnitProcess:
                           known_substance=known_substance, 
                           unknown_substance=unknown_substance, 
                           invert=invert, 
-                          emissions_dict=io_dicts['e'],)
-            logger.debug(f"Attempting {calc_type} calculation for {unknown_substance} using {qty} of {known_substance}")
+                          emissions_dict=io_dicts['e'],
+                          inflows_dict=io_dicts['c'])
+            logger.debug(f"Attempting {calc_type} calculation for {unknown_substance} using {qty_known} of {known_substance}")
             qty_calculated = calc.calcs_dict[calc_type](**kwargs)
             io_dicts[unknown_io][unknown_substance] += qty_calculated
 
@@ -247,8 +261,10 @@ class UnitProcess:
             attempt = 0
             logger.debug(f"{qty_calculated} of {unknown_substance} calculated. {len(calc_df)} calculations remaining.")
 
-        for substance, qty in io_dicts['e'].items(): #add emissions dictionary to outflow dictionary
+        for substance, qty in io_dicts['e'].items(): #adds emissions dictionary to outflow dictionary
             io_dicts['o'][substance] += qty
+        for substance, qty in io_dicts['c'].items(): #adds co-inflows dictionary to inflows dictionary
+            io_dicts['i'][substance] += qty
 
         logger.debug(f"{self.name} process balanced on {qty} of {product}")
         logger.debug('Inflows:')
@@ -257,5 +273,14 @@ class UnitProcess:
         logger.debug('Outflows:')
         for substance, qty in io_dicts['o'].items():
             logger.debug(f"{substance}: {qty}")
+
+        total_in, total_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
+                                                 raise_imbalance=raise_imbalance, 
+                                                 ignore_flows=ignore_for_balance)
+
+        if total_in > total_out:
+            io_dicts['i']['UNKNOWN_IMBALANCE'] = total_in - total_out
+        elif total_out > total_in:
+            io_dicts['o']['UNKNOWN_IMBALANCE'] = total_out - total_in
 
         return io_dicts['i'], io_dicts['o']

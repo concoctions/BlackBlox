@@ -180,9 +180,9 @@ def clean_str(string_to_check, str_to_cut=False, remove_dblnewline=True):
 
     Args:
         string_to_check (str): The string to strip and lower
-        str_to_cut (str/bool): If passed a string, will check for and remove 
-            the cut_str string from the string_to_check. If passed a list of 
-            strings, will check for and remove each from the string_to_check.
+        str_to_cut (str/list/bool): If passed a string, will check for and 
+            remove the cut_str string from the string_to_check. If passed a list 
+            of strings, will check for and remove each from the string_to_check.
             (Defaults to False.)
         remove_dblnewlines (bool): If True, looks for and removes instances
             of double new lines.

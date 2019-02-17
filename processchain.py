@@ -216,8 +216,7 @@ class ProductChain:
         return io_dicts['i'], io_dicts['o']
 
 
-    def diagram(self, view_diagram=True, return_diagram=False, 
-                outdir=f'{dat.outdir}/pfd'):
+    def diagram(self, view_diagram=True, outdir=f'{dat.outdir}/pfd'):
         """Generates a diagram of the chain
 
         Using Graphviz, takes the unit process names, sets of inflows and 
@@ -237,8 +236,6 @@ class ProductChain:
             view_diagram(bool): If True, displays the diagram in the system
                 viewer. 
                 (Defaults to True)
-            return_diagram(bool): If True, returns the chain's Digraph object.
-                (Defaults to False)
             outdir(str): The output directory where to write the files.
                 (Defaults to the output directory specified in dataconfig in
                 a 'pfd' subfolder.)
@@ -317,5 +314,5 @@ class ProductChain:
         if view_diagram:
             chain_diagram.view()
 
-        if return_diagram:
-            return product_flow
+        
+        return product_flow
