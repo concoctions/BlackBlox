@@ -322,7 +322,7 @@ if test_factory is True:
     print("\nchain DF\n",factory.chains_df)
     print("\nconnections DF\n",factory.connections_df)
 
-    factory.initalize()
+    factory.build()
 
     print("\nchain dict:",factory.chain_dict)
     print("\nmain chain:",factory.chain_dict[factory.main_chain])

@@ -44,22 +44,37 @@ class Factory:
     outputs of the main product. All product chains in a factory are run 
     using variables from the same scenario.
 
+    Note:
+        The product chain (main chain) is assumed to be the first chain
+        in the tabular data listing the chains in the factory.
+
     Args:
-        chains_file: Table detailing the chains used in the factory. 
+        chains_file (DataFrame/str): Dataframe or filepath to tabular data
+            detailing the process chains in the factory. The chain in the first
+            row of data is assumed to be the main product flow.
             Must contain columns for:
             [Chain Name, Chain Product, Product_IO, ChainFile]
-        connections_file: Table detailing the connections between
-            chains in the factory. Must contain data for:
+        connections_file (DataFrame/str): Dataframe or filepath to tabular data 
+            detailing the connections between the chains in the factory. 
+            Must contain columns for:
             [OriginChain, OriginProcess, Product, Product_IO_of_Origin, 
             Product_IO_of_Destination, DestinationChain]    
         name (str, optional): The name of the factory. Defaults to False.
 
     Attributes:
-        name
-        chains_df
-        connections_df
-        main_chain
-        chain_dict
+        name (str): The name of the factory.
+        chains_df (data frame): Tabular data of the factory chains and the
+            location of their data.
+        connections_df (data frame): Tabuloar data of the connections
+            between the factory chains.
+        main_chain (str): the name of the factory's product chain, taken from
+            the first row of chains_df.
+        main_product (str): the name of the factory's main product, taken from 
+            the first row of chains_df.
+        chain_dict (dict): Dictionary of dictionaries containing process chain 
+            objects in the factory. Each chain name is an entry key, with a 
+            value of a dictionary containing the process chain object, name,
+            product, and whether that product is a chain inflow or outflow.  
     """
 
     def __init__(self, chain_list_file, connections_file=None, chain_list_sheet=None, 
@@ -75,7 +90,14 @@ class Factory:
         self.main_product = False
         self.chain_dict = False
 
-    def initalize(self):
+    def build(self):
+        """Generates the needed process chain objects for the factory
+
+        Locates the data specified for each process chain, and generates
+        objects for each chain. Populates self.main_chain, self.main_product,
+        and self.chain_dict.
+
+        """
         logger.debug(f"initializing factory for {self.name}")
         
         chain_dict = defaultdict(dict)
@@ -102,9 +124,39 @@ class Factory:
 
         self.chain_dict = chain_dict
 
-    def balance(self, main_product_qty, var_i=dat.default_scenario, write_to_xls=True, outdir=dat.outdir):
+    def balance(self, main_product_qty, var_i=dat.default_scenario, 
+                write_to_xls=True, outdir=dat.outdir):
+        """Calculates the mass balance of the factory
+
+        Based on a quantity of the factory's main product, calculates the 
+        remaining quantities of all flows in the factory, assuming all unit 
+        processes are well-specified with zero degrees of freedom.
+
+        Args:
+            main_product_qty (float): the quantity of the product to balance on.
+            product (str/bool): the product name. If False, uses the default
+                product in the chain object attributes.
+                (Defaults to False)
+            var_i (str): The name of the scenario of variable values to use, 
+                corresponding to the matching row index in each unit process's
+                var_df. 
+                (Defaults to the string specified in dat.default_scenario)
+            write_to_xls (bool): If True, outputs the balances to an excel 
+                workbook, with sheets for factory totals, inflows and outflows
+                for all unit processes, and inflows and outflows by chain.
+                (Defaults to True)
+            outdir (str): Filepath where to create the balance spreadsheets.
+                (Defaults to the outdir specified in dataconfig)
+            
+
+        Returns:
+            dictionary of factory total inflow quantities by substance
+            dictionary of factory total outflow quantities by substance
+
+        """       
+       
         if not self.chain_dict:
-            self.initalize()
+            self.build()
 
         logger.debug(f"balancing factory on {main_product_qty} of {self.chain_dict[self.main_chain]['product']}")
 
@@ -112,75 +164,64 @@ class Factory:
             'i': iof.nested_dicts(3, float),
             'o': iof.nested_dicts(3, float)
             }
-
         intermediate_product_dict = defaultdict(float)
-           
 
-        m = self.chain_dict[self.main_chain]
+        main = self.chain_dict[self.main_chain]
         
         # balances main chain
-        io_dicts['i'][m['name']], io_dicts['o'][m['name']] = m['chain'].balance(
-            main_product_qty, product= m['product'], var_i=var_i)
+        io_dicts['i'][main['name']], io_dicts['o'][main['name']] = main['chain'].balance(
+            main_product_qty, product= main['product'], var_i=var_i)
 
-        for dummy_index, c in self.connections_df.iterrows():    
+        # balances auxillary chains
+        for dummy_index, aux in self.connections_df.iterrows():    
             qty = False
-            o_io = iof.clean_str(c[dat.origin_io][0])
-            d_io = iof.clean_str(c[dat.dest_io][0])
+            o_io = iof.clean_str(aux[dat.origin_io][0])
+            d_io = iof.clean_str(aux[dat.dest_io][0])
 
-            if c[dat.origin_chain] == dat.connect_all:
+            if aux[dat.origin_chain] == dat.connect_all:
                 pass
                 
             else:
-                o = self.chain_dict[c[dat.origin_chain]]
-                d = self.chain_dict[c[dat.dest_chain]]
-                product = c[dat.connect_product]
+                o = self.chain_dict[aux[dat.origin_chain]]
+                d = self.chain_dict[aux[dat.dest_chain]]
+                product = aux[dat.connect_product]
 
-                if c[dat.origin_process] == dat.connect_all:
+                if aux[dat.origin_process] == dat.connect_all:
                         qty = io_dicts[o_io][o['name']]['chain totals'][product]
-
                 else:
-                    o_unit = c[dat.origin_process]
+                    o_unit = aux[dat.origin_process]
                     qty = io_dicts[o_io][o['name']][o_unit][product]
                 
                 intermediate_product_dict[product] += qty
-                
-                logger.debug(f"{qty} of {product} as product from {o['name']} ({o_io}) to {d['name']} ({d_io})")
-
                 i_tmp, o_tmp = d['chain'].balance(qty, product=product, i_o=d_io, var_i=var_i)
 
+                logger.debug(f"{qty} of {product} as product from {o['name']} ({o_io}) to {d['name']} ({d_io})")
+
+                # checks whether aux chain already exists in io_dicts
                 if io_dicts['i'][d['name']] and io_dicts['o'][d['name']]:
-                    
                     for process_dict in i_tmp:
                         for substance, qty in i_tmp[process_dict].items():
                             io_dicts['i'][d['name']][process_dict][substance] += qty
-
                     for process_dict in o_tmp:
                         for substance, qty in o_tmp[process_dict].items():
                             io_dicts['o'][d['name']][process_dict][substance] += qty
-
                 else:    
                     io_dicts['i'][d['name']], io_dicts['o'][d['name']] = i_tmp, o_tmp 
          
-
         totals = {
             'i': defaultdict(float),
             'o': defaultdict(float)
             }
-
         for chain_dict in io_dicts['i']:
             for inflow, qty in io_dicts['i'][chain_dict]['chain totals'].items():
                 totals['i'][inflow] += qty
-    
         for chain_dict in io_dicts['o']:
             for outflow, qty in io_dicts['o'][chain_dict]['chain totals'].items():
                 totals['o'][outflow] += qty
-
         for io_dict in totals:
             for product, qty in intermediate_product_dict.items():
                 totals[io_dict][product] -= qty
 
-
-        # OPTIONAL: writes to spreadsheet
         if write_to_xls is True:
             if outdir == dat.outdir:
                 outdir = f'{dat.outdir}/{self.name}'
@@ -237,7 +278,7 @@ class Factory:
             outdir = f'{outdir}/{self.name}/pfd'
 
         if not self.chain_dict:
-            self.initalize()
+            self.build()
 
         factory_diagram = Digraph(name="factory")
         factory_diagram.attr('node', shape='box', color='black')

@@ -215,7 +215,7 @@ def Combustion(known_substance, qty, unknown_substance, var,
 
 #     combustion_emissions = dict()
 
-#     ##INSERT STOICHIOMETRIC EMISSIONS CALCULATIONS HERE
+#     # INSERT STOICHIOMETRIC EMISSIONS CALCULATIONS HERE
 
 #     waste_heat = energy_qty * (1 - var)
 

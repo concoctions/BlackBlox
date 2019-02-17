@@ -54,7 +54,7 @@ class Industry:
                             name=name)
 
             factory = fac.Factory(**f_kwargs)
-            factory.initalize()
+            factory.build()
 
             factory_dict[name] = dict(factory=factory,
                                       product=factory.main_product,
