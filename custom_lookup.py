@@ -191,49 +191,49 @@ def Combustion(known_substance, qty, unknown_substance, var,
     return return_qty
 
 
-def stoichiometric_combustion(known_substance, qty, unknown_substance, var, 
-                              emissions_dict=False, inflows_dict=False, 
-                              fuels_df=df_fuels, **kwargs):
-    """Combustion function that calculates emissions stoichiometrically
+# def stoichiometric_combustion(known_substance, qty, unknown_substance, var, 
+#                               emissions_dict=False, inflows_dict=False, 
+#                               fuels_df=df_fuels, **kwargs):
+#     """Combustion function that calculates emissions stoichiometrically
 
-    This function calls the Combustion function to calculate the energy
-    or fuel quantity, but then uses the 
-    """
+#     This function calls the Combustion function to calculate the energy
+#     or fuel quantity, but then uses the 
+#     """
 
-    return_qty = Combustion(known_substance, qty, unknown_substance, var,
-                            emissions_dict=False, inflows_dict=False,
-                            fuels_df=fuels_df)
+#     return_qty = Combustion(known_substance, qty, unknown_substance, var,
+#                             emissions_dict=False, inflows_dict=False,
+#                             fuels_df=fuels_df)
 
-    if known_substance in fuels_df.index:
-        fuel_type = known_substance
-        fuel_qty = qty
-        energy_qty = return_qty
-    else:
-        fuel_type = unknown_substance
-        fuel_qty = return_qty
-        energy_qty = qty
+#     if known_substance in fuels_df.index:
+#         fuel_type = known_substance
+#         fuel_qty = qty
+#         energy_qty = return_qty
+#     else:
+#         fuel_type = unknown_substance
+#         fuel_qty = return_qty
+#         energy_qty = qty
 
-    combustion_emissions = dict()
+#     combustion_emissions = dict()
 
-    ##INSERT STOICHIOMETRIC EMISSIONS CALCULATIONS HERE
+#     ##INSERT STOICHIOMETRIC EMISSIONS CALCULATIONS HERE
 
-    waste_heat = energy_qty * (1 - var)
+#     waste_heat = energy_qty * (1 - var)
 
-    if type(emissions_dict) == defaultdict:
-        for emission in combustion_emissions:
-            emissions_dict[emission] += combustion_emissions[emission]        
-        if type(inflows_dict) == defaultdict:
-            inflows_dict['O2'] += fuel_qty - sum(emissions_dict.values())
+#     if type(emissions_dict) == defaultdict:
+#         for emission in combustion_emissions:
+#             emissions_dict[emission] += combustion_emissions[emission]        
+#         if type(inflows_dict) == defaultdict:
+#             inflows_dict['O2'] += fuel_qty - sum(emissions_dict.values())
         
-        emissions_dict['waste heat'] += waste_heat
+#         emissions_dict['waste heat'] += waste_heat
     
-    else:
-        logger.debug("Emission Data discarded:")
-        for emission in combustion_emissions:
-            logger.debug(f"{emission}: {combustion_emissions[emission]}")
-        logger.debug(f"waste heat: {waste_heat}")
+#     else:
+#         logger.debug("Emission Data discarded:")
+#         for emission in combustion_emissions:
+#             logger.debug(f"{emission}: {combustion_emissions[emission]}")
+#         logger.debug(f"waste heat: {waste_heat}")
 
-    return return_qty
+#     return return_qty
 
     
 
