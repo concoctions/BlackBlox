@@ -89,8 +89,11 @@ class UnitProcess:
         
     """
 
-    def __init__(self, name, var_df=False, calc_df=False, 
-                units_df=df_unit_library):
+    def __init__(self, 
+                 name, 
+                 var_df=False, 
+                 calc_df=False, 
+                 units_df=df_unit_library):
         logger.debug(f"creating unit process object for {name}")
         self.name = name
 
@@ -129,8 +132,13 @@ class UnitProcess:
                     self.outflows.add(product)
             
  
-    def balance(self, qty, product=False, i_o=False, var_i=False,
-                ignore_for_balance=dat.massless_flows, raise_imbalance=False):
+    def balance(self, 
+                qty, 
+                product=False, 
+                i_o=False, 
+                var_i=False,
+                ignore_for_balance=dat.massless_flows, 
+                raise_imbalance=False):
         """performs a mass balance on the unit process.
 
         Calculates all inflows and outflows, using the specified variable values
@@ -210,7 +218,7 @@ class UnitProcess:
             unknown_substance = calc_df.at[i, dat.unknown]
             calc_type = iof.clean_str(calc_df.at[i, dat.calc_type])
             invert = False
-            var = False
+            var = None
             if iof.clean_str(calc_df.at[i, dat.calc_var]) not in dat.no_var:
                 var = self.var_df.at[var_i, calc_df.at[i, dat.calc_var]] 
 
@@ -227,10 +235,9 @@ class UnitProcess:
 
             if known_substance in io_dicts[known_io]:
                 pass
-            elif unknown_substance in io_dicts[unknown_io]:
+            elif unknown_io not in ['c', 'e'] and unknown_substance in io_dicts[unknown_io]:
                 invert = True
-                known_substance, unknown_substance = (unknown_substance, 
-                                                      known_substance)
+                known_substance, unknown_substance = (unknown_substance, known_substance)
                 known_io, unknown_io = unknown_io, known_io
                 logger.debug(f"{known_substance} not found, but {unknown_substance} found. Inverting calculations")
             else:
