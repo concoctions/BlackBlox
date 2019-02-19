@@ -49,11 +49,18 @@ import dataconfig as dat
 from bb_log import get_logger
 
 logger = get_logger("Custom Lookup")
- 
+
+# LOOK UP DATA FRAMES
+df_fuels = iof.make_df(dat.lookup_var_file, sheet='Fuels')
+
 # LOOK UP VARIABLES
 lookup_var_dict = { 
-    'fuel': dict(data_frame=iof.make_df(dat.lookup_var_file, sheet='Fuels'), 
+    'fuel': dict(data_frame=df_fuels, 
                  lookup_var='fuelType'),
+    'fossil fuel': dict(data_frame=df_fuels, 
+                 lookup_var='fossil fuel type'),
+    'biofuel': dict(data_frame=df_fuels, 
+                 lookup_var='biofuel type')
     } 
 """dictionary of special lookup substance names
 Lookup_var_dict is a dictionary with the names of substance, that when used
@@ -73,7 +80,6 @@ Each entry in this dictionary should be formatted as follows:
 """
 
 # OTHER CUSTOM VARIABLES
-df_fuels = lookup_var_dict['fuel']['data_frame']
 default_emissions_list = ['CO2', 'H2O', 'SO2']
 default_fuel_composition = ['C', 'H', 'O', 'S', 'N', 'moisture', 'ash']
 
@@ -153,6 +159,8 @@ def Combustion(known_substance, qty, unknown_substance, var,
         and unknown_substance in fuels_df.index):
         raise Exception("Both {} and {} are known_substance fuel types.".format(known_substance, unknown_substance))
 
+    if var is None:
+        var = 1.0
     if var < 0 or var > 1:
         raise ValueError(f'quantity should be between 0 and 1. Currently: {qty}')
 
