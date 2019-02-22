@@ -137,9 +137,10 @@ class UnitProcess:
                 product=False, 
                 i_o=False, 
                 var_i=False,
-                ignore_for_balance=dat.massless_flows, 
-                raise_imbalance=False):
-        """performs a mass balance on the unit process.
+                energy_flows=dat.energy_flows,
+                balance_energy=True, 
+                raise_imbalance=False,):
+        """performs a mass (and optionally energy) balance on the unit process.
 
         Calculates all inflows and outflows, using the specified variable values
         and relationship dataframe. Will only work if there are zero degrees of
@@ -148,8 +149,8 @@ class UnitProcess:
 
         Note:
             If the inflow mass and outflow mass are imbalanced an error will
-            be raised and/or a "UNKNOWN IMBALANCE" flow will be added to
-            the offending flow dictionary with the imbalance quantity.
+            be raised and/or a "UNKNOWN MASS" or  "UNKNOWN ENERGY " flow will 
+            be added to the offending flow dictionary with the imbalance quantity.
 
         Args:
             qty (float): The quantity of the specified flow.
@@ -165,12 +166,17 @@ class UnitProcess:
                 False, uses the default scenario index specified in 
                 dataconfig.
                 (Defaults to False)
-            ignore_for_balance (list[str]): If any substance name starts with
+            energy_flows (list[str]): If any substance name starts with
                 or ends with a string on this list, the substance will not 
-                be considered when performing the unit process.
+                be considered when performing the mass balance.
+                Defaults to energy keyword list in dataconfig.
+            balance_energy(bool): If true, checks for a balance of the flows
+                with the specified energy prefix/suffix in energy_flows.
             raise_imbalance (bool): If True, the process will raise an 
-                exception if the inflow and outflow masses are unbalanced.
-                If False, will ignore mass imbalances. 
+                exception if the inflow and outflow masses and/or energies are 
+                unbalanced. If False, will add a "UNKNOWN MASS" or "UNKNOWN 
+                ENERGY" substance to the offended inflow or outflow dictionary.
+                Defaults to False.
 
         Returns:
             Defaultdict of inflows with substance names as keys and quantities
@@ -218,9 +224,9 @@ class UnitProcess:
             unknown_substance = calc_df.at[i, dat.unknown]
             calc_type = iof.clean_str(calc_df.at[i, dat.calc_type])
             invert = False
-            var = False
-            # known_substance2 = None
-            # known_qty2 = None
+            var = None
+            known_substance2 = None
+            known_qty2 = None
             if iof.clean_str(calc_df.at[i, dat.calc_var]) not in dat.no_var:
                 var = self.var_df.at[var_i, calc_df.at[i, dat.calc_var]] 
 
@@ -251,25 +257,25 @@ class UnitProcess:
             if unknown_io not in io_dicts:
                 raise Exception(f"{unknown_io} is an unknown destination")
 
-            # if calc_type in calc.twoQty_calc_list:
-            #     known_substance2 = calc_df.at[i, dat.known2]
-            #     k2_io = iof.clean_str(calc_df.at[i, dat.known2_io][0])
-            #     if known_substance2 in lup.lookup_var_dict:
-            #         known_substance2 = self.var_df.at[var_i, lup.lookup_var_dict[known_substance]['lookup_var']] 
-            #     if known_substance2 in io_dicts[k2_io]:
-            #         known_qty2 = io_dicts[k2_io][known_substance2]
-            #     else:
-            #         attempt += 1
-            #         logger.debug(f"{known_substance2} not found (both {known_substance} ({known_io}) and {known_substance2} ({k2_io}) required), skipping for now")
-            #         continue
+            if calc_type in calc.twoQty_calc_list:
+                known_substance2 = calc_df.at[i, dat.known2]
+                k2_io = iof.clean_str(calc_df.at[i, dat.known2_io][0])
+                if known_substance2 in lup.lookup_var_dict:
+                    known_substance2 = self.var_df.at[var_i, lup.lookup_var_dict[known_substance]['lookup_var']] 
+                if known_substance2 in io_dicts[k2_io]:
+                    known_qty2 = io_dicts[k2_io][known_substance2]
+                else:
+                    attempt += 1
+                    logger.debug(f"{known_substance2} not found (both {known_substance} ({known_io}) and {known_substance2} ({k2_io}) required), skipping for now")
+                    continue
 
             qty_known = io_dicts[known_io][known_substance]
             kwargs = dict(qty=qty_known, 
                           var=var, 
                           known_substance=known_substance, 
                           unknown_substance=unknown_substance,
-                        #  known_substance2 =  known_substance2,
-                        #  known_qty2 = known_qty2,
+                          known_substance2 =  known_substance2,
+                          qty2 = known_qty2,
                           invert=invert, 
                           emissions_dict=io_dicts['e'],
                           inflows_dict=io_dicts['c'])
@@ -295,13 +301,23 @@ class UnitProcess:
         for substance, qty in io_dicts['o'].items():
             logger.debug(f"{substance}: {qty}")
 
-        total_in, total_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
+        total_mass_in, total_mass_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
                                                  raise_imbalance=raise_imbalance, 
-                                                 ignore_flows=ignore_for_balance)
+                                                 ignore_flows=energy_flows)
 
-        if total_in > total_out:
-            io_dicts['i']['UNKNOWN_IMBALANCE'] = total_in - total_out
-        elif total_out > total_in:
-            io_dicts['o']['UNKNOWN_IMBALANCE'] = total_out - total_in
+        if total_mass_in > total_mass_out:
+            io_dicts['i']['UNKNOWN_MASS'] = total_mass_in - total_mass_out
+        elif total_mass_out > total_mass_in:
+            io_dicts['o']['UNKNOWN_MASS'] = total_mass_out - total_mass_in
+
+        if balance_energy is True:
+            total_energy_in, total_energy_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
+                                                 raise_imbalance=raise_imbalance, 
+                                                 only_these_flows=energy_flows)
+
+        if total_energy_in > total_energy_out:
+            io_dicts['i']['UNKNOWN_ENERGY'] = total_energy_in - total_energy_out
+        elif total_mass_out > total_mass_in:
+            io_dicts['o']['UNKNOWN_ENERGY'] = total_energy_out - total_energy_in
 
         return io_dicts['i'], io_dicts['o']

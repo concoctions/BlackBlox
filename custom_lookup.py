@@ -81,7 +81,7 @@ Each entry in this dictionary should be formatted as follows:
 
 # OTHER CUSTOM VARIABLES
 default_emissions_list = ['CO2', 'H2O', 'SO2']
-default_fuel_composition = ['C', 'H', 'O', 'S', 'N', 'moisture', 'ash']
+# default_fuel_composition = ['C', 'H', 'O', 'S', 'N', 'moisture', 'ash']
 
 
 # CUSTOM FUNCTIONS
@@ -198,7 +198,7 @@ def Combustion(known_substance, qty, unknown_substance, var,
 
     return return_qty
 
-
+# UNFINISHED
 # def stoichiometric_combustion(known_substance, qty, unknown_substance, var, 
 #                               emissions_dict=False, inflows_dict=False, 
 #                               fuels_df=df_fuels, **kwargs):

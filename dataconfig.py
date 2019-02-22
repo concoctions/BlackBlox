@@ -72,6 +72,8 @@ unknown = 'UnknownQty'
 unknown_io = 'u_QtyTo'
 calc_type = 'Calculation'
 calc_var = 'Variable'
+known2 = ''
+known2_io = ''
 
 # for production chain linkages tabular data:
 inflow_col = 'Inflow'
@@ -131,8 +133,8 @@ calculation type requires no variable beyond the names of the substances.
 (e.g. MolMassRatio)
 """
 
-massless_flows = ['heat', 'energy', 'electricity', 'power']
-"""list: indicator that a substance is not a mass flow
+energy_flows = ['heat', 'energy', 'electricity', 'power']
+"""list: indicator that a substance is an energy flow
 
 Usable in flow names. Must be used at the beginning or end of the flow name.
 """

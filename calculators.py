@@ -6,6 +6,11 @@ quantites specified in the user data. The calculation type specified by the
 user must be of one of the type specified here, or one defined by the user in
 custom_lookup.py
 
+The "invert" option throughout the calculation helps the unit processes to 
+balance processes balance on an arbitrary known quantity even though
+the user is specifying only a single-directional relationship between substance
+quantities in the relationships table.
+
 Note, the use of **kwargs in the function argument calls is required to 
 allow the functions to work properly, since all possible calculatr variables  
 are provided to the calculator function in unitprocess.py, whether or
@@ -113,7 +118,7 @@ def Remainder(qty, var, invert = False, **kwargs):
         qty: The known quantity
         var: The ratio of known:total quantities. A number between 0 and 1,
             where 1-var is the ratio of unknown:total.
-        invert (bool): True if the ratio is unknwon:total. Converts the ratio
+        invert (bool): True if the ratio is unknown:total. Converts the ratio
             to 1/ratio. 
 
     """
@@ -180,30 +185,64 @@ def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
 
     return qty * (Formula(unknown_substance).mass / Formula(known_substance).mass)
 
-def Subtraction(qty, known_qty2, invert = False, **kwargs):
+def Subtraction(qty, qty2, invert = False, **kwargs):
+    """Subtracts one quantity from another.
+
+    Assuming the known values are X and X1, returns Y = X - X1.
+    If invert is True, then assumes that the known values are Y and X1, and 
+    returns X = Y + X1
+
+    Args:
+        qty (float): The quantity of a known substance
+        qty2 (float): The quantity of another known substance
+        invert: If True, adds rathers the values rather than subtracts them.
+            (Defaults to False)
+
+    Returns:
+        float: The quantity of a third substance
+
+    """
     if invert is False:
-        return qty - known_qty2
+        return qty - qty2
 
     else:
-        return qty + known_qty2
+        return qty + qty2
 
-def Addition(qty, known_qty2, invert = False, **kwargs):
+def Addition(qty, qty2, invert = False, **kwargs):
+    """Adds one quantity to another.
+
+    Assuming the known values are X and X1, returns Y = X + X1.
+    If invert is True, then assumes that the known values are Y and X1, and 
+    returns X = Y - X1
+
+    Args:
+        qty (float): The quantity of a known substance
+        qty2 (float): The quantity of another known substance
+        invert: If True, subtracts rathers the values rather than adds them.
+            (Defaults to False)
+
+    Returns:
+        float: The quantity of a third substance
+
+
+    """
     if invert is False:
-        return qty + known_qty2
+        return qty + qty2
 
     else:
-        return qty - known_qty2
+        return qty - qty2
 
 
 
 def check_balance(inflow_dict, outflow_dict, raise_imbalance=True, 
-                  ignore_flows=dat.massless_flows, round_n=5):
+                  ignore_flows=[], only_these_flows=False, round_n=5):
     """Checks whether two dictionary mass values sum to equivelent quantities 
 
     Used to check whether the inflows and outflows of a unit process are
-    balanced. Takes dictionaries of inflows and outflows and removes non-mass 
-    flows using a list of strings that indicate that a substance is not mass.
-     then sums the remaining values
+    balanced. Takes dictionaries of inflows and outflows with substance names
+    as keys and quantities as values. Optionally can use a list of substance name 
+    prefix/suffix tags to exclude flows (e.g. energy flows in a mass balance), or
+    only include certain flows (e.g. only include those with the energy tag)
 
     Args:
         inflow_dict (dict/defaultdict): the dictionary of inflows with 
@@ -213,70 +252,68 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
         round_n (int): Number of places after the decimal to use when checking
             if inflow and outflow masses are equivelent.
             Defaults to 5.
-        not_mass_list (list[str]): A list of strings that indicate that a 
-            substance is not mass-based. If any of the keys in the inflow_dict
-            or outflow_dict begin or end with a sring in the no_mass_list,
-            the substance will not be added to the total mass count.
-            (Defaults to dat.massess_flows)
+        ignore_flows (list[str]): A list of strings that indicate that a 
+            substance is not be included in the balance. If any of the keys in 
+            he inflow_dict or outflow_dict begin or end with a string in the 
+            ignore_flows list, the substance will not be added to the total 
+            quantity.
+            (Defaults to an empty list)
+        only_these_flows (bool/list): if given a list of strings, will only
+            include those fflows that begin or end with the strings in this
 
     Returns:
         bool: True if the mass flows are balanced. Otherwise False.
         float: sum of all mass inflows.
         float: sum of all mass outflows.
     """
-    total_in = 0
-    flows_in = []
-    total_out = 0
-    flows_out = []
+    totals = [0,0]
+    flows = [[],[]]
 
-    for substance, qty in inflow_dict.items():
-        substance = iof.clean_str(substance)
-        ignore = False
-            
-        for ignorable in ignore_flows:
-            if substance.startswith(ignorable):
-                logger.debug(f'{substance} not mass; {qty} discarded from inflows')
-                ignore = True
-                break
-            elif substance.endswith(ignorable):
-                print(f'{substance} not mass; {qty} discarded from inflows')
-                ignore = True
-                break
+    for i, flow_dict in enumerate([inflow_dict, outflow_dict]):
 
-        if ignore is False:
-            total_in += qty
-            flows_in.append(substance)
+        for substance, qty in flow_dict.items():
+            substance = iof.clean_str(substance)
+            ignore = False
 
-    for substance, qty in outflow_dict.items():
-        substance = iof.clean_str(substance)
-        ignore = False
+            if type(only_these_flows) is list:
+                for includable in only_these_flows:
+                    if not substance.startswith(includable):
+                        logger.debug(f'{substance} not includable; {qty} discarded from inflows')
+                        ignore = True
+                        break
+                    elif not substance.endswith(includable):
+                        print(f'{substance} not includable; {qty} discarded from inflows')
+                        ignore = True
+                        break
+                    
+            for ignorable in ignore_flows:
+                if substance.startswith(ignorable):
+                    logger.debug(f'{substance} ignorable; {qty} discarded from inflows')
+                    ignore = True
+                    break
+                elif substance.endswith(ignorable):
+                    print(f'{substance} ignorable; {qty} discarded from inflows')
+                    ignore = True
+                    break
 
-        for ignorable in ignore_flows:
-            if substance.startswith(ignorable):
-                logger.debug(f'{substance} not mass; {qty} discarded from outflows')
-                ignore = True
-                break
-            elif substance.endswith(ignorable):
-                logger.debug(f'{substance} not mass; {qty} discarded from outflows')
-                ignore = True
-                break
-        
-        if ignore is False:
-            total_out += qty
-            flows_out.append(substance)
+            if ignore is False:
+                totals[i] += qty
+                flows[i].append(substance)
 
-    total_in = round(total_in, round_n)
-    total_out = round(total_out, round_n)
+
+
+    total_in = round(totals[0], round_n)
+    total_out = round(totals[1], round_n)
 
     if raise_imbalance is True:
         if total_in != total_out:
             raise ValueError(f'IMBALANCED! Total In:  {total_in} v Total Out: {total_out}')
 
     else:
-        logger.debug(f"Total Inflow Mass:  {total_in}")
-        logger.debug(f"Total Outflow Mass: {total_out}")
-        logger.debug(f"Inflows:  {flows_in}")
-        logger.debug(f"Outflows: {flows_out}")
+        logger.debug(f"Total Inflow Mass:  {totals[0]}")
+        logger.debug(f"Total Outflow Mass: {totals[1]}")
+        logger.debug(f"Inflows:  {flows[0]}")
+        logger.debug(f"Outflows: {flows[1]}")
 
     return total_in, total_out
 
