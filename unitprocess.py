@@ -218,7 +218,9 @@ class UnitProcess:
             unknown_substance = calc_df.at[i, dat.unknown]
             calc_type = iof.clean_str(calc_df.at[i, dat.calc_type])
             invert = False
-            var = None
+            var = False
+            # known_substance2 = None
+            # known_qty2 = None
             if iof.clean_str(calc_df.at[i, dat.calc_var]) not in dat.no_var:
                 var = self.var_df.at[var_i, calc_df.at[i, dat.calc_var]] 
 
@@ -227,11 +229,9 @@ class UnitProcess:
                 raise Exception(f"Cannot process {known_substance}. Breaking to prevent infinite loop")
 
             if known_substance in lup.lookup_var_dict:
-                known_substance = self.var_df.at[var_i, 
-                lup.lookup_var_dict[known_substance]['lookup_var']] 
+                known_substance = self.var_df.at[var_i, lup.lookup_var_dict[known_substance]['lookup_var']] 
             if unknown_substance in lup.lookup_var_dict:
-                unknown_substance = self.var_df.at[var_i, 
-                lup.lookup_var_dict[unknown_substance]['lookup_var']] 
+                unknown_substance = self.var_df.at[var_i, lup.lookup_var_dict[unknown_substance]['lookup_var']] 
 
             if known_substance in io_dicts[known_io]:
                 pass
@@ -251,11 +251,25 @@ class UnitProcess:
             if unknown_io not in io_dicts:
                 raise Exception(f"{unknown_io} is an unknown destination")
 
+            # if calc_type in calc.twoQty_calc_list:
+            #     known_substance2 = calc_df.at[i, dat.known2]
+            #     k2_io = iof.clean_str(calc_df.at[i, dat.known2_io][0])
+            #     if known_substance2 in lup.lookup_var_dict:
+            #         known_substance2 = self.var_df.at[var_i, lup.lookup_var_dict[known_substance]['lookup_var']] 
+            #     if known_substance2 in io_dicts[k2_io]:
+            #         known_qty2 = io_dicts[k2_io][known_substance2]
+            #     else:
+            #         attempt += 1
+            #         logger.debug(f"{known_substance2} not found (both {known_substance} ({known_io}) and {known_substance2} ({k2_io}) required), skipping for now")
+            #         continue
+
             qty_known = io_dicts[known_io][known_substance]
             kwargs = dict(qty=qty_known, 
                           var=var, 
                           known_substance=known_substance, 
-                          unknown_substance=unknown_substance, 
+                          unknown_substance=unknown_substance,
+                        #  known_substance2 =  known_substance2,
+                        #  known_qty2 = known_qty2,
                           invert=invert, 
                           emissions_dict=io_dicts['e'],
                           inflows_dict=io_dicts['c'])
