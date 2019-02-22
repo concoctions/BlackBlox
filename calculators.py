@@ -180,6 +180,22 @@ def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
 
     return qty * (Formula(unknown_substance).mass / Formula(known_substance).mass)
 
+def Subtraction(qty, known_qty2, invert = False, **kwargs):
+    if invert is False:
+        return qty - known_qty2
+
+    else:
+        return qty + known_qty2
+
+def Addition(qty, known_qty2, invert = False, **kwargs):
+    if invert is False:
+        return qty + known_qty2
+
+    else:
+        return qty - known_qty2
+
+
+
 def check_balance(inflow_dict, outflow_dict, raise_imbalance=True, 
                   ignore_flows=dat.massless_flows, round_n=5):
     """Checks whether two dictionary mass values sum to equivelent quantities 
@@ -270,7 +286,9 @@ calcs_dict = {
     'ratio': Ratio,
     'remainder': Remainder,
     'molmassratio': MolMassRatio,
-    'returnvalue': ReturnValue
+    'returnvalue': ReturnValue,
+    'Subtraction': Subtraction,
+    'Additon': Addition,
 }
 """Dictionary of calculators available to process unit process relationships.
 Must be updated if additional calculators are added to this module. 
@@ -286,3 +304,5 @@ for calc in lup.custom_calcs_dict:  #adds calculators from custom_lookup
         raise KeyError(f"Function with name {calc} exists in both calculators and custom_lookup. Please use unique function names.")
     else:
         calcs_dict[calc] = lup.custom_calcs_dict[calc]
+
+twoQty_calc_list = ['subtraction', 'addition']
