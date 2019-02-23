@@ -12,6 +12,7 @@ Module Outline:
 
 - import statements and logger
 - module variables: default filepaths (str)
+- module variables: user data (dict)
 - module variables: column headers (str)
     - for unit process library tabular data
     - for unit process relationships tabular data
@@ -33,11 +34,13 @@ Module Outline:
 unit_process_library_file = 'excelData/globalData.xlsx' 
 """str: The filepath whre the unit process library file exists.
 """
+
 unit_process_library_sheet = 'Unit Processes'
 """The worksheet of the unit process library, if in an Excel workbook
 
-If not an excel worksheet, this variable should be none.
+If not an excel worksheet, this variable should be None.
 """
+
 lookup_var_file = 'excelData/globalData.xlsx'
 """The filepath for any custom "lookup substance" variables tables.
 
@@ -53,6 +56,12 @@ outdir = 'BlackBlox_output'
 Unless an absolute path is specified, BlackBlox will create the directory 
 as a subfolder of the current working directory.
 """
+
+# USER DATA
+user_data = {"name": "Unknown User",
+             "affiliation": "Unknown Institution",
+             "project": "Unknown Project",
+}
 
 
 # COLUMN HEADERS

@@ -65,11 +65,14 @@ class Industry:
             self.factory_dict = factory_dict
             self.product_list = product_list
     
-    def balance(self, products_data=None, products_sheet=None, 
-                force_scenario=None, write_to_xls=True, outdir=dat.outdir, 
-                subfolder=True, foldertime=True, file_id='', diagrams=False):
+    def balance(self, products_data=None, products_sheet=None, mass_energy=True, 
+                energy_flows=dat.energy_flows, force_scenario=None, 
+                write_to_xls=True, outdir=dat.outdir, subfolder=True, 
+                foldertime=True, file_id='', diagrams=True):
         """Balances an industry using one scenario for each factory.
         """
+        logger.debug(f"attempting to balance {self.name }industry")
+
         if self.factory_dict is None:
             self.build()
 
@@ -119,7 +122,9 @@ class Industry:
                 f_production_dict[i] = dict(main_product_qty=product_qty,
                                     var_i=scenario,
                                     write_to_xls=write_to_xls,
-                                    outdir=f'{outdir}/factories')
+                                    outdir=f'{outdir}/factories',
+                                    mass_energy=True, 
+                                    energy_flows=dat.energy_flows)
 
         for f in f_production_dict:
             factory = self.factory_dict[f]['factory']
@@ -144,14 +149,25 @@ class Industry:
         if write_to_xls is True:
             filename = f'i_{self.name}_{file_id}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
 
+            meta_df = iof.metadata_df(user=dat.user_data, 
+                                      name=self.name, 
+                                      level="Industry", 
+                                      var_i="multiple - see factory workbooks", 
+                                      product=', '.join(str(p) for p in self.product_list),
+                                      product_qty="multiple - see factory workbooks", 
+                                      energy_flows=energy_flows)
+
             inflows_df = iof.make_df(io_dicts['inflows'], drop_zero=True)
             outflows_df = iof.make_df(io_dicts['outflows'], drop_zero=True)
+        
 
-            df_list = [inflows_df, outflows_df]
-            sheet_list = [f'{self.name} inflows', f'{self.name} outflows']
+            df_list = [meta_df, inflows_df, outflows_df]
+            sheet_list = ["meta", f'{self.name} inflows', f'{self.name} outflows']
             
             iof.write_to_excel(df_list, sheet_list=sheet_list, 
                                filedir=outdir, filename=filename)
+
+        logger.debug(f"successfully balanced {self.name }industry")
 
         return io_dicts #io_dicts[flow type][factory][substance] = qty
 
@@ -176,10 +192,9 @@ class Industry:
                          diagrams=diagrams)
 
 
-
     def evolve(self, start_data=None, start_sheet=None, end_data=None, end_sheet=None,
-                start_step=0, end_step=1,
-                write_to_xls=True, outdir=dat.outdir, file_id='', diagrams=False):  
+                start_step=0, end_step=1, mass_energy=True, energy_flows=dat.energy_flows, 
+                write_to_xls=True, outdir=dat.outdir, file_id='', diagrams=True):  
         """Calculates timestep and cumulative inflows and outflows of an industry
         using a specified starting scenario and end scenario
         """
@@ -191,6 +206,8 @@ class Industry:
         kwargs = dict(write_to_xls=write_to_xls,
                       diagrams=diagrams,
                       file_id=file_id,
+                      mass_energy=True, 
+                      energy_flows=dat.energy_flows, 
                       subfolder=None,
                       foldertime=False)
 
@@ -204,12 +221,12 @@ class Industry:
                               outdir=f'{outdir}/end_{end_step}',
                               **kwargs)
 
-        #io_dicts in the form of:
+        #io_dicts are in the form of:
         # io_dict['factory name' or 'industry totals']['inflows' or 'outflows']['substance'] = qty
 
         #harmonize start_io and end_io dict keys:
 
-        to_harmonize = [(start_io, end_io), (end_io, start_io),]
+        to_harmonize = [(start_io, end_io), (end_io, start_io)]
 
         for pair in to_harmonize:
             for flow in pair[0]:

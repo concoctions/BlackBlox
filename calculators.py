@@ -266,6 +266,7 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
         float: sum of all mass inflows.
         float: sum of all mass outflows.
     """
+
     totals = [0,0]
     flows = [[],[]]
 
@@ -276,14 +277,15 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
             ignore = False
 
             if type(only_these_flows) is list:
+                ignore = True
                 for includable in only_these_flows:
                     if not substance.startswith(includable):
                         logger.debug(f'{substance} not includable; {qty} discarded from inflows')
-                        ignore = True
+                        ignore = False
                         break
                     elif not substance.endswith(includable):
-                        print(f'{substance} not includable; {qty} discarded from inflows')
-                        ignore = True
+                        logger.debug(f'{substance} not includable; {qty} discarded from inflows')
+                        ignore = False
                         break
                     
             for ignorable in ignore_flows:
@@ -292,7 +294,7 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
                     ignore = True
                     break
                 elif substance.endswith(ignorable):
-                    print(f'{substance} ignorable; {qty} discarded from inflows')
+                    logger.debug(f'{substance} ignorable; {qty} discarded from inflows')
                     ignore = True
                     break
 

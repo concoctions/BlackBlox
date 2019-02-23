@@ -20,9 +20,12 @@ Module Outline:
 import pandas as pan
 import numpy as np
 from pathlib import Path
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from datetime import datetime
 import dataconfig as dat
+from bb_log import get_logger
+
+logger = get_logger("IO")
 
 
 def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta", 
@@ -38,18 +41,18 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
             excel workbooks, comma seperated value files, and other delimited 
             text files)
         sheet (str, optional): The worksheet of a specified excel workbook. 
-            (Defaults to None.)
+            (Defaults to None)
         sep (str): the seperator used in non-csv text file. 
-            (Defaults to tab (\t).)
+            (Defaults to tab (\t))
         index (int or None): the column of data that is the index. 
-            (Defaults to 0.)
+            (Defaults to 0)
         metaprefix (str/None): If a column name or row index begins with
             the metaprefix, that row or column is dropped from the data frame.
-            (Defaults to 'meta'.)
+            (Defaults to 'meta')
         col_order (list[str]/False): If a list is passed, will use those strings
             as the column names of the dataframe in the order in the list.
         T (bool): If True, transposes the data frame before return.
-            (Defaults to False.)
+            (Defaults to False)
         drop_zero (bool): If True, converts any NaNs to zeros, and then 
             removes any rows or columns that contain only zeros.
 
@@ -144,6 +147,97 @@ def build_filedir(filedir, subfolder=None, file_id_list=[], time=True):
     return filedir
 
 
+def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True):
+    """Reorders dataframe to seperate mass and energy flows
+
+    Uses a list of prefix/suffixes to identify mass and energy flows
+    and reorders a dataframe to seperate them, orders them alphabetically,
+    and also optionally adds rows for mass totals and energy totals.
+
+    Args:
+        energy_strings (list): contains strings of prefix/suffix to substance
+            names that indicate an energy flow
+            (Defaults to dat.energy_flows)
+        totals (bool): Appends summation rows for mass and energy seperately.
+            (Defaults to True)
+    """
+    logger.debug(f"seperating mass and energy flows using {energy_strings} as energy flow markers")
+
+    cols = list(df)
+
+    mass_df = pan.DataFrame(columns=cols)
+    energy_df = pan.DataFrame(columns=cols)
+
+    for i, row in df.iterrows():
+        clean_i = clean_str(i)
+        energy_flow = False
+        for string in energy_strings:
+            if clean_i.startswith(string) or clean_i.endswith(string):
+                energy_flow = True
+                break
+        if energy_flow is True:
+            energy_df = energy_df.append(row)
+        else:
+            mass_df = mass_df.append(row)
+
+    mass_df.index = sorted(mass_df.index.values, key=lambda s: s.lower())
+    energy_df.index = sorted(energy_df.index.values, key=lambda s: s.lower())
+
+    if totals is True:
+        mass_df = mass_df.append(mass_df.sum().rename('TOTAL - mass'))
+        energy_df = energy_df.append(energy_df.sum().rename('TOTAL - energy'))
+
+    combined_df = pan.concat([mass_df, energy_df], keys=['Mass', 'Energy'])
+
+    return combined_df
+    
+def metadata_df(user=dat.user_data, name="unknown", level="unknown", 
+                product="unknown", product_qty="unknown", var_i="unknown",
+                energy_flows=dat.energy_flows):
+    
+    BB = {"name": "BlackBlox.py",
+          "version": "0.1",
+          "URL": "Offline Only",
+          "documentation": "Offline Only",
+          "github": "Offline Only",
+          "creator": "S.E. Tanzer",
+          "affiliation": "TU Delft",
+          "license": "GPL v3"
+                  }
+              
+    creation_date = datetime.now().strftime("%A, %d %B %Y at %H:%M")
+    energy_flows = ', '.join(energy_flows)
+
+    meta = {"00": f"This data was calculated using {BB['name']} v{BB['version']}",
+            "01": f"{BB['name']} was created by {BB['creator']} of {BB['affiliation']}",
+            "02": f"More information on {BB['name']} can be found at {BB['URL']}",
+            "03": " ",
+            "04": " ",
+            "05": f"This file was generated on {creation_date}",
+            "06": f"by {user['name']} of {user['affiliation']}",
+            "07": f"for use in {user['project']}",
+            "08": f"and contains {level}-level results data for {name}",
+            "09": f"balanced on {product_qty} of {product} using the variable values from the {var_i} scenario(s)",
+            "10": " ",
+            "11": f"Note: Substances beginning or ending with any of the following strings were assumed by {BB['name']} to be energy flows:",
+            "12": f"{energy_flows}",
+            "13": " ",
+            "14": " ",
+            "15": f"{BB['name']} is a python package that faciliates the calculation of mass and energy balances for black block models at an arbitrary level of detail.",
+            "16": f"For full documentation on how to use {BB['name']}, visit {BB['documentation']}",
+            "17": f"{BB['name']} is currently under active development. Head over to {BB['github']} to download, fork, or contribute.",
+            "18": f"{BB['name']} is avaiable for use free of charge under the terms and conditions of the {BB['license']} license.",
+    }
+
+    meta_df = pan.DataFrame.from_dict(meta, orient='index', columns=['Workbook Information'])
+
+    meta_df.index = sorted(meta_df.index.values)
+
+    logger.debug(f"metadata dataframe created for {level}-level {name}")
+
+    return meta_df
+
+
 def write_to_excel(df_or_df_list, sheet_list=None, filedir=dat.outdir, 
                    filename='output'):
     """Writes one or more data frames to a single excel workbook.
@@ -164,6 +258,13 @@ def write_to_excel(df_or_df_list, sheet_list=None, filedir=dat.outdir,
     """
     Path(filedir).mkdir(parents=True, exist_ok=True) 
 
+    logger.debug(f"attempting to create {filename} in {filedir}")
+
+    empty_notice = {'00': "The supplied dataframe was empty.",
+                     '01': "This could happen is all the supplied values were zero",
+                     '02': 'and rows with all zeros were dropped when the data frame was created.'}
+    empty_df = pan.DataFrame.from_dict(empty_notice, orient='index', columns=['Empty Dataframe'])
+
     if isinstance(df_or_df_list, pan.DataFrame):
         df_or_df_list.to_excel(filedir+'/'+filename+'.xlsx')
     
@@ -174,7 +275,13 @@ def write_to_excel(df_or_df_list, sheet_list=None, filedir=dat.outdir,
                     sheet = sheet_list[i]
                 else:
                     sheet = i
-                df.to_excel(writer, sheet)
+                if df.empty:
+                    empty_df.to_excel(writer, sheet)
+                else:
+                    df.to_excel(writer, sheet)
+                logger.debug(f"writing {sheet} sheet to workbook")
+
+    logger.debug(f"{filename} successfully created in {filedir}")
 
 
 def clean_str(string_to_check, str_to_cut=False, remove_dblnewline=True):

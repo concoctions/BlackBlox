@@ -293,6 +293,26 @@ class UnitProcess:
         for substance, qty in io_dicts['c'].items(): #adds co-inflows dictionary to inflows dictionary
             io_dicts['i'][substance] += qty
 
+        total_mass_in, total_mass_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
+                                                 raise_imbalance=raise_imbalance, 
+                                                 ignore_flows=energy_flows)
+
+        if total_mass_in > total_mass_out:
+            io_dicts['o']['UNKNOWN-mass'] = total_mass_in - total_mass_out
+        elif total_mass_out > total_mass_in:
+            io_dicts['i']['UNKNOWN-mass'] = total_mass_out - total_mass_in
+
+        if balance_energy is True:
+            logger.debug("Balancing energy")
+            total_energy_in, total_energy_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
+                                                 raise_imbalance=raise_imbalance, 
+                                                 ignore_flows=[],
+                                                 only_these_flows=energy_flows)
+            if total_energy_in > total_energy_out:
+                io_dicts['o']['UNKNOWN-energy'] = total_energy_in - total_energy_out
+            elif total_mass_out > total_mass_in:
+                io_dicts['i']['UNKNOWN-energy'] = total_energy_out - total_energy_in
+
         logger.debug(f"{self.name} process balanced on {qty} of {product}")
         logger.debug('Inflows:')
         for substance, qty in io_dicts['i'].items():
@@ -300,24 +320,5 @@ class UnitProcess:
         logger.debug('Outflows:')
         for substance, qty in io_dicts['o'].items():
             logger.debug(f"{substance}: {qty}")
-
-        total_mass_in, total_mass_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
-                                                 raise_imbalance=raise_imbalance, 
-                                                 ignore_flows=energy_flows)
-
-        if total_mass_in > total_mass_out:
-            io_dicts['i']['UNKNOWN_MASS'] = total_mass_in - total_mass_out
-        elif total_mass_out > total_mass_in:
-            io_dicts['o']['UNKNOWN_MASS'] = total_mass_out - total_mass_in
-
-        if balance_energy is True:
-            total_energy_in, total_energy_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
-                                                 raise_imbalance=raise_imbalance, 
-                                                 only_these_flows=energy_flows)
-
-        if total_energy_in > total_energy_out:
-            io_dicts['i']['UNKNOWN_ENERGY'] = total_energy_in - total_energy_out
-        elif total_mass_out > total_mass_in:
-            io_dicts['o']['UNKNOWN_ENERGY'] = total_energy_out - total_energy_in
 
         return io_dicts['i'], io_dicts['o']

@@ -125,7 +125,8 @@ class Factory:
         self.chain_dict = chain_dict
 
     def balance(self, main_product_qty, var_i=dat.default_scenario, 
-                write_to_xls=True, outdir=dat.outdir):
+                write_to_xls=True, outdir=dat.outdir, mass_energy=True, 
+                energy_flows=dat.energy_flows):
         """Calculates the mass balance of the factory
 
         Based on a quantity of the factory's main product, calculates the 
@@ -147,6 +148,12 @@ class Factory:
                 (Defaults to True)
             outdir (str): Filepath where to create the balance spreadsheets.
                 (Defaults to the outdir specified in dataconfig)  
+            mass_energy (bool): If true, seperates mass and energy flows within 
+                each excel sheet, adding rows for the respective totals.
+                (Defaults to True)
+            energy_flows (list): list of prefix/suffixes used to identify which 
+                substances are energy flows and seperates them.
+                (Defaults to dat.energy_flows)
 
         Returns:
             dictionary of factory total inflow quantities by substance
@@ -157,7 +164,7 @@ class Factory:
         if not self.chain_dict:
             self.build()
 
-        logger.debug(f"balancing factory on {main_product_qty} of {self.chain_dict[self.main_chain]['product']}")
+        logger.debug(f"attempting to balance factory on {main_product_qty} of {self.chain_dict[self.main_chain]['product']}")
 
         io_dicts = {
             'i': iof.nested_dicts(3, float),
@@ -227,13 +234,18 @@ class Factory:
                 
             filename = f'f_{self.name}_{var_i}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
 
+            meta_df = iof.metadata_df(user=dat.user_data, name=self.name, 
+                          level="Factory", var_i=var_i, product=self.main_product,
+                          product_qty=main_product_qty, energy_flows=energy_flows)
+
             totals_dict = defaultdict(lambda: defaultdict(float))
             totals_dict['factory inflows'] = totals['i']
             totals_dict['factory outflows'] = totals['o']
-            totalsDF = iof.make_df(totals_dict, drop_zero=True)
+            totals_df = iof.make_df(totals_dict, drop_zero=True)
+            totals_df = iof.mass_energy_df(totals_df)
 
-            df_list = [totalsDF]
-            sheet_list = [f'{self.name} totals']
+            df_list = [meta_df, totals_df]
+            sheet_list = ['metadata', f'{self.name} totals']
 
             all_inflows = defaultdict(lambda: defaultdict(float))
             all_outflows = defaultdict(lambda: defaultdict(float))
@@ -243,12 +255,15 @@ class Factory:
                 chain_inflow_df = iof.make_df(io_dicts['i'][chain], 
                                               col_order=columns, 
                                               drop_zero=True)
+                
+                chain_inflow_df = iof.mass_energy_df(chain_inflow_df)
                 df_list.append(chain_inflow_df)
                 sheet_list.append(chain+" inflows")
 
                 chain_outflow_df = iof.make_df(io_dicts['o'][chain], 
                                                col_order=columns,
                                                drop_zero=True)
+                chain_outflow_df = iof.mass_energy_df(chain_outflow_df)
                 df_list.append(chain_outflow_df)
                 sheet_list.append(chain+" outflows")
 
@@ -260,10 +275,12 @@ class Factory:
                             all_outflows[process_dict][substance] = qty
 
             all_outflows_df = iof.make_df(all_outflows, drop_zero=True)
+            all_outflows_df = iof.mass_energy_df(all_outflows_df, totals=False)
             df_list.insert(1,all_outflows_df)
             sheet_list.insert(1, "unit outflow matrix")
 
             all_inflows_df = iof.make_df(all_inflows, drop_zero=True)
+            all_inflows_df = iof.mass_energy_df(all_inflows_df, totals=False)
             df_list.insert(1, all_inflows_df)
             sheet_list.insert(1, "unit inflow matrix")
 
@@ -271,11 +288,26 @@ class Factory:
                                filedir=outdir, filename=filename)
 
         
+        logger.debug(f"successfully balanced factory on {main_product_qty} of {self.chain_dict[self.main_chain]['product']}")
+
         return totals['i'], totals['o']
 
 
     def diagram(self, outdir=dat.outdir, view=False):
         """ Outputs a diagram of the factory flows to file.
+
+        Using Graphviz, takes the unit process names, sets of inflows and 
+        outflows, and the specified linkages of the factory to generate a
+        diagram of the chain as a png and svg.
+        
+        Args:
+            outdir(str): The output directory where to write the files.
+                (Defaults to the output directory specified in dataconfig in
+                a 'pfd' subfolder.)
+
+            view(bool): If True, displays the diagram in the system
+                viewer. 
+                (Defaults to True)
         """
 
         if outdir == dat.outdir:
@@ -416,3 +448,5 @@ class Factory:
         io_diagram.render()
         io_diagram.format = 'svg'
         io_diagram.render()
+
+        logger.debug(f"created diagram for {self.name} factory")

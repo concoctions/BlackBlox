@@ -183,7 +183,7 @@ class ProductChain:
                 qty = io_dicts[io_opposite][previous_process.name][product]
                 intermediate_product_dict[product] = qty
 
-            logger.debug(f"balancing {process.name} on {qty} of {product}({i_o}) using {var_i} variables.")
+            logger.debug(f"attempting to balance {process.name} on {qty} of {product}({i_o}) using {var_i} variables.")
             (io_dicts['i'][process.name], 
              io_dicts['o'][process.name]) = process.balance(qty, product, i_o, var_i)
             previous_process = process
@@ -204,6 +204,8 @@ class ProductChain:
         io_dicts['i']["chain totals"] = totals['i']
         io_dicts['o']["chain totals"] = totals['o']
         
+
+        logger.debug(f"successfully balanced {self.name} using {var_i} variables.")
         return io_dicts['i'], io_dicts['o']
 
 
@@ -221,7 +223,9 @@ class ProductChain:
         also given a long unique identifier, which is necessary for building
         factory-level diagrams.
         
-        The use of the product flow subgraph is needed to allow 
+        The use of a product flow subgraph allows the unconnected inflows and
+        outflows to appear in invisible (white) nodes, and also is returnable
+        for use in larger factory diagrams.
 
         Args:
             view_diagram(bool): If True, displays the diagram in the system
@@ -232,7 +236,7 @@ class ProductChain:
                 a 'pfd' subfolder.)
 
         Returns:
-            Optional: The Digraph object of the chain diagram, with each
+            Optional: The Digraph object of the product flow diagram, with each
             unit process as a node, with the concatanated chain name and 
             unit process name (e.g. chainunitprocess) as the identifier,
             and also the non-linking inflows and outflows as white-bordered
@@ -305,5 +309,5 @@ class ProductChain:
         if view_diagram:
             chain_diagram.view()
 
-        
+        logger.debug(f"diagram created for {self.name} chain")
         return product_flow
