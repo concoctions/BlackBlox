@@ -29,8 +29,8 @@ print_startup = False
 test_calculators = False
 test_unitprocesses = True
 test_chains = False
-test_factory = False
-test_industry = f_chain_list_file
+test_factory = True
+test_industry = False
 
 
 if print_startup is True:
@@ -327,7 +327,7 @@ if test_factory is True:
     print("\nchain dict:",factory.chain_dict)
     print("\nmain chain:",factory.chain_dict[factory.main_chain])
 
-    inflows, outflows = factory.balance(1.0, var_i='default', write_to_xls=False)
+    inflows, outflows = factory.balance(1.0, var_i='default', write_to_xls=True)
 
     totals = {'factory inflows': inflows, 'factory outflows': outflows}
     print(pan.DataFrame(totals), "\n")

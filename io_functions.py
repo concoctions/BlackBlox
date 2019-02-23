@@ -26,7 +26,7 @@ import dataconfig as dat
 
 
 def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta", 
-            T = False, drop_zero=False):
+            col_order = False, T = False, drop_zero=False):
     """ Creates a Pandas dataframe from various file types
 
     Numbers that are initially read as strings will be converted to 
@@ -43,9 +43,11 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
             (Defaults to tab (\t).)
         index (int or None): the column of data that is the index. 
             (Defaults to 0.)
-        metaprefix (str or None): If a column name or row index begins with
+        metaprefix (str/None): If a column name or row index begins with
             the metaprefix, that row or column is dropped from the data frame.
             (Defaults to 'meta'.)
+        col_order (list[str]/False): If a list is passed, will use those strings
+            as the column names of the dataframe in the order in the list.
         T (bool): If True, transposes the data frame before return.
             (Defaults to False.)
         drop_zero (bool): If True, converts any NaNs to zeros, and then 
@@ -71,6 +73,9 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
             df = df[~df.index.str.startswith(metaprefix)]
         cols = [col for col in list(df) if not col.startswith(metaprefix)]
         df = df[cols]
+
+    if type(col_order) is list:
+        df = df[col_order]
  
     df = df.apply(pan.to_numeric, errors = 'ignore') #if it looks like a number, make it a number
 

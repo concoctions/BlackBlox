@@ -146,8 +146,7 @@ class Factory:
                 for all unit processes, and inflows and outflows by chain.
                 (Defaults to True)
             outdir (str): Filepath where to create the balance spreadsheets.
-                (Defaults to the outdir specified in dataconfig)
-            
+                (Defaults to the outdir specified in dataconfig)  
 
         Returns:
             dictionary of factory total inflow quantities by substance
@@ -212,11 +211,11 @@ class Factory:
             'i': defaultdict(float),
             'o': defaultdict(float)
             }
-        for chain_dict in io_dicts['i']:
-            for inflow, qty in io_dicts['i'][chain_dict]['chain totals'].items():
+        for chain in io_dicts['i']:
+            for inflow, qty in io_dicts['i'][chain]['chain totals'].items():
                 totals['i'][inflow] += qty
-        for chain_dict in io_dicts['o']:
-            for outflow, qty in io_dicts['o'][chain_dict]['chain totals'].items():
+        for chain in io_dicts['o']:
+            for outflow, qty in io_dicts['o'][chain]['chain totals'].items():
                 totals['o'][outflow] += qty
         for io_dict in totals:
             for product, qty in intermediate_product_dict.items():
@@ -239,20 +238,25 @@ class Factory:
             all_inflows = defaultdict(lambda: defaultdict(float))
             all_outflows = defaultdict(lambda: defaultdict(float))
 
-            for chain_dict in io_dicts['i']:
-                chain_inflow_df = iof.make_df(io_dicts['i'][chain_dict], drop_zero=True)
+            for chain in io_dicts['i']:
+                columns = self.chain_dict[chain]['chain'].process_names + ['chain totals']
+                chain_inflow_df = iof.make_df(io_dicts['i'][chain], 
+                                              col_order=columns, 
+                                              drop_zero=True)
                 df_list.append(chain_inflow_df)
-                sheet_list.append(chain_dict+" inflows")
+                sheet_list.append(chain+" inflows")
 
-                chain_outflow_df = iof.make_df(io_dicts['o'][chain_dict], drop_zero=True)
+                chain_outflow_df = iof.make_df(io_dicts['o'][chain], 
+                                               col_order=columns,
+                                               drop_zero=True)
                 df_list.append(chain_outflow_df)
-                sheet_list.append(chain_dict+" outflows")
+                sheet_list.append(chain+" outflows")
 
-                for process_dict in io_dicts['i'][chain_dict]:
+                for process_dict in io_dicts['i'][chain]:
                     if 'total' not in process_dict:
-                        for substance, qty in io_dicts['i'][chain_dict][process_dict].items():
+                        for substance, qty in io_dicts['i'][chain][process_dict].items():
                             all_inflows[process_dict][substance] = qty
-                        for substance, qty in io_dicts['o'][chain_dict][process_dict].items():
+                        for substance, qty in io_dicts['o'][chain][process_dict].items():
                             all_outflows[process_dict][substance] = qty
 
             all_outflows_df = iof.make_df(all_outflows, drop_zero=True)

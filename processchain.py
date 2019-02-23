@@ -73,6 +73,7 @@ class ProductChain:
                                             index=None)
         self.default_product = False
         self.process_list = False
+        self.process_names = False
     
     def build(self):
         """Generates the needed unit process objects
@@ -85,6 +86,7 @@ class ProductChain:
         """
         logger.debug(f"initializing chain for {self.name}")
         process_list = []
+        process_names = []
 
         for index, process_row in self.process_chain_df.iterrows():
             process = unit.UnitProcess(process_row[dat.process_col])
@@ -99,8 +101,10 @@ class ProductChain:
                 raise KeyError(f"{outflow} not found in {process.name} outflows")
  
             process_list.append(dict(process=process, i=inflow, o=outflow))
+            process_names.append(process.name)
             
         self.process_list = process_list
+        self.process_names = process_names
 
         if not self.default_product:
             if process_list[-1]['o'] in process_list[-1]['process'].outflows:
@@ -183,19 +187,6 @@ class ProductChain:
             (io_dicts['i'][process.name], 
              io_dicts['o'][process.name]) = process.balance(qty, product, i_o, var_i)
             previous_process = process
-
-        # as of python 3.7 dictionary iteration is guaranteed to be in insertion order
-        # so reversing the dictionaries of output-based chains allows the dictionary
-        # to be iterated in the order of chain processes.
-        if i_o == 'o':
-            rev_inflows_dict = defaultdict(lambda: defaultdict(float))
-            rev_outflows_dict = defaultdict(lambda: defaultdict(float))
-            for p in self.process_list:
-                rev_inflows_dict[p['process'].name] = io_dicts['i'][p['process'].name]
-                rev_outflows_dict[p['process'].name] = io_dicts['o'][p['process'].name]
-            io_dicts.clear()
-            io_dicts['i'] = rev_inflows_dict
-            io_dicts['o'] = rev_outflows_dict
             
         totals = {
             'i': defaultdict(float),
