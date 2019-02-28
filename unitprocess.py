@@ -351,7 +351,8 @@ class UnitProcess:
                        recycle_io,
                        recycled_flow,
                        replaced_flow,
-                       var_i=dat.default_scenario):
+                       var_i=dat.default_scenario, 
+                       **kwargs):
     
         """Inserts a recycle flow that corresponds 1-to-1 with an existing flow
 
@@ -363,16 +364,16 @@ class UnitProcess:
                               o=original_outflows_dict)
         rebalanced_flows = original_flows.copy()
 
-        i_o =iof.clean_str(recycled_io[0])
+        i_o =iof.clean_str(recycle_io[0])
 
         if i_o not in ['i', 'o']:
-            raise KeyError(f'{recycled_io} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
+            raise KeyError(f'{i_o} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
 
         if replaced_flow in lookup_var_dict:
             replaced_flow = self.var_df.at[var_i, lookup_var_dict[replaced_flow]['lookup_var']] 
 
-        if replaced_flow in df_fuels:
-            print(f'WARNING! {replaced_flow} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
+        if replaced_flow in calc.df_fuels:
+            print(f'WARNING! {i_o} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
 
         remaining_replaced_qty = original_flows[i_o][replaced_flow] - recycled_qty
 
@@ -384,95 +385,96 @@ class UnitProcess:
         else:
             rebalanced_flows[i_o][replaced_flow] = 0
             used_recycle_qty = recycled_qty + remaining_replaced_qty
-            rebalanced_flow[i_o][recycled_flow] += used_recycle_qty
+            rebalanced_flows[i_o][recycled_flow] += used_recycle_qty
             remaining_recycle_qty = recycled_qty - used_recycle_qty
 
-        if remaining_recylce_qty < 0:
+        if remaining_recycle_qty < 0:
             raise ValueError(f"Something went wrong. remaining_recycle_qty < 0 {remaining_recycle_qty}")
 
-        return rebalanced_inflows_dict, rebalanced_outflows_dict, remaining_recycle_qty
+        return rebalanced_flows['i'], rebalanced_flows['o'], remaining_recycle_qty
 
 
     def recycle_energy_replacing_fuel(self, 
                        original_inflows_dict,
                        original_outflows_dict,
-                       recycled_energy_qty,
+                       recycled_qty,
                        recycle_io,
-                       recycled_energy,
-                       replaced_fuel,
+                       recycled_flow,
+                       replaced_flow,
+                       combustion_eff,
                        var_i=dat.default_scenario,
-                       combustion_efficiency,
-                       emissions_list = ['CO2', 'H2O', 'SO2']):
+                       emissions_list = ['CO2', 'H2O', 'SO2'], 
+                       **kwargs):
         """replaces fuel use and associated emissions with a recycled energy flow
         """
 
-        
         original_flows = dict(i=original_inflows_dict,
                               o=original_outflows_dict)
         rebalanced_flows = original_flows.copy()
 
-        i_o =iof.clean_str(recycled_io[0])
+        i_o =iof.clean_str(recycle_io[0])
 
         if i_o not in ['i', 'o']:
-            raise KeyError(f'{recycled_io} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
+            raise KeyError(f'{i_o} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
 
-        if replaced_fuel in lookup_var_dict:
-            replaced_fuel = self.var_df.at[var_i, lookup_var_dict[replaced_fuel]['lookup_var']] 
+        if replaced_flow in lookup_var_dict:
+            replaced_flow = self.var_df.at[var_i, lookup_var_dict[replaced_flow]['lookup_var']] 
 
-        if type(combustion_efficiency) is str:
-            combustion_efficiency = self.var_df.at[var_i, iof.clean_str(combution_efficiency)]
+        if type(combustion_eff) is str:
+            combustion_eff = self.var_df.at[var_i, iof.clean_str(combustion_eff)]
 
         replaced_emissions_dict = defaultdict(float)
-        replaced_inflows_dict = ddefaultdict(float)
-        equivelent_fuel_qty = Combustion('energy', 
-                                          recycled_energy_qty, 
-                                          replaced_fuel, 
-                                          combustion_efficiency, 
+        replaced_inflows_dict = defaultdict(float)
+        equivelent_fuel_qty = calc.Combustion('energy', 
+                                          recycled_qty, 
+                                          replaced_flow, 
+                                          combustion_eff, 
                                           replaced_emissions_dict,
                                           replaced_inflows_dict,
                                           emissions_list=emissions_list)
 
-        remaining_fuel = original_flows[i_o][replaced_fuel] - equivelent_fuel_qty
+        remaining_fuel_qty = original_flows[i_o][replaced_flow] - equivelent_fuel_qty
 
-        if remaining_fuel >= 0:
-            rebalanced_flows[i_o][replaced_fuel] = remaining_replaced_qty
-            rebalanced_flows[i_o][recycled_energy] = recycled_qty
+        if remaining_fuel_qty >= 0:
+            rebalanced_flows[i_o][replaced_flow] = remaining_fuel_qty
+            rebalanced_flows[i_o][recycled_flow] = recycled_qty
             remaining_recycle_qty = 0
 
-            for flow in emissions_dict:
+            for flow in replaced_emissions_dict:
                 rebalanced_flows['o'][flow] -= replaced_emissions_dict[flow]
 
-            for flow in inflows_dict:
+            for flow in replaced_inflows_dict:
                 rebalanced_flows['i'][flow] -= replaced_inflows_dict[flow]
 
             remaining_energy_qty = 0
 
         else:
             rebalanced_flows[i_o][replaced_flow] = 0
-            used_equivelent_fuel_qty = equivelent_fuel_qty + remaining_fuel
+            used_equivelent_fuel_qty = equivelent_fuel_qty + remaining_fuel_qty
 
             replaced_emissions_dict = defaultdict(float)
-            replaced_inflows_dict = ddefaultdict(float)
-            used_energy_qty = Combustion(replaced_fuel, 
+            replaced_inflows_dict = defaultdict(float)
+            
+            used_energy_qty = calc.Combustion(replaced_flow, 
                                          used_equivelent_fuel_qty, 
                                          'energy', 
-                                         combustion_efficiency, 
+                                         combustion_eff, 
                                          replaced_emissions_dict,
                                          replaced_inflows_dict,
                                          emissions_list=emissions_list)
 
-            rebalanced_flows[i_o][recycled_energy] += used_energy_qty
-            remaining_energy_qty = recycled_energy_qty - used_energy_qty
+            rebalanced_flows[i_o][recycled_flow] += used_energy_qty
+            remaining_energy_qty = recycled_qty - used_energy_qty
         
-            for flow in emissions_dict:
+            for flow in replaced_emissions_dict:
                 rebalanced_flows['o'][flow] -= replaced_emissions_dict[flow]
-            for flow in inflows_dict:
+            for flow in replaced_inflows_dict:
                 rebalanced_flows['i'][flow] -= replaced_inflows_dict[flow]
 
         if remaining_recycle_qty < 0:
             raise ValueError(f"Something went wrong. remaining_recycle_qty < 0 {remaining_recycle_qty}")
 
-        return rebalanced_inflows_dict, rebalanced_outflows_dict, remaining_energy_qty
+        return rebalanced_flows['i'], rebalanced_flows['o'], remaining_energy_qty
     
         
 
