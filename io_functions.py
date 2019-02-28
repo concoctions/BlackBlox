@@ -172,7 +172,7 @@ def write_to_excel(df_or_df_list, sheet_list=None, filedir=dat.outdir,
                 df.to_excel(writer, sheet)
 
 
-def clean_str(string_to_check, str_to_cut=False, remove_dblnewline=True):
+def clean_str(string_to_check, str_to_cut=False, lower=True, remove_dblnewline=True):
     """Multipurpose function to clean user input strings
     
     Used to clean user input. First creates a copy of the string to prevent 
@@ -195,7 +195,9 @@ def clean_str(string_to_check, str_to_cut=False, remove_dblnewline=True):
     string = ''.join(string_to_check)
 
     string = string.strip()
-    string = str.lower(string)
+    
+    if lower is True:
+        string = str.lower(string)
 
     if type(str_to_cut) is str:
         string = string.replace(str_to_cut, '')

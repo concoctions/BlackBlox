@@ -80,14 +80,14 @@ Each entry in this dictionary should be formatted as follows:
 """
 
 # OTHER CUSTOM VARIABLES
-default_emissions_list = ['CO2', 'H2O', 'SO2']
+
 # default_fuel_composition = ['C', 'H', 'O', 'S', 'N', 'moisture', 'ash']
 
 
 # CUSTOM FUNCTIONS
 def Combustion(known_substance, qty, unknown_substance, var, 
                emissions_dict=False, inflows_dict=False, 
-               emissions_list = default_emissions_list, fuels_df=df_fuels, 
+               emissions_list = ['CO2', 'H2O', 'SO2'], fuels_df=df_fuels, 
                **kwargs):
     """Calculates fuel or energy quantity and combustion emissions
 
