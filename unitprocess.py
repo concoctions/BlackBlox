@@ -27,12 +27,11 @@ from bb_log import get_logger
 import io_functions as iof
 import dataconfig as dat
 import calculators  as calc
-import custom_lookup as lup
 
 
 logger = get_logger("Unit Process")
 
-
+# LOOK UP VARIABLES
 df_unit_library = iof.make_df(dat.unit_process_library_file, 
                              sheet=dat.unit_process_library_sheet)
 """dataframe of all unit process names and file locations
@@ -49,6 +48,30 @@ variables table and calculations tables. Columns for sheet names,
 if the data is within excel sheets, will also be used if provided.
 """
 
+lookup_var_dict = { 
+    'fuel': dict(data_frame=calc.df_fuels, 
+                 lookup_var='fuelType'),
+    'fossil fuel': dict(data_frame=calc.df_fuels, 
+                 lookup_var='fossil fuel type'),
+    'biofuel': dict(data_frame=calc.df_fuels, 
+                 lookup_var='biofuel type')
+    } 
+"""dictionary of special lookup substance names
+Lookup_var_dict is a dictionary with the names of substance, that when used
+in the unit process calculations file, will trigger the program to replace
+the lookup substance name with the substance name specified in the unit 
+process's variable data table for the scenario currently in use.
+
+Each entry in this dictionary should be formatted as follows:
+    key (str): the substance name to be used in the calcuations file
+    value (dict): a dictionary of lookup variable attributes.
+        lookup_var (str): the header of the column in the unit process 
+            variable file that contains the value with which to replace
+            the lookup substance word.
+        data_frame (optional): a data frame with additional custom data
+            about the lookup variable, such as to be used in custom functions,
+            below. These are not used elsewhere in BlackBlox.py.
+"""
 
 class UnitProcess:
     """Unit processes have inflows and outflows with defined relationships.
@@ -136,7 +159,7 @@ class UnitProcess:
                 qty, 
                 product=False, 
                 i_o=False, 
-                var_i=False,
+                var_i=dat.default_scenario,
                 energy_flows=dat.energy_flows,
                 balance_energy=True, 
                 raise_imbalance=False,):
@@ -190,16 +213,14 @@ class UnitProcess:
         i_o = iof.clean_str(i_o[0])
         if i_o not in ['i', 'o', 't']:
             raise Exception(f'{i_o} not valid product destination')
-        if var_i is False:
-            var_i = dat.default_scenario
         if var_i not in self.var_df.index.values:
             raise Exception(f'{var_i} not found in variables file')
         if product is False:
             product = self.default_product
         if product not in self.inflows and product not in self.outflows:
             raise Exception(f'{product} not found in {self.name} inflows or outflows')
-        if product in lup.lookup_var_dict:
-            product = self.var_df.at[var_i, lup.lookup_var_dict[product]['lookup_var']]   
+        if product in lookup_var_dict:
+            product = self.var_df.at[var_i, lookup_var_dict[product]['lookup_var']]   
         calc_df = self.calc_df
         logger.debug(f"Attempting to balance {self.name} on {qty} of {product} ({i_o}) using {var_i} variables")
 
@@ -234,10 +255,10 @@ class UnitProcess:
             if attempt >= len(calc_df): 
                 raise Exception(f"Cannot process {known_substance}. Breaking to prevent infinite loop")
 
-            if known_substance in lup.lookup_var_dict:
-                known_substance = self.var_df.at[var_i, lup.lookup_var_dict[known_substance]['lookup_var']] 
-            if unknown_substance in lup.lookup_var_dict:
-                unknown_substance = self.var_df.at[var_i, lup.lookup_var_dict[unknown_substance]['lookup_var']] 
+            if known_substance in lookup_var_dict:
+                known_substance = self.var_df.at[var_i, lookup_var_dict[known_substance]['lookup_var']] 
+            if unknown_substance in lookup_var_dict:
+                unknown_substance = self.var_df.at[var_i, lookup_var_dict[unknown_substance]['lookup_var']] 
 
             if known_substance in io_dicts[known_io]:
                 pass
@@ -260,8 +281,8 @@ class UnitProcess:
             if calc_type in calc.twoQty_calc_list:
                 known_substance2 = calc_df.at[i, dat.known2]
                 k2_io = iof.clean_str(calc_df.at[i, dat.known2_io][0])
-                if known_substance2 in lup.lookup_var_dict:
-                    known_substance2 = self.var_df.at[var_i, lup.lookup_var_dict[known_substance]['lookup_var']] 
+                if known_substance2 in lookup_var_dict:
+                    known_substance2 = self.var_df.at[var_i, lookup_var_dict[known_substance]['lookup_var']] 
                 if known_substance2 in io_dicts[k2_io]:
                     known_qty2 = io_dicts[k2_io][known_substance2]
                 else:
@@ -281,7 +302,7 @@ class UnitProcess:
                           inflows_dict=io_dicts['c'])
             logger.debug(f"Attempting {calc_type} calculation for {unknown_substance} using {qty_known} of {known_substance}")
             qty_calculated = calc.calcs_dict[calc_type](**kwargs)
-            io_dicts[unknown_io][unknown_substance] += qty_calculated
+            io_dicts[unknown_io][unknown_substance] = qty_calculated
 
             calc_df = calc_df.drop(i)
             calc_df = calc_df.reset_index(drop=True)
@@ -321,3 +342,138 @@ class UnitProcess:
             io_dicts['o']['UNKNOWN_ENERGY'] = total_energy_out - total_energy_in
 
         return io_dicts['i'], io_dicts['o']
+
+
+    def recycle_1to1(self, 
+                       original_inflows_dict,
+                       original_outflows_dict,
+                       recycled_qty,
+                       recycle_io,
+                       recycled_flow,
+                       replaced_flow,
+                       var_i=dat.default_scenario):
+    
+        """Inserts a recycle flow that corresponds 1-to-1 with an existing flow
+
+        Args:
+            recycled_qty (float): quantity of recycled flow
+        """
+
+        original_flows = dict(i=original_inflows_dict,
+                              o=original_outflows_dict)
+        rebalanced_flows = original_flows.copy()
+
+        i_o =iof.clean_str(recycled_io[0])
+
+        if i_o not in ['i', 'o']:
+            raise KeyError(f'{recycled_io} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
+
+        if replaced_flow in lookup_var_dict:
+            replaced_flow = self.var_df.at[var_i, lookup_var_dict[replaced_flow]['lookup_var']] 
+
+        if replaced_flow in df_fuels:
+            print(f'WARNING! {replaced_flow} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
+
+        remaining_replaced_qty = original_flows[i_o][replaced_flow] - recycled_qty
+
+        if remaining_replaced_qty >= 0:
+            rebalanced_flows[i_o][replaced_flow] = remaining_replaced_qty
+            rebalanced_flows[i_o][recycled_flow] += recycled_qty
+            remaining_recycle_qty = 0
+
+        else:
+            rebalanced_flows[i_o][replaced_flow] = 0
+            used_recycle_qty = recycled_qty + remaining_replaced_qty
+            rebalanced_flow[i_o][recycled_flow] += used_recycle_qty
+            remaining_recycle_qty = recycled_qty - used_recycle_qty
+
+        if remaining_recylce_qty < 0:
+            raise ValueError(f"Something went wrong. remaining_recycle_qty < 0 {remaining_recycle_qty}")
+
+        return rebalanced_inflows_dict, rebalanced_outflows_dict, remaining_recycle_qty
+
+
+    def recycle_energy_replacing_fuel(self, 
+                       original_inflows_dict,
+                       original_outflows_dict,
+                       recycled_energy_qty,
+                       recycle_io,
+                       recycled_energy,
+                       replaced_fuel,
+                       var_i=dat.default_scenario,
+                       combustion_efficiency,
+                       emissions_list = ['CO2', 'H2O', 'SO2']):
+        """replaces fuel use and associated emissions with a recycled energy flow
+        """
+
+        
+        original_flows = dict(i=original_inflows_dict,
+                              o=original_outflows_dict)
+        rebalanced_flows = original_flows.copy()
+
+        i_o =iof.clean_str(recycled_io[0])
+
+        if i_o not in ['i', 'o']:
+            raise KeyError(f'{recycled_io} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
+
+        if replaced_fuel in lookup_var_dict:
+            replaced_fuel = self.var_df.at[var_i, lookup_var_dict[replaced_fuel]['lookup_var']] 
+
+        if type(combustion_efficiency) is str:
+            combustion_efficiency = self.var_df.at[var_i, iof.clean_str(combution_efficiency)]
+
+        replaced_emissions_dict = defaultdict(float)
+        replaced_inflows_dict = ddefaultdict(float)
+        equivelent_fuel_qty = Combustion('energy', 
+                                          recycled_energy_qty, 
+                                          replaced_fuel, 
+                                          combustion_efficiency, 
+                                          replaced_emissions_dict,
+                                          replaced_inflows_dict,
+                                          emissions_list=emissions_list)
+
+        remaining_fuel = original_flows[i_o][replaced_fuel] - equivelent_fuel_qty
+
+        if remaining_fuel >= 0:
+            rebalanced_flows[i_o][replaced_fuel] = remaining_replaced_qty
+            rebalanced_flows[i_o][recycled_energy] = recycled_qty
+            remaining_recycle_qty = 0
+
+            for flow in emissions_dict:
+                rebalanced_flows['o'][flow] -= replaced_emissions_dict[flow]
+
+            for flow in inflows_dict:
+                rebalanced_flows['i'][flow] -= replaced_inflows_dict[flow]
+
+            remaining_energy_qty = 0
+
+        else:
+            rebalanced_flows[i_o][replaced_flow] = 0
+            used_equivelent_fuel_qty = equivelent_fuel_qty + remaining_fuel
+
+            replaced_emissions_dict = defaultdict(float)
+            replaced_inflows_dict = ddefaultdict(float)
+            used_energy_qty = Combustion(replaced_fuel, 
+                                         used_equivelent_fuel_qty, 
+                                         'energy', 
+                                         combustion_efficiency, 
+                                         replaced_emissions_dict,
+                                         replaced_inflows_dict,
+                                         emissions_list=emissions_list)
+
+            rebalanced_flows[i_o][recycled_energy] += used_energy_qty
+            remaining_energy_qty = recycled_energy_qty - used_energy_qty
+        
+            for flow in emissions_dict:
+                rebalanced_flows['o'][flow] -= replaced_emissions_dict[flow]
+            for flow in inflows_dict:
+                rebalanced_flows['i'][flow] -= replaced_inflows_dict[flow]
+
+        if remaining_recycle_qty < 0:
+            raise ValueError(f"Something went wrong. remaining_recycle_qty < 0 {remaining_recycle_qty}")
+
+        return rebalanced_inflows_dict, rebalanced_outflows_dict, remaining_energy_qty
+    
+        
+
+
