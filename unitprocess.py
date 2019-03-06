@@ -23,6 +23,7 @@ Module Outline:
 """
 
 from collections import defaultdict
+from copy import copy
 from bb_log import get_logger
 import io_functions as iof
 import dataconfig as dat
@@ -358,12 +359,26 @@ class UnitProcess:
         """Inserts a recycle flow that corresponds 1-to-1 with an existing flow
 
         Args:
+            original_inflows_dict (defaultdict): Dictionary of inflow quantities from the orignal
+                balancing of the unit process
+            original_outflows_dict (defaultdict): Dictionary of outflow quantities from the orignal
+                balancing of the unit process
             recycled_qty (float): quantity of recycled flow
+            recycle_io (str): "i" if the recycled flow is an inflow or "o" if it is an outflow
+            recycled_flow (str): name of the recycled flow
+            replaced_flow (str): name of the flow to be replaced by the recycled flow
+
+        Returns:
+            dictionary of rebalanced inflows
+            dictionary of rebalanced outflows
+            float of the remaining quantity of the recycle stream
         """
 
         original_flows = dict(i=original_inflows_dict,
                               o=original_outflows_dict)
-        rebalanced_flows = original_flows.copy()
+        rebalanced_flows = dict(i=copy(original_inflows_dict),
+                                o=copy(original_outflows_dict))
+    
 
         i_o =iof.clean_str(recycle_io[0])
 
@@ -374,7 +389,7 @@ class UnitProcess:
             replaced_flow = self.var_df.at[var_i, lookup_var_dict[replaced_flow]['lookup_var']] 
 
         if replaced_flow in calc.df_fuels:
-            print(f'WARNING! {i_o} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
+            print(f'WARNING! {replaced_flow} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
 
         remaining_replaced_qty = original_flows[i_o][replaced_flow] - recycled_qty
 
@@ -407,11 +422,33 @@ class UnitProcess:
                        emissions_list = ['CO2', 'H2O', 'SO2'], 
                        **kwargs):
         """replaces fuel use and associated emissions with a recycled energy flow
+
+        Args:
+            original_inflows_dict (defaultdict): Dictionary of inflow quantities from the orignal
+                balancing of the unit process
+            original_outflows_dict (defaultdict): Dictionary of outflow quantities from the orignal
+                balancing of the unit process
+            recycled_qty (float): quantity of recycled flow
+            recycle_io (str): "i" if the recycled flow is an inflow or "o" if it is an outflow
+            recycled_flow (str): name of the recycled flow
+            replaced_flow (str): name of the flow to be replaced by the recycled flow
+            combustion_eff [str/float]: The name of the combustion efficiency variable (case sensitive) from the variables table
+                or a float of the combustion_eff (must be between 0 and 1)
+            var_i (str): name of the scenario to use
+                (Defaults to dat.default_scenario)
+            emissions_list (list[str]): list of emissions to recalculation. O2 is always automatically recalculated.
+                (Defaults to ['CO2', 'H2O', 'SO2'])
+
+        Returns:
+            dictionary of rebalanced inflows
+            dictionary of rebalanced outflows
+            float of the remaining quantity of the recycle stream
         """
 
         original_flows = dict(i=original_inflows_dict,
                               o=original_outflows_dict)
-        rebalanced_flows = original_flows.copy()
+        rebalanced_flows = dict(i=copy(original_inflows_dict),
+                                o=copy(original_outflows_dict))
 
         i_o =iof.clean_str(recycle_io[0])
 
@@ -422,7 +459,7 @@ class UnitProcess:
             replaced_flow = self.var_df.at[var_i, lookup_var_dict[replaced_flow]['lookup_var']] 
 
         if type(combustion_eff) is str:
-            combustion_eff = self.var_df.at[var_i, iof.clean_str(combustion_eff)]
+            combustion_eff = self.var_df.at[var_i, combustion_eff]
 
         replaced_emissions_dict = defaultdict(float)
         replaced_inflows_dict = defaultdict(float)
@@ -439,7 +476,7 @@ class UnitProcess:
         if remaining_fuel_qty >= 0:
             rebalanced_flows[i_o][replaced_flow] = remaining_fuel_qty
             rebalanced_flows[i_o][recycled_flow] = recycled_qty
-            remaining_recycle_qty = 0
+            remaining_energy_qty = 0
 
             for flow in replaced_emissions_dict:
                 rebalanced_flows['o'][flow] -= replaced_emissions_dict[flow]
@@ -469,11 +506,15 @@ class UnitProcess:
         
             for flow in replaced_emissions_dict:
                 rebalanced_flows['o'][flow] -= replaced_emissions_dict[flow]
+                if rebalanced_flows['o'][flow] < 0.00000000001:
+                    rebalanced_flows['o'][flow] = 0
             for flow in replaced_inflows_dict:
                 rebalanced_flows['i'][flow] -= replaced_inflows_dict[flow]
+                if rebalanced_flows['i'][flow] < 0.00000000001:
+                    rebalanced_flows['i'][flow] = 0
 
-        if remaining_recycle_qty < 0:
-            raise ValueError(f"Something went wrong. remaining_recycle_qty < 0 {remaining_recycle_qty}")
+        if remaining_energy_qty < 0:
+            raise ValueError(f"Something went wrong. remaining_recycle_qty < 0 {remaining_energy_qty}")
 
         return rebalanced_flows['i'], rebalanced_flows['o'], remaining_energy_qty
     

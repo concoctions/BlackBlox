@@ -1,6 +1,7 @@
 # IMPORT MODULES
 from molmass import Formula
 from collections import defaultdict
+from copy import copy
 import pandas as pan
 import os
 import logging
@@ -27,10 +28,10 @@ logger.info(f"\n\n\nRunning new test with {runs} runs")
 
 print_startup = False
 test_calculators = False
-test_unitprocesses = False
+test_unitprocesses = True
 test_chains = False
 test_factory = False
-test_industry = True
+test_industry = False
 
 
 if print_startup is True:
@@ -42,6 +43,12 @@ if print_startup is True:
     print("fuel list:")
     print(df_fuels,'\n')
 
+
+###                                                                          ###
+################################################################################
+###  CALCULATOR TESTS  #########################################################
+################################################################################
+###                                                                          ###
 if test_calculators is True:
     print("\nTesting calculation classes")
 
@@ -156,6 +163,12 @@ if test_calculators is True:
             print("ERROR:", combustTest2, "!=", knownQty)
             sys.exit("Something went wrong")
 
+###                                                                          ###
+################################################################################
+###  UNIT PROCESS TESTS  #######################################################
+################################################################################
+###                                                                          ###
+
 if test_unitprocesses is True:
     print("\nUnit Process Test")
 
@@ -181,7 +194,7 @@ if test_unitprocesses is True:
         print(u_in)
         print(u_out)
 
-    # Add for random input
+    # Test for random input
         product = random.choice(tuple(unit1.inflows))
         # while (product == 'fuel' and len(unit1.inflows) > 1):   #fuel combustion calcs writes CO2 to output in balance; this can mess up numbers if there's something else that writes to CO2. fix this later.
         #     product = random.choice(tuple(unit1.inflows))
@@ -190,14 +203,11 @@ if test_unitprocesses is True:
         if product == 'fuel':
             qty = u_in[unit1.var_df.at[s, 'fuelType']]
 
-        
-        
         i_o = "IN"
 
         print("\nUsing:",\
         name, product, i_o, qty, s)
         
-
         u1_in, u1_out = unit1.balance(qty, product, i_o, s) 
 
         if u1_in == u_in and u1_out == u_out:
@@ -207,7 +217,29 @@ if test_unitprocesses is True:
             print(u1_in)
             print(u1_out)
 
-    # Add for random output
+        # Test for 1-to-1 recycle
+        qty_recycled = qty*random.uniform(0.1, 0.9)
+        print(f"\nRecycling of {qty_recycled} RECYCLE 1-to-1 into {unit1.name} for {product}") 
+
+        r1_in, r1_out, leftover = unit1.recycle_1to1(u1_in, u1_out, qty_recycled, i_o,
+                                  "RECYCLE", product, var_i=s)
+
+        print(r1_in)
+        print(r1_out)
+        print(f"RECYCLE leftover: {leftover}\n")
+
+        qty_recycled = qty*random.uniform(1, 10)
+        print(f"\nRecycling of {qty_recycled} RECYCLE 1-to-1 into {unit1.name} for {product}") 
+
+        r1_in, r1_out, leftover = unit1.recycle_1to1(u1_in, u1_out, qty_recycled, i_o,
+                                  "RECYCLE", product)
+
+        print(r1_in)
+        print(r1_out)
+        print(f"RECYCLE leftover: {leftover}\n")
+
+
+    # Test for random output
         product = random.choice(tuple(unit1.outflows))
         
         qty = u_out[product]
@@ -229,6 +261,59 @@ if test_unitprocesses is True:
             print("not equivelent to above")
             print(u1_in)
             print(u1_out)
+
+    #Test for fuel substition
+
+    # kiln = UnitProcess('kiln')
+    # qty = random.uniform(0.1, 1000)
+    # k1_in, k1_out = kiln.balance(qty, 'clinker')
+
+    print("\ntesting energy recycle\n")
+    power = UnitProcess('PowerStation')
+    qty = random.uniform(0.1, 1000)
+    p1_in, p1_out = power.balance(qty, 'electricity')
+    
+    print(power.name)
+    print(p1_in)
+    print(p1_out)
+
+    e_qty= p1_out['electricity']* random.uniform(0.1, 0.9)
+    print(f"\nRecycling of {e_qty} RECYCLED ENERGY into {power.name} for fuel replacement (equal to {e_qty/33.7/0.8} of coal)") 
+    r2_in, r2_out, r2_leftover = power.recycle_energy_replacing_fuel(
+                                 p1_in, p1_out, 
+                                 e_qty, 'INFLOW', "RECYCLED ENERGY",
+                                 'fuel', 'combustEff')
+
+    print(r2_in)
+    print(r2_out)
+    print(f"RECYCLE leftover: {r2_leftover}\n")
+    
+    print(f"check for O2/CO2 emissions only..balancing PowerStation on {r2_in['coal']} of coal")
+    c2_in, c2_out = power.balance(r2_in['coal'], 'fuel', i_o='in')
+    print(c2_in)
+    print(c2_out)
+
+
+    print("\n",power.name)
+    print(p1_in)
+    print(p1_out)
+    e_qty= p1_out['electricity']* random.uniform(2, 10)
+    print(f"\nRecycling of {e_qty} RECYCLED ENERGY into {power.name} for fuel replacement (equal to {e_qty/33.7/0.8} of coal)") 
+    r3_in, r3_out, r3_leftover = power.recycle_energy_replacing_fuel(
+                                 p1_in, p1_out, 
+                                 e_qty, 'INFLOW', "RECYCLED ENERGY",
+                                 'fuel', 'combustEff')
+    print(r3_in)
+    print(r3_out)
+    print(f"RECYCLE leftover: {r3_leftover}\n")
+
+
+
+###                                                                          ###
+################################################################################
+###  LINEAR CHAIN TESTS  #######################################################
+################################################################################
+###                                                                          ###
 
 if test_chains is True:
     print("\nChain Test\n")
@@ -313,6 +398,12 @@ if test_chains is True:
 
     chain.diagram()
 
+###                                                                          ###
+################################################################################
+### INTERLINKED FACTORY TEST####################################################
+################################################################################
+###                                                                          ###
+
 if test_factory is True:
     print("\nFactory Test\n")
 
@@ -335,6 +426,12 @@ if test_factory is True:
     factory.balance(1.0, var_i='default')
 
     factory.diagram()
+
+###                                                                          ###
+################################################################################
+###  MULTI-FACTORY INDUSTRY TESTS  #############################################
+################################################################################
+###                                                                          ###
 
 if test_industry is True:
     print("\nIndustry Test\n")
