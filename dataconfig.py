@@ -65,7 +65,7 @@ user_data = {"name": "Unknown User",
 
 
 # COLUMN HEADERS
-# for unit library tabular data:
+# for UNIT LIBRARY tabular data:
 unit_name_col = 'name'
 unit_product = 'product'
 unit_product_io = 'productType'
@@ -74,7 +74,7 @@ var_sheetname = 'varSheet'
 calc_filepath = 'calcFile'
 calc_sheetname = 'calcSheet'
 
-# for unit process relationship tabular data:
+# for UNIT PROCESS relationship tabular data:
 known = 'KnownQty'
 known_io = 'k_QtyFrom'
 unknown = 'UnknownQty'
@@ -84,12 +84,15 @@ calc_var = 'Variable'
 known2 = ''
 known2_io = ''
 
-# for production chain linkages tabular data:
+# for UNIT PROCESS scenario values tabular data:
+combustion_efficiency_var = 'combustEff'
+
+# for production CHAIN linkages tabular data:
 inflow_col = 'Inflow'
 outflow_col = 'Outflow'
 process_col = 'Process'
 
-# for factory chain list tabular data:
+# for FACTORY chain list tabular data:
 chain_name = 'ChainName'
 chain_product = 'ChainType'
 chain_product = 'ChainProduct'
@@ -97,15 +100,20 @@ chain_io = 'Product_IO'
 chain_filepath = 'ChainFile'
 chain_sheetname = 'ChainSheet'
 
-# for factory connections tabular data:
-origin_chain = "OriginChain"
-origin_process = "OriginProcess"
-dest_chain = "DestinationChain"
-connect_product = "Product"
+# for FACTORY connections tabular data:
+origin_chain = "Origin_Chain"
+origin_unit = "Origin_Unit"
 origin_io = "Product_IO_of_Origin"
+connect_product = "Product"
+dest_chain = "Destination_Chain"
+dest_unit = "Destination_Unit"
 dest_io = "Product_IO_of_Destination"
+replace = "Recycle_Replacing"
+purge_fraction = "Purge_Fraction"
+max_replace_fraction = "Max_Replace_Fraction"
 
-# for industry tablular data
+
+# for INDUSTRY tablular data
 factory_name = "Factory Name"
 factory_filepath = "Factory File"
 f_chain_list_file = "Chains File"
@@ -134,7 +142,7 @@ If present in the variables data index, the default scenario will be used
 when a scenario of variables is not otherwise specified.
 """
 
-no_var = ['none', 'false', 'na', '-', '--', '', 'nan', 0, '0'] 
+no_var = ['none', 'false', 'na', '-', '--', '', 'nan', 0, '0', None, False, float('nan')] 
 """str: indicator that no variable is used in the calculation
 
 Usable in the unit process calculation table, to indicate that the 

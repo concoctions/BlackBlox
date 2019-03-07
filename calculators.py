@@ -53,7 +53,6 @@ def check_qty(qty, fraction = False):
             (Defaults to False.)
 
     """
-
     if qty < 0:
         raise ValueError(f'quantity should be > 0. Currently: {qty}')
     
@@ -261,7 +260,7 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
             quantity.
             (Defaults to an empty list)
         only_these_flows (bool/list): if given a list of strings, will only
-            include those fflows that begin or end with the strings in this
+            include those flows that begin or end with the strings in this
 
     Returns:
         bool: True if the mass flows are balanced. Otherwise False.
@@ -425,7 +424,7 @@ def Combustion(known_substance, qty, unknown_substance, var,
         if type(inflows_dict) == defaultdict:
             inflows_dict['O2'] += sum(emissions_dict.values()) - fuel_qty
 
-        emissions_dict['waste_heat'] += waste_heat
+        emissions_dict['waste heat'] += waste_heat
     
     else:
         logger.debug("Emission Data discarded:")

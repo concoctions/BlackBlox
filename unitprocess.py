@@ -19,6 +19,8 @@ Module Outline:
 - module variable: df_units_library (dataframe)
 - class: unit process
     - class function: Balance
+    - class function: recycle_1to1
+    - class function: recycle_energy_replacing_fuel
 
 """
 
@@ -160,7 +162,7 @@ class UnitProcess:
                 qty, 
                 product=False, 
                 i_o=False, 
-                var_i=dat.default_scenario,
+                scenario=dat.default_scenario,
                 energy_flows=dat.energy_flows,
                 balance_energy=True, 
                 raise_imbalance=False,):
@@ -185,7 +187,7 @@ class UnitProcess:
                 product is an inflow (i) or outflow (o). If False, uses the 
                 default product's IO.
                 (Defaults to False)
-            var_i (str): row index of var_df to use for the variables value,
+            scenario (str): row index of var_df to use for the variables value,
                 generally corresponding to the name of the scenario. If
                 False, uses the default scenario index specified in 
                 dataconfig.
@@ -214,16 +216,16 @@ class UnitProcess:
         i_o = iof.clean_str(i_o[0])
         if i_o not in ['i', 'o', 't']:
             raise Exception(f'{i_o} not valid product destination')
-        if var_i not in self.var_df.index.values:
-            raise Exception(f'{var_i} not found in variables file')
+        if scenario not in self.var_df.index.values:
+            raise Exception(f'{scenario} not found in variables file')
         if product is False:
             product = self.default_product
         if product not in self.inflows and product not in self.outflows:
             raise Exception(f'{product} not found in {self.name} inflows or outflows')
         if product in lookup_var_dict:
-            product = self.var_df.at[var_i, lookup_var_dict[product]['lookup_var']]   
+            product = self.var_df.at[scenario, lookup_var_dict[product]['lookup_var']]   
         calc_df = self.calc_df
-        logger.debug(f"Attempting to balance {self.name} on {qty} of {product} ({i_o}) using {var_i} variables")
+        logger.debug(f"Attempting to balance {self.name} on {qty} of {product} ({i_o}) using {scenario} variables")
 
         io_dicts = {
             'i' : defaultdict(float),    # inflows dictionary
@@ -250,16 +252,16 @@ class UnitProcess:
             known_substance2 = None
             known_qty2 = None
             if iof.clean_str(calc_df.at[i, dat.calc_var]) not in dat.no_var:
-                var = self.var_df.at[var_i, calc_df.at[i, dat.calc_var]] 
+                var = self.var_df.at[scenario, calc_df.at[i, dat.calc_var]] 
 
             logger.debug(f"current index: {i}, current product: {known_substance}")
             if attempt >= len(calc_df): 
                 raise Exception(f"Cannot process {known_substance}. Breaking to prevent infinite loop")
 
             if known_substance in lookup_var_dict:
-                known_substance = self.var_df.at[var_i, lookup_var_dict[known_substance]['lookup_var']] 
+                known_substance = self.var_df.at[scenario, lookup_var_dict[known_substance]['lookup_var']] 
             if unknown_substance in lookup_var_dict:
-                unknown_substance = self.var_df.at[var_i, lookup_var_dict[unknown_substance]['lookup_var']] 
+                unknown_substance = self.var_df.at[scenario, lookup_var_dict[unknown_substance]['lookup_var']] 
 
             if known_substance in io_dicts[known_io]:
                 pass
@@ -283,7 +285,7 @@ class UnitProcess:
                 known_substance2 = calc_df.at[i, dat.known2]
                 k2_io = iof.clean_str(calc_df.at[i, dat.known2_io][0])
                 if known_substance2 in lookup_var_dict:
-                    known_substance2 = self.var_df.at[var_i, lookup_var_dict[known_substance]['lookup_var']] 
+                    known_substance2 = self.var_df.at[scenario, lookup_var_dict[known_substance]['lookup_var']] 
                 if known_substance2 in io_dicts[k2_io]:
                     known_qty2 = io_dicts[k2_io][known_substance2]
                 else:
@@ -353,20 +355,24 @@ class UnitProcess:
                        recycle_io,
                        recycled_flow,
                        replaced_flow,
-                       var_i=dat.default_scenario, 
+                       max_replace_fraction=1.0,
+                       scenario=dat.default_scenario, 
                        **kwargs):
     
         """Inserts a recycle flow that corresponds 1-to-1 with an existing flow
 
         Args:
-            original_inflows_dict (defaultdict): Dictionary of inflow quantities from the orignal
-                balancing of the unit process
-            original_outflows_dict (defaultdict): Dictionary of outflow quantities from the orignal
-                balancing of the unit process
+            original_inflows_dict (defaultdict): Dictionary of inflow quantities 
+                from the orignal balancing of the unit process
+            original_outflows_dict (defaultdict): Dictionary of outflow 
+                quantities from the orignal balancing of the unit process
             recycled_qty (float): quantity of recycled flow
-            recycle_io (str): "i" if the recycled flow is an inflow or "o" if it is an outflow
+            recycle_io (str): "i" if the recycled flow is an inflow or "o" if 
+                it is an outflow
             recycled_flow (str): name of the recycled flow
             replaced_flow (str): name of the flow to be replaced by the recycled flow
+            max_replace_fraction (float/none): the maximum percentage of the 
+                original flow that the recycled flow is allowed to replace
 
         Returns:
             dictionary of rebalanced inflows
@@ -386,21 +392,24 @@ class UnitProcess:
             raise KeyError(f'{i_o} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
 
         if replaced_flow in lookup_var_dict:
-            replaced_flow = self.var_df.at[var_i, lookup_var_dict[replaced_flow]['lookup_var']] 
+            replaced_flow = self.var_df.at[scenario, lookup_var_dict[replaced_flow]['lookup_var']] 
 
         if replaced_flow in calc.df_fuels:
             print(f'WARNING! {replaced_flow} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
 
-        remaining_replaced_qty = original_flows[i_o][replaced_flow] - recycled_qty
+        calc.check_qty(max_replace_fraction, fraction = True)
+        replacable_qty = original_flows[i_o][replaced_flow] * max_replace_fraction
+        unreplacable_qty = original_flows[i_o][replaced_flow] * (1 - max_replace_fraction)
+        remaining_replacable_qty = replacable_qty - recycled_qty
 
-        if remaining_replaced_qty >= 0:
-            rebalanced_flows[i_o][replaced_flow] = remaining_replaced_qty
+        if remaining_replacable_qty >= 0:
+            rebalanced_flows[i_o][replaced_flow] = remaining_replacable_qty + unreplacable_qty
             rebalanced_flows[i_o][recycled_flow] += recycled_qty
             remaining_recycle_qty = 0
 
         else:
-            rebalanced_flows[i_o][replaced_flow] = 0
-            used_recycle_qty = recycled_qty + remaining_replaced_qty
+            rebalanced_flows[i_o][replaced_flow] = 0 + unreplacable_qty
+            used_recycle_qty = recycled_qty + remaining_replacable_qty
             rebalanced_flows[i_o][recycled_flow] += used_recycle_qty
             remaining_recycle_qty = recycled_qty - used_recycle_qty
 
@@ -417,8 +426,9 @@ class UnitProcess:
                        recycle_io,
                        recycled_flow,
                        replaced_flow,
-                       combustion_eff,
-                       var_i=dat.default_scenario,
+                       max_replace_fraction=1.0,
+                       combustion_eff = dat.combustion_efficiency_var,
+                       scenario=dat.default_scenario,
                        emissions_list = ['CO2', 'H2O', 'SO2'], 
                        **kwargs):
         """replaces fuel use and associated emissions with a recycled energy flow
@@ -434,7 +444,7 @@ class UnitProcess:
             replaced_flow (str): name of the flow to be replaced by the recycled flow
             combustion_eff [str/float]: The name of the combustion efficiency variable (case sensitive) from the variables table
                 or a float of the combustion_eff (must be between 0 and 1)
-            var_i (str): name of the scenario to use
+            scenario (str): name of the scenario to use
                 (Defaults to dat.default_scenario)
             emissions_list (list[str]): list of emissions to recalculation. O2 is always automatically recalculated.
                 (Defaults to ['CO2', 'H2O', 'SO2'])
@@ -456,10 +466,10 @@ class UnitProcess:
             raise KeyError(f'{i_o} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
 
         if replaced_flow in lookup_var_dict:
-            replaced_flow = self.var_df.at[var_i, lookup_var_dict[replaced_flow]['lookup_var']] 
+            replaced_flow = self.var_df.at[scenario, lookup_var_dict[replaced_flow]['lookup_var']] 
 
         if type(combustion_eff) is str:
-            combustion_eff = self.var_df.at[var_i, combustion_eff]
+            combustion_eff = self.var_df.at[scenario, combustion_eff]
 
         replaced_emissions_dict = defaultdict(float)
         replaced_inflows_dict = defaultdict(float)
@@ -471,10 +481,14 @@ class UnitProcess:
                                           replaced_inflows_dict,
                                           emissions_list=emissions_list)
 
-        remaining_fuel_qty = original_flows[i_o][replaced_flow] - equivelent_fuel_qty
+        calc.check_qty(max_replace_fraction, fraction = True)
+
+        replacable_qty = original_flows[i_o][replaced_flow] * max_replace_fraction
+        unreplacable_qty = original_flows[i_o][replaced_flow] * (1 - max_replace_fraction)
+        remaining_fuel_qty = replacable_qty - equivelent_fuel_qty
 
         if remaining_fuel_qty >= 0:
-            rebalanced_flows[i_o][replaced_flow] = remaining_fuel_qty
+            rebalanced_flows[i_o][replaced_flow] = remaining_fuel_qty + unreplacable_qty
             rebalanced_flows[i_o][recycled_flow] = recycled_qty
             remaining_energy_qty = 0
 
@@ -486,8 +500,8 @@ class UnitProcess:
 
             remaining_energy_qty = 0
 
-        else:
-            rebalanced_flows[i_o][replaced_flow] = 0
+        else: #if remaining_fuel_qty is negative, that means there is unused recycled energy
+            rebalanced_flows[i_o][replaced_flow] = 0 + unreplacable_qty
             used_equivelent_fuel_qty = equivelent_fuel_qty + remaining_fuel_qty
 
             replaced_emissions_dict = defaultdict(float)

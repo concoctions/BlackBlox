@@ -19,6 +19,7 @@ Module Outline:
 """
 
 from collections import defaultdict
+from datetime import datetime
 from graphviz import Digraph
 from bb_log import get_logger
 import io_functions as iof
@@ -74,6 +75,7 @@ class ProductChain:
         self.default_product = False
         self.process_list = False
         self.process_names = False
+        self.process_dict = False
     
     def build(self):
         """Generates the needed unit process objects
@@ -87,6 +89,7 @@ class ProductChain:
         logger.debug(f"initializing chain for {self.name}")
         process_list = []
         process_names = []
+        process_dict = dict()
 
         for index, process_row in self.process_chain_df.iterrows():
             process = unit.UnitProcess(process_row[dat.process_col])
@@ -102,9 +105,11 @@ class ProductChain:
  
             process_list.append(dict(process=process, i=inflow, o=outflow))
             process_names.append(process.name)
+            process_dict[process.name] = process
             
         self.process_list = process_list
         self.process_names = process_names
+        self.process_dict = process_dict
 
         if not self.default_product:
             if process_list[-1]['o'] in process_list[-1]['process'].outflows:
@@ -117,7 +122,7 @@ class ProductChain:
                 logger.debug(f"No default product found for {self.name}.")
 
     
-    def balance(self, qty, product=False, i_o=False, var_i=dat.default_scenario):
+    def balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario):
         """Calculates the mass balance of the product chain
 
         Based on a quantity of an inflow for the first unit process in the 
@@ -137,7 +142,7 @@ class ProductChain:
                 first unit process's inflows, and uses the first matching 
                 product that it finds.
                 (Defaults to False)
-            var_i (str): The name of the scenario of variable values to use, 
+            scenario (str): The name of the scenario of variable values to use, 
                 corresponding to the matching row index in each unit process's
                 var_df. 
                 (Defaults to the string specified in dat.default_scenario)
@@ -147,6 +152,11 @@ class ProductChain:
             3-level nested dictionary of outflows
                 each dictionary has the structure:
                 [unit process][flowtype][substance] = quantity
+            dictionary of intermediate flows, with the structure:
+                [substance] = quanity
+            list of lists of internal flows, with the item structure:
+                [chain, origin unit, product, qty, chain, destination unit]
+                everything besides qty is a string
 
         """
 
@@ -174,6 +184,7 @@ class ProductChain:
             'o': defaultdict(lambda: defaultdict(float))
             }
         intermediate_product_dict = defaultdict(float)
+        internal_flows = []
 
         for i, unit in enumerate(chain):
             process = unit['process']
@@ -182,20 +193,23 @@ class ProductChain:
                 product = unit[i_o]
                 qty = io_dicts[io_opposite][previous_process.name][product]
                 intermediate_product_dict[product] = qty
+                internal_flows.append([self.name, previous_process.name, product, qty, self.name, process.name])
 
-            logger.debug(f"attempting to balance {process.name} on {qty} of {product}({i_o}) using {var_i} variables.")
+            logger.debug(f"attempting to balance {process.name} on {qty} of {product}({i_o}) using {scenario} variables.")
             (io_dicts['i'][process.name], 
-             io_dicts['o'][process.name]) = process.balance(qty, product, i_o, var_i)
+             io_dicts['o'][process.name]) = process.balance(qty, product, i_o, scenario)
+
             previous_process = process
+
             
         totals = {
             'i': defaultdict(float),
             'o': defaultdict(float)
             }
-        for process, inflows_dict in io_dicts['i'].items():
+        for dummy_process, inflows_dict in io_dicts['i'].items():
             for inflow, qty in inflows_dict.items():
                 totals['i'][inflow] += qty
-        for process, outflows_dict in io_dicts['o'].items():
+        for dummy_process, outflows_dict in io_dicts['o'].items():
             for outflow, qty in outflows_dict.items():
                 totals['o'][outflow] += qty
         for io_dict in totals:
@@ -205,8 +219,8 @@ class ProductChain:
         io_dicts['o']["chain totals"] = totals['o']
         
 
-        logger.debug(f"successfully balanced {self.name} using {var_i} variables.")
-        return io_dicts['i'], io_dicts['o']
+        logger.debug(f"successfully balanced {self.name} using {scenario} variables.")
+        return io_dicts['i'], io_dicts['o'], intermediate_product_dict, internal_flows
 
 
     def diagram(self, view_diagram=True, outdir=f'{dat.outdir}/pfd'):
@@ -250,7 +264,9 @@ class ProductChain:
 
         c = self.name
 
-        chain_diagram = Digraph(name=self.name, directory=outdir, format='png')
+        filename = f'{c}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
+
+        chain_diagram = Digraph(name=filename, directory=outdir, format='png')
         product_flow = Digraph('mainflow_'+self.name)
         product_flow.graph_attr.update(rank='same')
         product_flow.attr('node', shape='box')

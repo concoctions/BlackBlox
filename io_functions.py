@@ -180,8 +180,13 @@ def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True):
         else:
             mass_df = mass_df.append(row)
 
-    mass_df.index = sorted(mass_df.index.values, key=lambda s: s.lower())
-    energy_df.index = sorted(energy_df.index.values, key=lambda s: s.lower())
+    print(mass_df)
+    mass_df['index-lowercase'] = mass_df.index.str.lower()
+    mass_df.sort_values(['index-lowercase'], axis=0, ascending=True, inplace=True)
+    del mass_df['index-lowercase']
+    energy_df['index-lowercase'] = energy_df.index.str.lower()
+    energy_df.sort_values(['index-lowercase'], axis=0, ascending=True, inplace=True)
+    del energy_df['index-lowercase']
 
     if totals is True:
         mass_df = mass_df.append(mass_df.sum().rename('TOTAL - mass'))
@@ -192,41 +197,41 @@ def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True):
     return combined_df
     
 def metadata_df(user=dat.user_data, name="unknown", level="unknown", 
-                product="unknown", product_qty="unknown", var_i="unknown",
+                product="unknown", product_qty="unknown", scenario="unknown",
                 energy_flows=dat.energy_flows):
     
-    BB = {"name": "BlackBlox.py",
+    about = {"name": "BlackBlox.py",
           "version": "0.1",
-          "URL": "Offline Only",
-          "documentation": "Offline Only",
-          "github": "Offline Only",
+          "URL": "OFFLINE",
+          "documentation": "OFFLINE",
+          "github": "OFFLINE",
           "creator": "S.E. Tanzer",
-          "affiliation": "TU Delft",
-          "license": "GPL v3"
-                  }
+          "affiliation": "Energy & Industry Group, Department of Engineering Systems and Services, Facult of Technology Policy, and Management, Delft University of Technology, The Netherlands",
+          "license": "GPL v3",
+         }
               
     creation_date = datetime.now().strftime("%A, %d %B %Y at %H:%M")
     energy_flows = ', '.join(energy_flows)
 
-    meta = {"00": f"This data was calculated using {BB['name']} v{BB['version']}",
-            "01": f"{BB['name']} was created by {BB['creator']} of {BB['affiliation']}",
-            "02": f"More information on {BB['name']} can be found at {BB['URL']}",
+    meta = {"00": f"This data was calculated using {about['name']} v{about['version']}",
+            "01": f"{about['name']} was created by {about['creator']} of {about['affiliation']}",
+            "02": f"More information on {about['name']} can be found at {about['URL']}",
             "03": " ",
             "04": " ",
             "05": f"This file was generated on {creation_date}",
             "06": f"by {user['name']} of {user['affiliation']}",
             "07": f"for use in {user['project']}",
             "08": f"and contains {level}-level results data for {name}",
-            "09": f"balanced on {product_qty} of {product} using the variable values from the {var_i} scenario(s)",
+            "09": f"balanced on {product_qty} of {product} using the variable values from the {scenario} scenario(s)",
             "10": " ",
-            "11": f"Note: Substances beginning or ending with any of the following strings were assumed by {BB['name']} to be energy flows:",
+            "11": f"Note: Substances beginning or ending with any of the following strings were assumed by {about['name']} to be energy flows:",
             "12": f"{energy_flows}",
             "13": " ",
             "14": " ",
-            "15": f"{BB['name']} is a python package that faciliates the calculation of mass and energy balances for black block models at an arbitrary level of detail.",
-            "16": f"For full documentation on how to use {BB['name']}, visit {BB['documentation']}",
-            "17": f"{BB['name']} is currently under active development. Head over to {BB['github']} to download, fork, or contribute.",
-            "18": f"{BB['name']} is avaiable for use free of charge under the terms and conditions of the {BB['license']} license.",
+            "15": f"{about['name']} is a python package that faciliates the calculation of mass and energy balances for black block models at an arbitrary level of detail.",
+            "16": f"For full documentation on how to use {about['name']}, visit {about['documentation']}",
+            "17": f"{about['name']} is currently under active development. Head over to {about['github']} to download, fork, or contribute.",
+            "18": f"{about['name']} is avaiable for use free of charge under the terms and conditions of the {about['license']} license.",
     }
 
     meta_df = pan.DataFrame.from_dict(meta, orient='index', columns=['Workbook Information'])
@@ -261,8 +266,8 @@ def write_to_excel(df_or_df_list, sheet_list=None, filedir=dat.outdir,
     logger.debug(f"attempting to create {filename} in {filedir}")
 
     empty_notice = {'00': "The supplied dataframe was empty.",
-                     '01': "This could happen is all the supplied values were zero",
-                     '02': 'and rows with all zeros were dropped when the data frame was created.'}
+                    '01': "This could happen is all the supplied values were zero",
+                    '02': 'and rows with all zeros were dropped when the data frame was created.'}
     empty_df = pan.DataFrame.from_dict(empty_notice, orient='index', columns=['Empty Dataframe'])
 
     if isinstance(df_or_df_list, pan.DataFrame):

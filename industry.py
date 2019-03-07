@@ -120,7 +120,7 @@ class Industry:
                 
 
                 f_production_dict[i] = dict(main_product_qty=product_qty,
-                                    var_i=scenario,
+                                    scenario=scenario,
                                     write_to_xls=write_to_xls,
                                     outdir=f'{outdir}/factories',
                                     mass_energy=True, 
@@ -152,7 +152,7 @@ class Industry:
             meta_df = iof.metadata_df(user=dat.user_data, 
                                       name=self.name, 
                                       level="Industry", 
-                                      var_i="multiple - see factory workbooks", 
+                                      scenario="multiple - see factory workbooks", 
                                       product=', '.join(str(p) for p in self.product_list),
                                       product_qty="multiple - see factory workbooks", 
                                       energy_flows=energy_flows)

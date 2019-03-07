@@ -28,9 +28,9 @@ logger.info(f"\n\n\nRunning new test with {runs} runs")
 
 print_startup = False
 test_calculators = False
-test_unitprocesses = True
+test_unitprocesses = False
 test_chains = False
-test_factory = False
+test_factory = True
 test_industry = False
 
 
@@ -190,7 +190,7 @@ if test_unitprocesses is True:
         print(unit1.name, "inflows:", unit1.inflows)
         print(unit1.name, "outflows:", unit1.outflows)
 
-        u_in, u_out = unit1.balance(qty, var_i=s)
+        u_in, u_out = unit1.balance(qty, scenario=s)
         print(u_in)
         print(u_out)
 
@@ -222,7 +222,7 @@ if test_unitprocesses is True:
         print(f"\nRecycling of {qty_recycled} RECYCLE 1-to-1 into {unit1.name} for {product}") 
 
         r1_in, r1_out, leftover = unit1.recycle_1to1(u1_in, u1_out, qty_recycled, i_o,
-                                  "RECYCLE", product, var_i=s)
+                                  "RECYCLE", product, scenario=s)
 
         print(r1_in)
         print(r1_out)
@@ -282,7 +282,7 @@ if test_unitprocesses is True:
     r2_in, r2_out, r2_leftover = power.recycle_energy_replacing_fuel(
                                  p1_in, p1_out, 
                                  e_qty, 'INFLOW', "RECYCLED ENERGY",
-                                 'fuel', 'combustEff')
+                                 'fuel')
 
     print(r2_in)
     print(r2_out)
@@ -302,7 +302,7 @@ if test_unitprocesses is True:
     r3_in, r3_out, r3_leftover = power.recycle_energy_replacing_fuel(
                                  p1_in, p1_out, 
                                  e_qty, 'INFLOW', "RECYCLED ENERGY",
-                                 'fuel', 'combustEff')
+                                 'fuel',)
     print(r3_in)
     print(r3_out)
     print(f"RECYCLE leftover: {r3_leftover}\n")
@@ -329,17 +329,17 @@ if test_chains is True:
     chain.build()
     print(chain.process_list)
 
-    inflows, outflows = chain.balance(1.0, var_i="default")
+    inflows, outflows = chain.balance(1.0, scenario="default")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
 
-    inflows, outflows = chain.balance(0.452447, product="CaCO3", var_i="EU-bat")
+    inflows, outflows = chain.balance(0.452447, product="CaCO3", scenario="EU-bat")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
 
-    inflows, outflows = chain.balance(0.174018, product="clay", var_i="EU-bat")
+    inflows, outflows = chain.balance(0.174018, product="clay", scenario="EU-bat")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
@@ -356,17 +356,17 @@ if test_chains is True:
     print(chain.process_list)
 
 
-    inflows, outflows = chain.balance(0.744351, product="CO2", i_o="i", var_i='default')
+    inflows, outflows = chain.balance(0.744351, product="CO2", i_o="i", scenario='default')
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
 
-    inflows, outflows = chain.balance(1.0, product="compressedCO2", var_i="EU-bat")
+    inflows, outflows = chain.balance(1.0, product="compressedCO2", scenario="EU-bat")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
 
-    inflows, outflows = chain.balance(0.174018, product="CO2", var_i="EU-bat")
+    inflows, outflows = chain.balance(0.174018, product="CO2", scenario="EU-bat")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
@@ -386,12 +386,12 @@ if test_chains is True:
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
 
-    inflows, outflows = chain.balance(180.093237, product="electricity", var_i="default")
+    inflows, outflows = chain.balance(180.093237, product="electricity", scenario="default")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
 
-    inflows, outflows = chain.balance(0.174018, product="fuel", var_i="EU-old")
+    inflows, outflows = chain.balance(0.174018, product="fuel", scenario="EU-old")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
@@ -418,12 +418,10 @@ if test_factory is True:
     print("\nchain dict:",factory.chain_dict)
     print("\nmain chain:",factory.chain_dict[factory.main_chain])
 
-    inflows, outflows = factory.balance(1.0, var_i='default', write_to_xls=True)
+    inflows, outflows = factory.balance(1.0, scenario='default', write_to_xls=True)
 
     totals = {'factory inflows': inflows, 'factory outflows': outflows}
     print(pan.DataFrame(totals), "\n")
-
-    factory.balance(1.0, var_i='default')
 
     factory.diagram()
 
