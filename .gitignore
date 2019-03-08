@@ -9,6 +9,7 @@ Refactor/__pycache__/
 
 #sphinx stuff
 docs/_build/
+docs/build/
 
 #logs
 *.log
