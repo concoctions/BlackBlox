@@ -86,7 +86,7 @@ class ProductChain:
         unit process. Populates self.default_product and self.process_list.
 
         """
-        print(f"initializing chain for {self.name}")
+        logger.debug(f"initializing chain for {self.name}")
         process_list = []
         process_names = []
         process_dict = dict()
@@ -119,7 +119,7 @@ class ProductChain:
                 self.default_product = process_list[-1]['i']
 
             else:
-                print(f"No default product found for {self.name}.")
+                logger.debug(f"No default product found for {self.name}.")
 
     
     def balance(self, qty, product=False, i_o=False, unit_process=False, scenario=dat.default_scenario):
@@ -212,11 +212,11 @@ class ProductChain:
         internal_flows = []
 
         #balance starting process
-        print(f"attempting to balance {start.name} on {qty} of {product}({i_o}) using {scenario} variables.")
+        logger.debug(f"attempting to balance {start.name} on {qty} of {product}({i_o}) using {scenario} variables.")
         (io_dicts['i'][start.name], io_dicts['o'][start.name]) = start.balance(qty, product, i_o, scenario)
  
         if upstream:
-            print('upstream:', upstream)
+            logger.debug('upstream:', upstream)
             for i, unit in enumerate(upstream):
                 process = unit['process']
 
@@ -228,14 +228,14 @@ class ProductChain:
                 intermediate_product_dict[product] = qty
                 internal_flows.append([self.name, previous_process.name, product, qty, self.name, process.name])
 
-                print(f"attempting to balance {process.name} on {qty} of {product}({'o'}) using {scenario} variables.")
+                logger.debug(f"attempting to balance {process.name} on {qty} of {product}({'o'}) using {scenario} variables.")
                 (io_dicts['i'][process.name], 
                 io_dicts['o'][process.name]) = process.balance(qty, product, 'o', scenario)
 
                 previous_process = process
 
         if downstream:
-            print('downstream:', downstream)
+            logger.debug('downstream:', downstream)
             for i, unit in enumerate(downstream):
                 process = unit['process']
 
@@ -247,7 +247,7 @@ class ProductChain:
                 intermediate_product_dict[product] = qty
                 internal_flows.append([self.name, previous_process.name, product, qty, self.name, process.name])
 
-                print(f"attempting to balance {process.name} on {qty} of {product}({'i'}) using {scenario} variables.")
+                logger.debug(f"attempting to balance {process.name} on {qty} of {product}({'i'}) using {scenario} variables.")
                 (io_dicts['i'][process.name], 
                 io_dicts['o'][process.name]) = process.balance(qty, product, 'i', scenario)
 
@@ -271,7 +271,7 @@ class ProductChain:
         io_dicts['o']["chain totals"] = totals['o']
         
 
-        print(f"successfully balanced {self.name} using {scenario} variables.")
+        logger.debug(f"successfully balanced {self.name} using {scenario} variables.")
         return io_dicts['i'], io_dicts['o'], intermediate_product_dict, internal_flows
 
 
@@ -378,5 +378,5 @@ class ProductChain:
         if view_diagram:
             chain_diagram.view()
 
-        print(f"diagram created for {self.name} chain")
+        logger.debug(f"diagram created for {self.name} chain")
         return product_flow

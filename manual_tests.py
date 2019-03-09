@@ -27,11 +27,11 @@ runs = 3
 logger.info(f"\n\n\nRunning new test with {runs} runs")
 
 print_startup = False
-test_calculators = True
+test_calculators = False
 test_unitprocesses = False
 test_chains = False
 test_factory = False
-test_industry = False
+test_industry = True
 
 
 if print_startup is True:

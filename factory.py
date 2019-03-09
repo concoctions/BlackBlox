@@ -192,9 +192,12 @@ class Factory:
         # balances auxillary chains and recycle flows based on connections dataframe
         for dummy_index, aux in self.connections_df.iterrows(): 
             qty = None
+            orig_unit = False
             orig_product_io = iof.clean_str(aux[dat.origin_io][0])
             dest_product_io = iof.clean_str(aux[dat.dest_io][0])
             product = aux[dat.connect_product]
+            dest_unit = False
+            dest_unit_name = False
             i_tmp = None
             o_tmp = None
             replace_flow = None
@@ -209,10 +212,10 @@ class Factory:
             if not io_dicts[orig_product_io][orig_chain.name]:
                 raise KeyError(f"{io_dicts[orig_product_io][orig_chain.name]} has not been balanced yet. Please check the order of your connections in your connections dataframe.")
             dest_chain = self.chain_dict[aux[dat.dest_chain]]['chain'] 
-            if aux[dat.dest_unit] and aux[dat.dest_unit] in dest_chain.process_dict:
-                dest_unit = dest_chain.process_dict[aux[dat.dest_unit]]
-            else:
-                dest_unit = False
+            if dat.dest_unit in aux:
+                 if aux[dat.dest_unit] in dest_chain.process_dict:
+                    dest_unit = dest_chain.process_dict[aux[dat.dest_unit]]
+                    dest_unit_name = dest_unit.name
 
             if aux[dat.origin_unit] == dat.connect_all: #if connects to all, use totals from chain
                 qty = io_dicts[orig_product_io][orig_chain.name]['chain totals'][product]
@@ -241,8 +244,8 @@ class Factory:
                         max_replace_fraction = aux[dat.max_replace_fraction]
             
             # process recycle connections
-            if aux[dat.replace] and type(aux[dat.replace]) is str and aux[dat.replace] not in dat.no_var:
-                if aux[dat.replace]  in unit.lookup_var_dict:
+            if dat.replace in aux and type(aux[dat.replace]) is str and aux[dat.replace] not in dat.no_var:
+                if aux[dat.replace] in unit.lookup_var_dict:
                     replace_flow = dest_unit.var_df.at[scenario, unit.lookup_var_dict[aux[dat.replace]]['lookup_var']] 
                     if aux[dat.replace] =='fuel':
                         replace_fuel = True
@@ -308,6 +311,9 @@ class Factory:
                 io_dicts['o'][dest_chain.name]["chain totals"].clear()
                 io_dicts['i'][dest_chain.name]["chain totals"] = new_chain_totals['i']
                 io_dicts['o'][dest_chain.name]["chain totals"] = new_chain_totals['o']
+                remaining_product_dict[orig_product_io][orig_chain.name][orig_unit.name][product] = qty_remaining
+                logger.debug(f"{remaining_product_dict[orig_product_io][orig_chain.name][orig_unit.name][product]} {product} remaining for {orig_chain.name}-{orig_unit.name}")
+
 
             # process non-reycle connection   
             else:         
@@ -315,7 +321,7 @@ class Factory:
                 c_kwargs = dict(qty=qty, 
                                 product=product, 
                                 i_o=dest_product_io, 
-                                unit_process = dest_unit.name,
+                                unit_process = dest_unit_name,
                                 scenario=scenario,
                                 )
                 (i_tmp, 
@@ -340,7 +346,7 @@ class Factory:
                 logger.debug(f"{qty} of {product} as product from {orig_chain.name} ({orig_product_io}) sent to to {dest_chain.name} ({dest_product_io})")
 
             intermediate_product_dict[product] += (qty - qty_remaining)
-            remaining_product_dict[orig_product_io][orig_chain.name][orig_unit.name][product] = qty_remaining
+            logger.debug(f"{qty - qty_remaining} of {product} added to intermediate_product_dict")
 
             orig_chain_name = orig_chain.name
             dest_chain_name = dest_chain.name
@@ -364,7 +370,6 @@ class Factory:
                 orig_unit_name, dest_unit_name = dest_unit_name, orig_unit_name
 
             internal_flows.append([orig_chain_name, orig_unit_name, product, (qty-qty_remaining), dest_chain_name, dest_unit_name])
-            logger.debug(f"{remaining_product_dict[orig_product_io][orig_chain.name][orig_unit.name][product]} {product} remaining for {orig_chain.name}-{orig_unit.name} and {qty - qty_remaining} added to intermediate_product_dict")
  
 
         factory_totals = {

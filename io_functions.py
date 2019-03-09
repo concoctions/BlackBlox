@@ -180,17 +180,20 @@ def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True):
         else:
             mass_df = mass_df.append(row)
 
-    print(mass_df)
-    mass_df['index-lowercase'] = mass_df.index.str.lower()
-    mass_df.sort_values(['index-lowercase'], axis=0, ascending=True, inplace=True)
-    del mass_df['index-lowercase']
-    energy_df['index-lowercase'] = energy_df.index.str.lower()
-    energy_df.sort_values(['index-lowercase'], axis=0, ascending=True, inplace=True)
-    del energy_df['index-lowercase']
+    if not mass_df.empty:
+        mass_df['index-lowercase'] = mass_df.index.str.lower()
+        mass_df.sort_values(['index-lowercase'], axis=0, ascending=True, inplace=True)
+        del mass_df['index-lowercase']
+    if not energy_df.empty:
+        energy_df['index-lowercase'] = energy_df.index.str.lower()
+        energy_df.sort_values(['index-lowercase'], axis=0, ascending=True, inplace=True)
+        del energy_df['index-lowercase']
 
     if totals is True:
-        mass_df = mass_df.append(mass_df.sum().rename('TOTAL - mass'))
-        energy_df = energy_df.append(energy_df.sum().rename('TOTAL - energy'))
+        if not mass_df.empty:
+            mass_df = mass_df.append(mass_df.sum().rename('TOTAL - mass'))
+        if not energy_df.empty:
+            energy_df = energy_df.append(energy_df.sum().rename('TOTAL - energy'))
 
     combined_df = pan.concat([mass_df, energy_df], keys=['Mass', 'Energy'])
 
