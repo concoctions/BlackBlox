@@ -31,7 +31,7 @@ Module Outline:
 """
 
 # DEFAULT FILEPATHS 
-unit_process_library_file = 'excelData/globalData.xlsx' 
+unit_process_library_file = '/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx' 
 """str: The filepath whre the unit process library file exists.
 """
 
@@ -41,7 +41,7 @@ unit_process_library_sheet = 'Unit Processes'
 If not an excel worksheet, this variable should be None.
 """
 
-lookup_var_file = 'excelData/globalData.xlsx'
+lookup_var_file = '/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx'
 """The filepath for any custom "lookup substance" variables tables.
 
 See custom_lookup for more detail. If multiple lookup substances are used, 

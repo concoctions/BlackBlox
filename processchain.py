@@ -123,7 +123,8 @@ class ProductChain:
 
     
     def balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario):
-        """Calculates the mass balance of the product chain
+        """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario)
+        Calculates the mass balance of the product chain
 
         Based on a quantity of an inflow for the first unit process in the 
         chain or an outflow for the last unit process, calculates the remaining
@@ -148,15 +149,10 @@ class ProductChain:
                 (Defaults to the string specified in dat.default_scenario)
 
         Returns:
-            3-level nested dictionary of inflows
-            3-level nested dictionary of outflows
-                each dictionary has the structure:
-                [unit process][flowtype][substance] = quantity
-            dictionary of intermediate flows, with the structure:
-                [substance] = quanity
-            list of lists of internal flows, with the item structure:
-                [chain, origin unit, product, qty, chain, destination unit]
-                everything besides qty is a string
+            - 3-level nested dictionary of inflows, ``[unit process][flowtype][substance] = (float)``
+            - 3-level nested dictionary of outflows, ``[unit process][flowtype][substance] = (float)``
+            - dictionary of intermediate flows, ``[substance] = (float)``
+            - list of lists of internal flows, ``[chain, origin unit, product, qty (float), chain, destination unit]``
 
         """
 
@@ -224,7 +220,8 @@ class ProductChain:
 
 
     def diagram(self, view_diagram=True, outdir=f'{dat.outdir}/pfd'):
-        """Generates a diagram of the chain
+        """diagram(self, view_diagram=True, outdir=f'{dat.outdir}/pfd')
+        Generates a diagram of the chain
 
         Using Graphviz, takes the unit process names, sets of inflows and 
         outflows, and the specified linkages of the chain to generate a

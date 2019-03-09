@@ -1,22 +1,27 @@
-.. BlackBlox documentation master file, created by
-   sphinx-quickstart on Fri Mar  8 22:47:27 2019.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Black Box Modeling in Python
+=============================
 
-Documentation for BlackBlox.py
-=====================================
+This is the documentation for the nascent BlackBlox.py, which aims to faciliate
+the creation and exploration of black box models of aribitrary levels of details
+by automating mass and energy balances and generation of pretty (and not so pretty)
+figures.
+
+This is currently a private project and very much a work-in-progress.
 
 Contents
-^^^^^^^^
+--------
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
-   Intro
+   intro
+   unit
+   chain
+
 
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`

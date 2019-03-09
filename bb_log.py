@@ -14,6 +14,7 @@ from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
 FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s")
+Path("logs").mkdir(parents=True, exist_ok=True) 
 LOG_FILE = Path("logs/BlackBlox.log")
 
 def get_console_handler():

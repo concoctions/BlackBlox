@@ -7,7 +7,7 @@ and fundamental, block used in BlackBlox.py.
 Each unit process has inflows and outflows, whose abstract relationships 
 are specified in a relationships table. The numeric values for the variables
 used in those relationships are specified in a seperate table, to allow
-for multipe scenarios to be 
+for multipe scenarios to be used.
 
 The Unit Process class has a single function, which is to balance the
 inflows and outflows given one quantity of an inflow or outflow. Balancing
@@ -49,6 +49,7 @@ The names of the unit process should be index column of the data
 frame, and there should also be columns for the file paths of the
 variables table and calculations tables. Columns for sheet names,
 if the data is within excel sheets, will also be used if provided.
+
 """
 
 lookup_var_dict = { 
@@ -65,19 +66,24 @@ in the unit process calculations file, will trigger the program to replace
 the lookup substance name with the substance name specified in the unit 
 process's variable data table for the scenario currently in use.
 
-Each entry in this dictionary should be formatted as follows:
-    key (str): the substance name to be used in the calcuations file
-    value (dict): a dictionary of lookup variable attributes.
-        lookup_var (str): the header of the column in the unit process 
-            variable file that contains the value with which to replace
-            the lookup substance word.
-        data_frame (optional): a data frame with additional custom data
-            about the lookup variable, such as to be used in custom functions,
-            below. These are not used elsewhere in BlackBlox.py.
+Each entry in this dictionary should be formatted with the following:
+
+    **key** *(str)*: the substance name to be used in the calcuations file
+
+    **value** *(dict)*: a dictionary of lookup variable attributes, containing:
+        **lookup_var** *(str)*: the header of the column in the unit process 
+        variable file that contains the value with which to replace
+        the lookup substance word.
+
+        **data_frame** *(optional)*: a data frame with additional custom data
+        about the lookup variable, such as to be used in custom functions,
+        below. These are not used elsewhere in BlackBlox.py.
+
 """
 
 class UnitProcess:
-    """Unit processes have inflows and outflows with defined relationships.
+    """UnitProcess(name, var_df=False, calc_df=False, units_df=df_unit_library)
+    Unit processes have inflows and outflows with defined relationships.
 
     The relationships of the unit process flows must be defined so that
 
@@ -166,7 +172,8 @@ class UnitProcess:
                 energy_flows=dat.energy_flows,
                 balance_energy=True, 
                 raise_imbalance=False,):
-        """performs a mass (and optionally energy) balance on the unit process.
+        """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario, energy_flows=dat.energy_flows, balance_energy=True, raise_imbalance=False,)
+        performs a mass (and optionally energy) balance on the unit process.
 
         Calculates all inflows and outflows, using the specified variable values
         and relationship dataframe. Will only work if there are zero degrees of
@@ -205,10 +212,8 @@ class UnitProcess:
                 Defaults to False.
 
         Returns:
-            Defaultdict of inflows with substance names as keys and quantities
-                as values
-            Defaultdict of outflows with substance names as keys and quantities
-                as values.
+            Defaultdict of inflows with substance names as keys and quantities as values
+            Defaultdict of outflows with substance names as keys and quantities as values.
         """
 
         if i_o is False:
@@ -431,7 +436,8 @@ class UnitProcess:
                        scenario=dat.default_scenario,
                        emissions_list = ['CO2', 'H2O', 'SO2'], 
                        **kwargs):
-        """replaces fuel use and associated emissions with a recycled energy flow
+        """recycle_energy_replacing_fuel(original_inflows_dict, original_outflows_dict, recycled_qty, recycle_io, recycled_flow, replaced_flow, max_replace_fraction=1.0, combustion_eff = dat.combustion_efficiency_var, scenario=dat.default_scenario, emissions_list = ['CO2', 'H2O', 'SO2'], **kwargs)
+        replaces fuel use and associated emissions with a recycled energy flow
 
         Args:
             original_inflows_dict (defaultdict): Dictionary of inflow quantities from the orignal
