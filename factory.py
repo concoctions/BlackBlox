@@ -212,7 +212,7 @@ class Factory:
             if aux[dat.dest_unit] and aux[dat.dest_unit] in dest_chain.process_dict:
                 dest_unit = dest_chain.process_dict[aux[dat.dest_unit]]
             else:
-                dest_unit = None
+                dest_unit = False
 
             if aux[dat.origin_unit] == dat.connect_all: #if connects to all, use totals from chain
                 qty = io_dicts[orig_product_io][orig_chain.name]['chain totals'][product]
@@ -312,10 +312,16 @@ class Factory:
             # process non-reycle connection   
             else:         
                 logger.debug(f"sending {qty} of {product} to {dest_chain.name} as {dest_product_io}-flow")
+                c_kwargs = dict(qty=qty, 
+                                product=product, 
+                                i_o=dest_product_io, 
+                                unit_process = dest_unit.name,
+                                scenario=scenario,
+                                )
                 (i_tmp, 
                 o_tmp, 
                 chain_intermediates_dict[dest_chain.name],
-                chain_internal_flows) = dest_chain.balance(qty, product=product, i_o=dest_product_io, scenario=scenario)
+                chain_internal_flows) = dest_chain.balance(**c_kwargs)
                 internal_flows.extend(chain_internal_flows)
             
                 # add chain inflow/outflow data to factory inflow/outflow dictionaries

@@ -431,7 +431,6 @@ def Combustion(known_substance, qty, unknown_substance, var,
             emissions_dict[emission] += combustion_emissions[emission]
 
         
-    
     else:
         logger.debug("Emission Data discarded:")
         for emission in combustion_emissions:

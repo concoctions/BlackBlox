@@ -27,10 +27,10 @@ runs = 3
 logger.info(f"\n\n\nRunning new test with {runs} runs")
 
 print_startup = False
-test_calculators = False
+test_calculators = True
 test_unitprocesses = False
 test_chains = False
-test_factory = True
+test_factory = False
 test_industry = False
 
 
@@ -329,17 +329,17 @@ if test_chains is True:
     chain.build()
     print(chain.process_list)
 
-    inflows, outflows = chain.balance(1.0, scenario="default")
+    inflows, outflows, int_flows, int_rows = chain.balance(1.0, scenario="default")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
 
-    inflows, outflows = chain.balance(0.452447, product="CaCO3", scenario="EU-bat")
+    inflows, outflows, int_flows, int_rows = chain.balance(1.070880, product="CaCO3", scenario="default")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
 
-    inflows, outflows = chain.balance(0.174018, product="clay", scenario="EU-bat")
+    inflows, outflows, int_flows, int_rows = chain.balance(0.527448, product="clay", scenario="default")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
@@ -356,17 +356,17 @@ if test_chains is True:
     print(chain.process_list)
 
 
-    inflows, outflows = chain.balance(0.744351, product="CO2", i_o="i", scenario='default')
+    inflows, outflows, int_flows, int_rows = chain.balance(0.744351, product="CO2", i_o="i", scenario='default')
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
 
-    inflows, outflows = chain.balance(1.0, product="compressedCO2", scenario="EU-bat")
+    inflows, outflows, int_flows, int_rows = chain.balance(1.0, product="compressedCO2", scenario="EU-bat")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
 
-    inflows, outflows = chain.balance(0.174018, product="CO2", scenario="EU-bat")
+    inflows, outflows, int_flows, int_rows = chain.balance(0.174018, product="CO2", scenario="EU-bat")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
@@ -381,22 +381,33 @@ if test_chains is True:
     print(chain.process_chain_df)
     print(chain.process_list)
 
-    inflows, outflows = chain.balance(1.0)
+    inflows, outflows, int_flows, int_rows = chain.balance(1.0)
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
 
-    inflows, outflows = chain.balance(180.093237, product="electricity", scenario="default")
+    inflows, outflows, int_flows, int_rows = chain.balance(180.093237, product="electricity", scenario="default")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
 
-    inflows, outflows = chain.balance(0.174018, product="fuel", scenario="EU-old")
+    inflows, outflows, int_flows, int_rows = chain.balance(0.174018, product="fuel", scenario="EU-old")
 
     print("inputs\n", pan.DataFrame(inflows), "\n")
     print("outputs\n", pan.DataFrame(outflows), "\n")
 
     chain.diagram()
+
+
+    #test chains on intermediate unit process input
+
+    inflows, outflows, int_flows, int_rows = chain.balance(0.8, product="clinker", i_o='output', unit_process='kiln', scenario="default")
+    print("inputs\n", pan.DataFrame(inflows), "\n")
+    print("outputs\n", pan.DataFrame(outflows), "\n")
+
+    inflows, outflows, int_flows, int_rows = chain.balance(1.598328, product="meal", i_o='inflow', unit_process='kiln', scenario="default")
+    print("inputs\n", pan.DataFrame(inflows), "\n")
+    print("outputs\n", pan.DataFrame(outflows), "\n")
 
 ###                                                                          ###
 ################################################################################

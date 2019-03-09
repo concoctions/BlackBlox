@@ -81,8 +81,8 @@ unknown = 'UnknownQty'
 unknown_io = 'u_QtyTo'
 calc_type = 'Calculation'
 calc_var = 'Variable'
-known2 = ''
-known2_io = ''
+known2 = '2nd Known Substance'
+known2_io = '2Qty Origin'
 
 # for UNIT PROCESS scenario values tabular data:
 combustion_efficiency_var = 'combustEff'

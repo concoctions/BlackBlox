@@ -86,7 +86,7 @@ class ProductChain:
         unit process. Populates self.default_product and self.process_list.
 
         """
-        logger.debug(f"initializing chain for {self.name}")
+        print(f"initializing chain for {self.name}")
         process_list = []
         process_names = []
         process_dict = dict()
@@ -119,10 +119,10 @@ class ProductChain:
                 self.default_product = process_list[-1]['i']
 
             else:
-                logger.debug(f"No default product found for {self.name}.")
+                print(f"No default product found for {self.name}.")
 
     
-    def balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario):
+    def balance(self, qty, product=False, i_o=False, unit_process=False, scenario=dat.default_scenario):
         """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario)
         Calculates the mass balance of the product chain
 
@@ -132,17 +132,21 @@ class ProductChain:
         are well-specified with zero degrees of freedom.
 
         Args:
-            qty (float): the quantity of the product to balance on
+            qty (float): the quantity of the product to balance on.
             product (str/bool): the product name. If False, uses the default
-                product in the chain object attributes.
+                product in the chain object attributes. Required if balancing a 
+                chain on an intermediate process.
                 (Defaults to False)
             i_o (str/bool): String beginning with "i" or "o". "i" if the product
                 is an inflow of the chain's first unit process, "o" if it is an
                 outflow of the chain's last unit process. If False, first checks
                 to see if product exist in last unit process's outflows, then
                 first unit process's inflows, and uses the first matching 
-                product that it finds.
+                product that it finds. Required if balancing a chain on an
+                intermediate process.
                 (Defaults to False)
+            unit_process (str): Name of the unit process that the specified product
+                belongs to. Necessary to balance chain on intermediate process.
             scenario (str): The name of the scenario of variable values to use, 
                 corresponding to the matching row index in each unit process's
                 var_df. 
@@ -161,19 +165,44 @@ class ProductChain:
 
         chain = self.process_list.copy()
 
-        if not product:
-            product = self.default_product
-
-        if i_o:
-            i_o = iof.clean_str(i_o[0]) 
-        if product in chain[-1]['process'].outflows and i_o != 'i':
-            chain.reverse()
-            i_o, io_opposite = 'o', 'i'
-            io_opposite = 'i'
-        elif product in chain[0]['process'].inflows and i_o != 'o':
-            i_o, io_opposite = 'i', 'o'
+        if unit_process is not False:
+            if unit_process in self.process_names:
+                unit_index = self.process_names.index(unit_process)
+                upstream = chain[0:unit_index]
+                upstream.reverse()
+                downstream = chain[unit_index+1:]
+                start = chain[unit_index]['process']
+            else:
+                raise KeyError(f"{unit_process} not found in {self.name} process list")
+            if i_o is False:
+                raise ValueError(f"If specifying a unit process, i_o cannot be False")
+            else:
+                i_o = iof.clean_str(i_o[0])
+                if i_o not in ['i', 'o']:
+                    raise ValueError("i_o must start with 'i' for inflow or 'o' for outflow")
+            if product is False:
+                raise ValueError(f"If specifying a unit process, product cannot be False")
+            if product not in chain[unit_index][i_o]:
+                raise KeyError(f"{product} is not an {i_o}-flow of {start.name}")
+        
         else:
-            raise KeyError(f"{product} not found as input or outflow of chain.")
+            if product is False:
+                product = self.default_product
+            if i_o:
+                i_o = iof.clean_str(i_o[0]) 
+            if product in chain[-1]['process'].outflows and i_o != 'i':
+                start = chain[-1]['process']
+                chain.reverse()
+                upstream = chain[1:]
+                downstream = False
+                i_o = 'o'
+            elif product in chain[0]['process'].inflows and i_o != 'o':
+                start = chain[0]['process']
+                upstream = False
+                downstream = chain[1:]
+                i_o = 'i'
+            else:
+                raise KeyError(f"{product} not found as input or outflow of chain.")
 
         io_dicts = {
             'i': defaultdict(lambda: defaultdict(float)), 
@@ -182,20 +211,47 @@ class ProductChain:
         intermediate_product_dict = defaultdict(float)
         internal_flows = []
 
-        for i, unit in enumerate(chain):
-            process = unit['process']
+        #balance starting process
+        print(f"attempting to balance {start.name} on {qty} of {product}({i_o}) using {scenario} variables.")
+        (io_dicts['i'][start.name], io_dicts['o'][start.name]) = start.balance(qty, product, i_o, scenario)
+ 
+        if upstream:
+            print('upstream:', upstream)
+            for i, unit in enumerate(upstream):
+                process = unit['process']
 
-            if i != 0:
-                product = unit[i_o]
-                qty = io_dicts[io_opposite][previous_process.name][product]
+                if i == 0:
+                    previous_process = start
+
+                product = unit['o']
+                qty = io_dicts['i'][previous_process.name][product]
                 intermediate_product_dict[product] = qty
                 internal_flows.append([self.name, previous_process.name, product, qty, self.name, process.name])
 
-            logger.debug(f"attempting to balance {process.name} on {qty} of {product}({i_o}) using {scenario} variables.")
-            (io_dicts['i'][process.name], 
-             io_dicts['o'][process.name]) = process.balance(qty, product, i_o, scenario)
+                print(f"attempting to balance {process.name} on {qty} of {product}({'o'}) using {scenario} variables.")
+                (io_dicts['i'][process.name], 
+                io_dicts['o'][process.name]) = process.balance(qty, product, 'o', scenario)
 
-            previous_process = process
+                previous_process = process
+
+        if downstream:
+            print('downstream:', downstream)
+            for i, unit in enumerate(downstream):
+                process = unit['process']
+
+                if i == 0:
+                    previous_process = start
+
+                product = unit['i']
+                qty = io_dicts['o'][previous_process.name][product]
+                intermediate_product_dict[product] = qty
+                internal_flows.append([self.name, previous_process.name, product, qty, self.name, process.name])
+
+                print(f"attempting to balance {process.name} on {qty} of {product}({'i'}) using {scenario} variables.")
+                (io_dicts['i'][process.name], 
+                io_dicts['o'][process.name]) = process.balance(qty, product, 'i', scenario)
+
+                previous_process = process
 
             
         totals = {
@@ -215,7 +271,7 @@ class ProductChain:
         io_dicts['o']["chain totals"] = totals['o']
         
 
-        logger.debug(f"successfully balanced {self.name} using {scenario} variables.")
+        print(f"successfully balanced {self.name} using {scenario} variables.")
         return io_dicts['i'], io_dicts['o'], intermediate_product_dict, internal_flows
 
 
@@ -322,5 +378,5 @@ class ProductChain:
         if view_diagram:
             chain_diagram.view()
 
-        logger.debug(f"diagram created for {self.name} chain")
+        print(f"diagram created for {self.name} chain")
         return product_flow
