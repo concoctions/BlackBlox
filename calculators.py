@@ -231,7 +231,7 @@ def Addition(qty, qty2, invert = False, **kwargs):
         return qty + qty2
 
     else:
-        return qty - qty2
+        return qty - qty2    
 
 
 
@@ -421,13 +421,14 @@ def Combustion(known_substance, qty, unknown_substance, var,
             combustion_emissions[emission] = fuels_df.at[fuel_type, emission] * fuel_qty
     waste_heat = energy_qty * (1 - combust_eff)
 
+
     if type(emissions_dict) == defaultdict:
+        if type(inflows_dict) == defaultdict:
+            inflows_dict['O2'] += sum(combustion_emissions.values()) - fuel_qty # closes mass balance
+            inflows_dict[f'energy in {fuel_type}'] = energy_qty
         emissions_dict['waste heat'] += waste_heat
         for emission in combustion_emissions:
             emissions_dict[emission] += combustion_emissions[emission]
-        if type(inflows_dict) == defaultdict:
-            inflows_dict['O2'] += sum(emissions_dict.values()) - fuel_qty # closes mass balance
-            inflows_dict[f'energy in {fuel_type}'] = energy_qty
 
         
     
@@ -447,11 +448,11 @@ calcs_dict = {
     'molmassratio': MolMassRatio,
     'returnvalue': ReturnValue,
     'subtraction': Subtraction,
-    'additon': Addition,
+    'addition': Addition,
     'combustion': Combustion
 }
 """Dictionary of calculators available to process unit process relationships.
-Must be updated if additional calculators are added to this module. 
+Must be manually updated if additional calculators are added to this module. 
 Automatically pulls in calculators in the custom_lookup module, if they are
 specified in the custom_calcs_dict in that module.
 
@@ -460,3 +461,7 @@ Used by the Unit Process class's balance function.
 """
 
 twoQty_calc_list = ['subtraction', 'addition']
+"""List of calculations that require two quantities to exist in the unit process flow dictionary.
+
+Used by the Unit Process class's balance function.
+"""
