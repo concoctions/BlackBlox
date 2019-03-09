@@ -1,8 +1,8 @@
-# What is BlackBlox.py?
-BlackBlox is a calculator for "black box" systems, ranging from single unit processes to factories with branching chains of processes.
+# What is blackblox.py?
+blackblox is a calculator for "black box" systems, ranging from single unit processes to factories with branching chains of processes.
 
 ## Unit Processes
-Unit processes are the smallest"block" in BlackBlox. Each unit process has a set of inflows and outflows and a set of specified relationships between the process flows. Then, given a quantity for one inflow or outflow, the quantities of the remaining inflows and outflows can be calculated. 
+Unit processes are the smallest"block" in blackblox. Each unit process has a set of inflows and outflows and a set of specified relationships between the process flows. Then, given a quantity for one inflow or outflow, the quantities of the remaining inflows and outflows can be calculated. 
 
 ### Defining unit processes  
 A unit process is defined by two tables:
@@ -173,7 +173,7 @@ E.g. Relative products and scenarios
 Balancing an industry returns a dictionary with the inputs and outputs of every factory and sub-block. It is also possible to output the industry data to a set of Excel workbooks, one for each factory (as described above), and one for the industry as a whole, with matricies of overall inputs and outputs by factory and for the industry in total.
 
 ### Evolving an Industry
-Evolving an industry allows for the specification of a start timestep industry state and an end timestep industry state, using the same format for balancing an industry. BlackBlox can then calculate both annual and cumulative inflows and outflows, assuming a linear change between start and industry state. It is possible for one state to have a different set of factories than the other, as long as all the factories were listed in the industry factory list table.
+Evolving an industry allows for the specification of a start timestep industry state and an end timestep industry state, using the same format for balancing an industry. blackblox can then calculate both annual and cumulative inflows and outflows, assuming a linear change between start and industry state. It is possible for one state to have a different set of factories than the other, as long as all the factories were listed in the industry factory list table.
 
 Evolving an industry outputs the same Excel files as does balancing an industry —one set for each the start and end state—, as well as a file with the cumulative and annual inflows and outflows listed by year, both for the industry as a whole, and for all factories.
 
