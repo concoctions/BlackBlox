@@ -323,7 +323,7 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
 
 def Combustion(known_substance, qty, unknown_substance, var, 
                emissions_dict=False, inflows_dict=False, 
-               emissions_list = ['CO2', 'H2O', 'SO2'], fuels_df=df_fuels, 
+               emissions_list = dat.default_emissions, fuels_df=df_fuels, 
                **kwargs):
     """Calculates fuel or energy quantity and combustion emissions
 
@@ -395,36 +395,41 @@ def Combustion(known_substance, qty, unknown_substance, var,
         and unknown_substance in fuels_df.index):
         raise Exception("Both {} and {} are known_substance fuel types.".format(known_substance, unknown_substance))
 
+    
     if var is None:
-        var = 1.0
-    if var < 0 or var > 1:
+        combust_eff = 1.0
+    elif var < 0 or var > 1:
         raise ValueError(f'quantity should be between 0 and 1. Currently: {qty}')
+    else:
+        combust_eff = var
 
     if known_substance in fuels_df.index:
         fuel_type = known_substance
         fuel_qty = qty
-        energy_qty = qty * fuels_df.at[fuel_type, 'HHV'] * var
-        return_qty = energy_qty
+        energy_qty = qty * fuels_df.at[fuel_type, 'HHV'] # total energy in fuel
+        return_qty = energy_qty * combust_eff # useful energy after combustion
 
     else:
         fuel_type = unknown_substance
-        energy_qty = qty
-        fuel_qty = energy_qty / fuels_df.at[fuel_type, 'HHV'] * (1/var)
+        energy_qty = qty * (1/combust_eff) # total energy in fuel
+        fuel_qty = energy_qty / fuels_df.at[fuel_type, 'HHV']
         return_qty = fuel_qty
 
     combustion_emissions = dict()
     for emission in emissions_list:
         if emission in fuels_df:
             combustion_emissions[emission] = fuels_df.at[fuel_type, emission] * fuel_qty
-    waste_heat = energy_qty * (1 - var)
+    waste_heat = energy_qty * (1 - combust_eff)
 
     if type(emissions_dict) == defaultdict:
+        emissions_dict['waste heat'] += waste_heat
         for emission in combustion_emissions:
             emissions_dict[emission] += combustion_emissions[emission]
         if type(inflows_dict) == defaultdict:
-            inflows_dict['O2'] += sum(emissions_dict.values()) - fuel_qty
+            inflows_dict['O2'] += sum(emissions_dict.values()) - fuel_qty # closes mass balance
+            inflows_dict[f'energy in {fuel_type}'] = energy_qty
 
-        emissions_dict['waste heat'] += waste_heat
+        
     
     else:
         logger.debug("Emission Data discarded:")
