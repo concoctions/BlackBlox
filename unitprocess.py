@@ -294,6 +294,7 @@ class UnitProcess:
                 if known_substance2 in io_dicts[k2_io]:
                     known_qty2 = io_dicts[k2_io][known_substance2]
                 else:
+                    i += 1
                     attempt += 1
                     logger.debug(f"{known_substance2} not found (both {known_substance} ({known_io}) and {known_substance2} ({k2_io}) required), skipping for now")
                     continue
@@ -303,7 +304,7 @@ class UnitProcess:
                           var=var, 
                           known_substance=known_substance, 
                           unknown_substance=unknown_substance,
-                          known_substance2 =  known_substance2,
+                          known_substance2 = known_substance2,
                           qty2 = known_qty2,
                           invert=invert, 
                           emissions_dict=io_dicts['e'],
@@ -317,6 +318,8 @@ class UnitProcess:
             attempt = 0
             logger.debug(f"{qty_calculated} of {unknown_substance} calculated. {len(calc_df)} calculations remaining.")
 
+        print('emissions:', io_dicts['e'])
+        print('coinflows:', io_dicts['c'])
         for substance, qty in io_dicts['e'].items(): #adds emissions dictionary to outflow dictionary
             io_dicts['o'][substance] += qty
         for substance, qty in io_dicts['c'].items(): #adds co-inflows dictionary to inflows dictionary
@@ -380,9 +383,9 @@ class UnitProcess:
                 original flow that the recycled flow is allowed to replace
 
         Returns:
-            dictionary of rebalanced inflows
-            dictionary of rebalanced outflows
-            float of the remaining quantity of the recycle stream
+            - *dictionary* of rebalanced inflows
+            - *dictionary* of rebalanced outflows
+            - *float* of the remaining quantity of the recycle stream
         """
 
         original_flows = dict(i=original_inflows_dict,
@@ -456,10 +459,13 @@ class UnitProcess:
                 (Defaults to ['CO2', 'H2O', 'SO2'])
 
         Returns:
-            dictionary of rebalanced inflows
-            dictionary of rebalanced outflows
-            float of the remaining quantity of the recycle stream
+            - *dictionary* of rebalanced inflows
+            - *dictionary* of rebalanced outflows
+            - *float* of the remaining quantity of the recycle stream
+
         """
+
+        logger.debug(f"Attempting to replace {replaced_flow} (energy) with {recycled_flow}.")
 
         original_flows = dict(i=original_inflows_dict,
                               o=original_outflows_dict)
@@ -526,11 +532,11 @@ class UnitProcess:
         
             for flow in replaced_emissions_dict:
                 rebalanced_flows['o'][flow] -= replaced_emissions_dict[flow]
-                if rebalanced_flows['o'][flow] < 0.00000000001:
+                if round(rebalanced_flows['o'][flow], 8) == 0: # rounds off floating point errors
                     rebalanced_flows['o'][flow] = 0
             for flow in replaced_inflows_dict:
                 rebalanced_flows['i'][flow] -= replaced_inflows_dict[flow]
-                if rebalanced_flows['i'][flow] < 0.00000000001:
+                if round(rebalanced_flows['i'][flow], 8) == 0: # rounds off floating point errors
                     rebalanced_flows['i'][flow] = 0
 
         if remaining_energy_qty < 0:
