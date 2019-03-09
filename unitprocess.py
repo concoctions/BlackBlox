@@ -434,7 +434,7 @@ class UnitProcess:
                        max_replace_fraction=1.0,
                        combustion_eff = dat.combustion_efficiency_var,
                        scenario=dat.default_scenario,
-                       emissions_list = ['CO2', 'H2O', 'SO2'], 
+                       emissions_list = dat.default_emissions, 
                        **kwargs):
         """recycle_energy_replacing_fuel(original_inflows_dict, original_outflows_dict, recycled_qty, recycle_io, recycled_flow, replaced_flow, max_replace_fraction=1.0, combustion_eff = dat.combustion_efficiency_var, scenario=dat.default_scenario, emissions_list = ['CO2', 'H2O', 'SO2'], **kwargs)
         replaces fuel use and associated emissions with a recycled energy flow

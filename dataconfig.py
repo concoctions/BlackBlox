@@ -150,12 +150,6 @@ calculation type requires no variable beyond the names of the substances.
 (e.g. MolMassRatio)
 """
 
-energy_flows = ['heat', 'energy', 'electricity', 'power']
-"""list: indicator that a substance is an energy flow
-
-Usable in flow names. Must be used at the beginning or end of the flow name.
-"""
-
 connect_all = 'all'
 """str: indicator that all processes of a chain connect to the destination
 
@@ -176,3 +170,10 @@ each factory producing that product should specify their production quantity
 as a fraction of that total as a decimal between 0 and 1.
 """
 
+energy_flows = ['heat', 'energy', 'electricity', 'power']
+"""list: indicator that a substance is an energy flow
+
+Usable in flow names. Must be used at the beginning or end of the flow name.
+"""
+
+default_emissions = ['CO2', 'SO2', 'H2O']
