@@ -10,7 +10,7 @@ A unit process is defined by two tables:
 #### Calculations Table 
 The first specifies the relationships between inflows and outflows, with each row listing two substances; whether each substance is an inflow, an outflow, or a flow internal to the unit process; the type of calculation that would generate the quantity of the second substance if the quantity of the first substance is known, and the name of the variable (if any) used in that calculation.  
 
-The calculation types must be those available in the program's calculator library. The substance variable names are user specified. It is also possible to define special substance names (e.g. "fuel") to allow the substance to be defined in the variables table (e.g. "fuel type") and also have properties defined elsewhere (e.g. HHV and combustion emissions)
+The calculation types must be those available in the program's calculator library. The substance variable names are user specified. It is also possible to define special substance names (e.g. "fuel") to allow the substance to be defined in the variables table (e.g. "fuel type") and also have properties defined elsewhere (e.g. HHV and combustion emissions).
 
 e.g.
 
@@ -28,6 +28,7 @@ e.g.
 The second provides the values of the variables named in the calculations table. Separating the values into their own table allows for the same unit process to be run in different configurations(e.g. different efficiencies or fuel types). 
 
 e.g.
+
 | scenario   | fuelDemand      | fuelType | CaO_Clinker | CaCO3_Meal | combustEff | elecDemand     |
 |------------|-----------------|----------|-------------|------------|------------|----------------|
 | meta-units | (mj /t clinker) | name     | (t/t)       | (t/t)      | (%)        | (mj/t clinker) |
@@ -35,6 +36,7 @@ e.g.
 | EU-old     | 3.6             | coal     | 0.75        | 0.8        | 1          | 0.2            |
 | EU-bat     | 3               | charcoal | 0.65        | 0.8        | 1          | 0.1            |
 | EU-typ     | 3.2             | coal     | 0.67        | 0.8        | 1          | 0.1            |
+
 
 ### Balancing unit processes  
 Balancing a unit process calculates the quantity of all inflows and outflows of that unit process. To balance a unit process, the following arguments  must be provided: 
@@ -49,6 +51,7 @@ Balancing a unit process calculates the quantity of all inflows and outflows of 
 A library table with a list to the locations of all the unit processes available will allow you to not have to enter in the data every time the unit process function is called.
 
 e.g.
+
 | name    | product | productType | varFile                    | varSheet           | calcFile                   | calcSheet        | meta-notes |
 |---------|---------|-------------|----------------------------|--------------------|----------------------------|------------------|------------|
 | kiln    | clinker | output      | excelData/cementUnits.xlsx | var clinker kiln   | excelData/cementUnits.xlsx | c clinker kiln   | none       |
@@ -62,6 +65,7 @@ A process chain is a linear collection of one or more connected unit processes, 
 A process chain is defined by a table with a list of unit processes with an inflow and outflow to each, where the outflow of a unit process must be the inflow into the next unit process. When the process chain is first used, an initializalion process creates each of the unit processes, if they do not already exist, and verifies that the inflows and outflows specified in the chain table exist for the corresponding unit processes. 
 
 e.g.
+
 | Inflow  | Process | Outflow |
 |---------|---------|---------|
 | CaCO3   | mixer   | meal    |
@@ -137,6 +141,7 @@ The largest block is currently an "Industry", which is a collection of one or mo
 An industry is defined by a factory list table, which has the name of each factory and location of its data.
 
 E.g.
+
 | Factory Name           | Factory File                      | Factory Chains Sheet | Factory Connections Sheet |
 |------------------------|-----------------------------------|----------------------|---------------------------|
 | cementFactory          | excelData/cementFactory.xlsx      | Chain List           | Connections               |
@@ -148,6 +153,7 @@ E.g.
 An industry can be balanced by specifying the output product quantity for each factory, and the scenario of variables for each factory. It is possible to specify each of these absolutely for each factory, or relative to the total output of each product. It is possible to mix absolute and relative specifications in an industry, but it must be the same for each product. It is also possible to batch-balance the industries on the same output quantity but using different scenarios of variable. 
 
 E.g. Absolute Product and Scenarios
+
 | Factory Name           | Factory Product | Product Qty | Scenario |
 |------------------------|-----------------|-------------|----------|
 | cementFactory          | cement          | 500         | EU-typ   |
@@ -156,6 +162,7 @@ E.g. Absolute Product and Scenarios
 | clinkerFactory         | clinker         | 50          | EU-bat   |
 
 E.g. Relative products and scenarios
+
 | Factory Name           | Factory Product | Product Qty | Scenario |
 |------------------------|-----------------|-------------|----------|
 | industry               | cement          | 1200        | EU-typ   |
