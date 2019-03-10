@@ -69,12 +69,6 @@ lookup_var_dict = {
     'fuel': dict(filepath='/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx',
                  sheet='Fuels',
                  lookup_var='fuelType'),
-    'fossil fuel': dict(filepath='/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx',
-                 sheet='Fuels',
-                 lookup_var='fossil fuel type'),
-    'biofuel': dict(filepath='/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx',
-                 sheet='Fuels',
-                 lookup_var='biofuel type')
     } 
 """dictionary of special lookup substance names
 Lookup_var_dict is a dictionary with the names of substance, that when used

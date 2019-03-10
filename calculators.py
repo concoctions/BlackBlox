@@ -38,7 +38,7 @@ logger = get_logger("Calculators")
 
 # LOOKUP DATA NEEDED BY CALCULATORS
 df_fuels = None
-if 'fuel' in dat.lookup_var_file_dict:
+if 'fuel' in dat.lookup_var_dict:
     df_fuels = iof.make_df(dat.lookup_var_dict['fuel']['filepath'], sheet=dat.lookup_var_dict['fuel']['sheet'])
 
 # FUNCTIONS USED BY CALCUALTOR FUNCTIONS
