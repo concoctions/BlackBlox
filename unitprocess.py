@@ -318,8 +318,8 @@ class UnitProcess:
             attempt = 0
             logger.debug(f"{qty_calculated} of {unknown_substance} calculated. {len(calc_df)} calculations remaining.")
 
-        print('emissions:', io_dicts['e'])
-        print('coinflows:', io_dicts['c'])
+        logger.debug(f"emissions: {io_dicts['e']}")
+        logger.debug(f"coinflows: {io_dicts['c']}")
         for substance, qty in io_dicts['e'].items(): #adds emissions dictionary to outflow dictionary
             io_dicts['o'][substance] += qty
         for substance, qty in io_dicts['c'].items(): #adds co-inflows dictionary to inflows dictionary
@@ -403,7 +403,7 @@ class UnitProcess:
             replaced_flow = self.var_df.at[scenario, lookup_var_dict[replaced_flow]['lookup_var']] 
 
         if replaced_flow in calc.df_fuels:
-            print(f'WARNING! {replaced_flow} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
+            logger.debug(f'WARNING! {replaced_flow} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
 
         calc.check_qty(max_replace_fraction, fraction = True)
         replacable_qty = original_flows[i_o][replaced_flow] * max_replace_fraction
