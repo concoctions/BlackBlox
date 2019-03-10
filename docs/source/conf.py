@@ -128,7 +128,7 @@ htmlhelp_basename = 'BlackBloxDoc'
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
-    # 'papersize': 'letterpaper',
+     'papersize': 'a4paper',
 
     # The font size ('10pt', '11pt' or '12pt').
     #
@@ -147,7 +147,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'BlackBlox.tex', 'BlackBlox Documentation',
+    (master_doc, 'BlackBlox.tex', 'blackblox Documentation',
      'S.E. Tanzer', 'manual'),
 ]
 
@@ -199,3 +199,4 @@ epub_exclude_files = ['search.html']
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
