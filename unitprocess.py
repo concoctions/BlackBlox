@@ -52,15 +52,6 @@ if the data is within excel sheets, will also be used if provided.
 
 """
 
-# lookup_var_dict = { 
-#     'fuel': dict(data_frame=calc.df_fuels, 
-#                  lookup_var='fuelType'),
-#     # 'fossil fuel': dict(data_frame=calc.df_fuels, 
-#     #              lookup_var='fossil fuel type'),
-#     # 'biofuel': dict(data_frame=calc.df_fuels, 
-#     #              lookup_var='biofuel type')
-#     } 
-
 lookup_var_dict = copy(dat.lookup_var_dict)
 for var in lookup_var_dict:
     df = iof.make_df(lookup_var_dict[var]['filepath'], sheet=lookup_var_dict[var]['sheet'])
@@ -113,6 +104,7 @@ class UnitProcess:
                  calc_df=False, 
                  units_df=df_unit_library):
         logger.debug(f"creating unit process object for {name}")
+
         self.name = name
 
         if var_df is not False:
