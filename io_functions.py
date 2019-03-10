@@ -19,6 +19,7 @@ Module Outline:
 
 import pandas as pan
 import numpy as np
+import matplotlib.pyplot as plt
 from pathlib import Path
 from collections import defaultdict, OrderedDict
 from datetime import datetime
@@ -29,7 +30,7 @@ logger = get_logger("IO")
 
 
 def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta", 
-            col_order = False, T = False, drop_zero=False):
+            col_order = False, T = False, drop_zero=False, sort=False):
     """ Creates a Pandas dataframe from various file types
 
     Numbers that are initially read as strings will be converted to 
@@ -55,6 +56,8 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
             (Defaults to False)
         drop_zero (bool): If True, converts any NaNs to zeros, and then 
             removes any rows or columns that contain only zeros.
+        sort (bool): Whether to sort the data by the ascending order of the
+            index
 
     Returns:
         The generated dataframe.
@@ -89,6 +92,9 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
         df = df.fillna(0)
         df = df.loc[:, (df != 0).any(axis=0)]
         df = df[np.square(df.values).sum(axis=1) != 0] # uses square so that negative numbers aren't an issue
+
+    if sort is True:
+        df.sort_index()
 
     return df
 
@@ -371,4 +377,31 @@ def nested_dicts(levels=2, final=float):
     return (defaultdict(final) if levels <2 else
             defaultdict(lambda: nested_dicts(levels - 1, final)))
 
+
+def plot_annual_flows(df_dict, flow, outdir):
+    flow_series = []
+    for df_name in df_dict:
+        if 'cumulative' in df_name:
+            pass
+        else:
+            df = df_dict[df_name].fillna(0)
+            if flow in df:
+                s = df.loc[:,flow]
+                s = s.rename(df_name)
+                flow_series.append(s)
+    
+    flow_df = pan.concat(flow_series, axis=1, sort=True)
+    df_index = flow_df.index.tolist()
+
+    plt.style.use('tableau-colorblind10')
+    flow_df.plot(title=f"annual outflows of {flow}")
+    plt.xticks(list(range(len(df_index))), df_index, rotation=90)
+    plt.savefig(f'{outdir}/{flow}')
+
+# def plot_df(df, columns, kind='line', outdir)
+#     column_series = []
+#     df = df.fillna(0)
+#     for col in columns:
+#         if col in df:
+#             s = df.loc[:,col]
 
