@@ -31,7 +31,7 @@ test_calculators = False
 test_unitprocesses = False
 test_chains = False
 test_factory = False
-test_industry = True
+test_industry = False
 
 
 if print_startup is True:
@@ -482,5 +482,6 @@ if test_industry is True:
                     start_step=1990,
                     end_step=2010,
                     write_to_xls=True, 
-                    diagrams=True)
+                    diagrams=True,
+                    graph_outflows = ['CO2', 'cement'])
     industry.evolve(**e_kwargs)
