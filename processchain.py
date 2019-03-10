@@ -216,7 +216,6 @@ class ProductChain:
         (io_dicts['i'][start.name], io_dicts['o'][start.name]) = start.balance(qty, product, i_o, scenario)
  
         if upstream:
-            logger.debug('upstream:', upstream)
             for i, unit in enumerate(upstream):
                 process = unit['process']
 
@@ -235,7 +234,6 @@ class ProductChain:
                 previous_process = process
 
         if downstream:
-            logger.debug('downstream:', downstream)
             for i, unit in enumerate(downstream):
                 process = unit['process']
 
