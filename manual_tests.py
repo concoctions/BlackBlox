@@ -10,7 +10,6 @@ import random
 
 # import other BlackBlox modules
 from dataconfig import *
-from custom_lookup import *
 from unitprocess import *
 from processchain import *
 from factory import *
@@ -31,7 +30,7 @@ test_calculators = False
 test_unitprocesses = False
 test_chains = False
 test_factory = False
-test_industry = False
+test_industry = True
 
 
 if print_startup is True:
