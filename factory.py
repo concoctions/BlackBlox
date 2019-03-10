@@ -378,15 +378,12 @@ class Factory:
             }
         for chain in io_dicts['i']:
             for inflow, qty in io_dicts['i'][chain]['chain totals'].items():
-                logger.debug(chain, inflow, qty)
                 factory_totals['i'][inflow] += qty
         for chain in io_dicts['o']:
             for outflow, qty in io_dicts['o'][chain]['chain totals'].items():
-                logger.debug(chain, outflow, qty)
                 factory_totals['o'][outflow] += qty
         for io_dict in factory_totals:
             for product, qty in intermediate_product_dict.items():
-                logger.debug(io_dict, product, qty)
                 factory_totals[io_dict][product] -= qty # removes intermediate product quantities
 
         if write_to_xls is True:
