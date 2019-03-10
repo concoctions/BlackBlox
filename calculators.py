@@ -11,7 +11,7 @@ balance processes balance on an arbitrary known quantity even though
 the user is specifying only a single-directional relationship between substance
 quantities in the relationships table.
 
-Note, the use of **kwargs in the function argument calls is required to 
+Note, the use of \*\*kwargs in the function argument calls is required to 
 allow the functions to work properly, since all possible calculatr variables  
 are provided to the calculator function in unitprocess.py, whether or
 not they are used by that specific function.
@@ -83,7 +83,7 @@ def Ratio(qty, var, invert = False, **kwargs):
         var: The ratio of unknown:known quantities
         invert (Bool): Specigy True if the ratio is known:unknown. Converts the 
             ratio to 1/ratio. 
-                (Default is False.)
+            (Default is False.)
 
     Returns:
         The original quantity multipled by the ratio.
