@@ -91,6 +91,21 @@ Each entry in this dictionary should be formatted with the following:
 
 """
 
+# SUBSTANCE VARIABLES
+
+default_units = {'mass': 'tonnes', 
+                 'energy':'GJ',
+}
+
+
+energy_flows = ['heat', 'energy', 'electricity', 'power']
+"""list: indicator that a substance is an energy flow
+
+Usable in flow names. Must be used at the beginning or end of the flow name.
+"""
+
+default_emissions = ['CO2', 'SO2', 'H2O']
+
 # COLUMN HEADERS
 # for UNIT LIBRARY tabular data:
 unit_name_col = 'name'
@@ -196,14 +211,6 @@ If used to specify an industry-wide total product production quantity,
 each factory producing that product should specify their production quantity 
 as a fraction of that total as a decimal between 0 and 1.
 """
-
-energy_flows = ['heat', 'energy', 'electricity', 'power']
-"""list: indicator that a substance is an energy flow
-
-Usable in flow names. Must be used at the beginning or end of the flow name.
-"""
-
-default_emissions = ['CO2', 'SO2', 'H2O']
 
 
 def set_config(config_data, user_data):

@@ -153,6 +153,28 @@ def build_filedir(filedir, subfolder=None, file_id_list=[], time=True):
     return filedir
 
 
+def is_energy(string, energy_strings=dat.energy_flows):
+    """is_energy(string, energy_strings=dat.energy_flows)
+    checks if a string refers to an energy flow
+
+    Args:
+        string(str): the string to check
+        energy_strings(list): list of strings that mark whether the substance
+            name that starts or ends with them is an energy flow.
+    Returns:
+        bool. True, if the string starts or ends with the energy marker. Otherwise, False.
+    
+    """
+
+    clean_string = clean_str(string)
+    is_it_energy = False
+    for string in energy_strings:
+        if clean_string.startswith(string) or clean_string.endswith(string):
+            is_it_energy = True
+        
+    return is_it_energy
+
+
 def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True):
     """Reorders dataframe to seperate mass and energy flows
 
@@ -378,7 +400,7 @@ def nested_dicts(levels=2, final=float):
             defaultdict(lambda: nested_dicts(levels - 1, final)))
 
 
-def plot_annual_flows(df_dict, flow, outdir):
+def plot_annual_flows(df_dict, flow, outdir, unit_dict=dat.default_units):
     flow_series = []
     for df_name in df_dict:
         if 'cumulative' in df_name:
@@ -393,9 +415,16 @@ def plot_annual_flows(df_dict, flow, outdir):
     flow_df = pan.concat(flow_series, axis=1, sort=True)
     df_index = flow_df.index.tolist()
 
+    energy_flow = is_energy(flow)
+    if energy_flow is True:
+        flow_unit = unit_dict['energy']
+    else:
+        flow_unit = unit_dict['mass']
+
     plt.style.use('tableau-colorblind10')
     flow_df.plot(title=f"annual outflows of {flow}")
     plt.xticks(list(range(len(df_index))), df_index, rotation=90)
+    plt.ylabel(f"{flow_unit} {flow}")
     plt.savefig(f'{outdir}/{flow}')
 
 # def plot_df(df, columns, kind='line', outdir)
