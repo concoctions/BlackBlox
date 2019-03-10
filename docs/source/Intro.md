@@ -1,6 +1,8 @@
 # What is blackblox.py?
 blackblox is a calculator for "black box" systems, ranging from single unit processes to factories with branching chains of processes.
 
+**# NOTE: This introductory document still must be updated with the latest feature set**
+
 ## Unit Processes
 Unit processes are the smallest"block" in blackblox. Each unit process has a set of inflows and outflows and a set of specified relationships between the process flows. Then, given a quantity for one inflow or outflow, the quantities of the remaining inflows and outflows can be calculated. 
 
@@ -12,7 +14,7 @@ The first specifies the relationships between inflows and outflows, with each ro
 
 The calculation types must be those available in the program's calculator library. The substance variable names are user specified. It is also possible to define special substance names (e.g. "fuel") to allow the substance to be defined in the variables table (e.g. "fuel type") and also have properties defined elsewhere (e.g. HHV and combustion emissions)
 
-e.g.
+e.g.  
 
 | KnownQty   | k_QtyFrom | UnknownQty  | u_QtyTo | Calculation  | Variable    |
 |------------|-----------|-------------|---------|--------------|-------------|
@@ -24,10 +26,12 @@ e.g.
 | energyFuel | tmp       | fuel        | input   | Combustion   | combustEff  |
 | clinker    | output    | electricity | input   | Ratio        | elecDemand  |
 
+There is also a feature
+
 #### Variables Table 
 The second provides the values of the variables named in the calculations table. Separating the values into their own table allows for the same unit process to be run in different configurations(e.g. different efficiencies or fuel types). 
 
-e.g.
+e.g.  
 
 | scenario   | fuelDemand      | fuelType | CaO_Clinker | CaCO3_Meal | combustEff | elecDemand     |
 |------------|-----------------|----------|-------------|------------|------------|----------------|
@@ -46,10 +50,16 @@ Balancing a unit process calculates the quantity of all inflows and outflows of 
   
  All arguments besides the quantity can be optional, if default values have been specified for the unit process.
 
+ After calculating all flows based on the user input, blackblox then checks for whether the mass and energy flows are balanced, and either raises an exception or, by default, creates an 'UKNOWN' balancer flow where needed.
+
+ blackblox assumes that flows are mass by defautl. It decides if a flow is an energy flow based on whether it begins or end with an energy-signifier string (such as 'energy', 'heat', or 'electricity'), which the user can specify. 
+
+ N.B. When processing fuel combustion, blackblox writes an "energy in \[fuelname\]" flow to the inflows dictionary, to balance the energy of combustion.
+
 ### Unit Table Library
 A library table with a list to the locations of all the unit processes available will allow you to not have to enter in the data every time the unit process function is called.
 
-e.g.
+e.g.  
 
 | name    | product | productType | varFile                    | varSheet           | calcFile                   | calcSheet        | meta-notes |
 |---------|---------|-------------|----------------------------|--------------------|----------------------------|------------------|------------|
@@ -63,7 +73,7 @@ A process chain is a linear collection of one or more connected unit processes, 
 ### Defining a chain
 A process chain is defined by a table with a list of unit processes with an inflow and outflow to each, where the outflow of a unit process must be the inflow into the next unit process. When the process chain is first used, an initializalion process creates each of the unit processes, if they do not already exist, and verifies that the inflows and outflows specified in the chain table exist for the corresponding unit processes. 
 
-e.g.
+e.g.  
 
 | Inflow  | Process | Outflow |
 |---------|---------|---------|
@@ -73,9 +83,10 @@ e.g.
 
 ### Balancing a chain 
 Balancing a chain calculates the quantity of all inflows and outflows of each unit process in the chain, either from first inflow to last outflow or from last outflow to first inflow. To balance a chain, the following arguments  must be provided: 
-  * the quantity of one inflow or outflow to the chain
+  * the quantity of one inflow or outflow somwhere in the chain
   * the name of that inflow or outflow substance
   * the name of the configuration scenario to use from the variables table.
+  * the name of the unit process in the chain, if the specified flow is not an iflow into the first process or an outflow of the last proces.
   
  All arguments besides the quantity can be optional, if default values have been specified for the process chain.
  
@@ -84,9 +95,9 @@ Balancing a chain calculates the quantity of all inflows and outflows of each un
 ### Generating a chain diagram 
 After a chain has been defined, a process flow diagram of the chain can be generated.
 
-E.g.
+E.g.  
 
-![process flow diagram of cement production](doc_assets/chain_pfd.png)
+![](doc_assets/chain_pfd.png)
 
 ## Factory
 A factory is a collection of one or more connected process chains, where the inflow of outflow of any unit process within any chain can be the inflow or outflow of any other chain. A factory has a single main chain, and zero or more auxiliary chains. By specifying an input or output quantity to the main chain, it is possible to calculate the inflows and outflows of all processes within the chain.
@@ -99,7 +110,7 @@ This table specifies the location of the proces chain data used in the factory, 
 The first chain of the chain list is assumed to be the main product chain, but otherwise it doesn't matter.
 The chains can either be in the same file, if an excel workbook, or in a seperate file.
 
-e.g.
+e.g.  
 
 | ChainName  | ChainProduct | Product_IO | ChainFile | ChainSheet   |
 |------------|--------------|------------|-----------|--------------|
@@ -111,7 +122,7 @@ e.g.
 The factory connections table specifies how the chains connect, including the origin process chain and unit process, the destination chain, the connecting product, and whether the product is an inflow or outflow of the origin and destination.
 The connections table is order depedent, and the first chain should always be the main chain. 
 
-e.g.
+e.g.  
 
 | OriginChain | OriginProcess | Product     | Product_IO_of_Origin | Product_IO_of_Destination | DestinationChain |
 |-------------|---------------|-------------|----------------------|---------------------------|------------------|
@@ -119,19 +130,31 @@ e.g.
 | cement      | all           | electricity | inflow               | outflow                   | power            |
 | CO2capture  | all           | electricity | inflow               | outflow                   | power            |
 
+
+It is also possible to specify recycling flows in the connections table, if a Destination Unit is also provided. (The optional destination unit can be used to send flows to intermediate unit processes in chains.) Currently two types of recycling are usable:
+
+- *1-to-1 replacement*: allows for a recycle flow to replace a flow in another unit process, given that is a 1-to-1 correspondent and does not affect other flows in unit process
+- *energy replacing fuel*: allows for recycled energy to replace energy generated from a fuel in a unit process that has a combustion calculation. The emission outflows (e.g. CO2) and inflow of oxygen are also recalculated.
+
+It is possible to specify a purge fraction of the initial flow, as well as a maximum percentage of the existing flow that the recycled flow can replace. There can be recycling flow leftover, which is treated as a normal output. If there is insufficient recycling flow to fully replace the existing flow, it is only partially replaced. A single flow can be recycled into multiple units, by specifying each connection as a new line in the table, but only up to the original quantity of the recycling flow. 
+
 ### Balancing a factory
 A factory is balanced on a single quantity of the main product and using a single scenario of variables for the whole factory. Balancing a factory returns a nested dictionary with the inflows and outflows of the factory, every chain, and every unit process. Optionally, the data can be outputted to an Excel workbook with sheets for:
+
   - Total factory inflows and outflows
   - A matrix for all inflow from every unit process
   - A matrix for all outflows from every unit process
+  - A list of all internal flows/connections, both within chains and
   - Inflows for each chain unit process and chain totals (per chain)
   - Outflows for each chain unit process and chain totals (per chain)
+
+By default, the data is divided into mass and energy flows, if energy flow name signifiers are provided, with totals for both mass and energy flows.
 
 ### Generating a factory diagram 
 After a factory has been defined, a process flow diagram of the factory can be generated. However, due to the limitations of the diagram rendering software, they are unlikely to be pretty.
 
-E.g.
-![process flow diagram of cement factory](doc_assets/factory_pfd.png)
+E.g.  
+![](doc_assets/factory_pfd.png)
 
 ## Industries
 The largest block is currently an "Industry", which is a collection of one or more factories that produce one or more products.
@@ -139,7 +162,7 @@ The largest block is currently an "Industry", which is a collection of one or mo
 ### Defining an Industry
 An industry is defined by a factory list table, which has the name of each factory and location of its data.
 
-E.g.
+E.g.  
 
 | Factory Name           | Factory File                      | Factory Chains Sheet | Factory Connections Sheet |
 |------------------------|-----------------------------------|----------------------|---------------------------|
@@ -151,7 +174,7 @@ E.g.
 ### Balancing an Industry
 An industry can be balanced by specifying the output product quantity for each factory, and the scenario of variables for each factory. It is possible to specify each of these absolutely for each factory, or relative to the total output of each product. It is possible to mix absolute and relative specifications in an industry, but it must be the same for each product. It is also possible to batch-balance the industries on the same output quantity but using different scenarios of variable. 
 
-E.g. Absolute Product and Scenarios
+E.g. Absolute Product and Scenarios  
 
 | Factory Name           | Factory Product | Product Qty | Scenario |
 |------------------------|-----------------|-------------|----------|
@@ -160,7 +183,7 @@ E.g. Absolute Product and Scenarios
 | duplicateCementFactory | same_cement     | 500         | EU-typ   |
 | clinkerFactory         | clinker         | 50          | EU-bat   |
 
-E.g. Relative products and scenarios
+E.g. Relative products and scenarios  
 
 | Factory Name           | Factory Product | Product Qty | Scenario |
 |------------------------|-----------------|-------------|----------|
@@ -177,19 +200,23 @@ Evolving an industry allows for the specification of a start timestep industry s
 
 Evolving an industry outputs the same Excel files as does balancing an industry —one set for each the start and end state—, as well as a file with the cumulative and annual inflows and outflows listed by year, both for the industry as a whole, and for all factories.
 
+You can also export a graph of the annual outputs of a given flow, e.g.
+
+![](doc_assets/annual_cement.png)
+
 ## Forthcoming Features
   - Specifying evolution growth rates rather than absolute values
   - Multi-step evolution of industries
-  - Plotting data from industry evolution
-  - Cleaner code with beter documentation
   - Comparison of industries (static and evolution)
+  - More and prettier graphics
+  - Cleaner code with beter documentation
 
 ## Current limitations
-  * The current available calculation types are:
-    - Ratio calculaitons (known Qty * known ratio)
-    - Remainder calculations (known Qty * (1-known ratio)
-    - Molecular Mass Ratio calculations (known Qty * (mol mass of unknown / mol mass of known)
-    - Combustion calculations (mass of fuel use, and emissions of CO2 and waste heat, based on specified fuel type, energy demand, and efficieincy)
-   * Recycling flows are not supported. 
-   * Chains can only balance if the specified flow is a substance name that is uniquely an input or uniquely an output of the chain.
-   * Industries only can evolve linearly.
+  * No more than two "must be known" quantities can be specified in the calculations
+  * Recycling flows cannot affect other inflows/outflows in a chain
+    * excepting emissions and oxygen from combustion when replacing fuel with recycled energy
+  * Chains can only balance if the specified flow is a substance name that is uniquely an input or uniquely an output of the chain.
+  * Industries only can evolve linearly.
+  * Mass flows cannot carry energy or other properties - this would require treating flows as objects, and I'm not sure I'm going to do that
+    * Therefore energy flows will not balance
+    * Though fuels are recognized as containing energy, if specified in the fuels lookup dataframe
