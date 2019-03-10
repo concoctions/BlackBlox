@@ -52,34 +52,20 @@ if the data is within excel sheets, will also be used if provided.
 
 """
 
-lookup_var_dict = { 
-    'fuel': dict(data_frame=calc.df_fuels, 
-                 lookup_var='fuelType'),
-    'fossil fuel': dict(data_frame=calc.df_fuels, 
-                 lookup_var='fossil fuel type'),
-    'biofuel': dict(data_frame=calc.df_fuels, 
-                 lookup_var='biofuel type')
-    } 
-"""dictionary of special lookup substance names
-Lookup_var_dict is a dictionary with the names of substance, that when used
-in the unit process calculations file, will trigger the program to replace
-the lookup substance name with the substance name specified in the unit 
-process's variable data table for the scenario currently in use.
+# lookup_var_dict = { 
+#     'fuel': dict(data_frame=calc.df_fuels, 
+#                  lookup_var='fuelType'),
+#     # 'fossil fuel': dict(data_frame=calc.df_fuels, 
+#     #              lookup_var='fossil fuel type'),
+#     # 'biofuel': dict(data_frame=calc.df_fuels, 
+#     #              lookup_var='biofuel type')
+#     } 
 
-Each entry in this dictionary should be formatted with the following:
+lookup_var_dict = copy(dat.lookup_var_dict)
+for var in lookup_var_dict:
+    df = iof.make_df(lookup_var_dict[var]['filepath'], sheet=lookup_var_dict[var]['sheet'])
+    lookup_var_dict[var]['data_frame'] = df
 
-    **key** *(str)*: the substance name to be used in the calcuations file
-
-    **value** *(dict)*: a dictionary of lookup variable attributes, containing:
-        **lookup_var** *(str)*: the header of the column in the unit process 
-        variable file that contains the value with which to replace
-        the lookup substance word.
-
-        **data_frame** *(optional)*: a data frame with additional custom data
-        about the lookup variable, such as to be used in custom functions,
-        below. These are not used elsewhere in BlackBlox.py.
-
-"""
 
 class UnitProcess:
     """UnitProcess(name, var_df=False, calc_df=False, units_df=df_unit_library)

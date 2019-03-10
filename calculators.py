@@ -32,13 +32,14 @@ from molmass import Formula
 from collections import defaultdict
 import io_functions as iof
 import dataconfig as dat
-import custom_lookup as lup
 from bb_log import get_logger
 
 logger = get_logger("Calculators")
 
-# LOOKUP DATA NEEDED BY CALCULATOR
-df_fuels = iof.make_df(dat.lookup_var_file, sheet='Fuels')
+# LOOKUP DATA NEEDED BY CALCULATORS
+df_fuels = None
+if 'fuel' in dat.lookup_var_file_dict:
+    df_fuels = iof.make_df(dat.lookup_var_dict['fuel']['filepath'], sheet=dat.lookup_var_dict['fuel']['sheet'])
 
 # FUNCTIONS USED BY CALCUALTOR FUNCTIONS
 def check_qty(qty, fraction = False):
