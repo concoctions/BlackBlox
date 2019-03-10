@@ -30,6 +30,9 @@ Module Outline:
 
 """
 
+from bb_log import get_logger
+logger = get_logger("config")
+
 # DEFAULT FILEPATHS 
 unit_process_library_file = '/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx' 
 """str: The filepath whre the unit process library file exists.
@@ -41,15 +44,6 @@ unit_process_library_sheet = 'Unit Processes'
 If not an excel worksheet, this variable should be None.
 """
 
-lookup_var_file = '/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx'
-"""The filepath for any custom "lookup substance" variables tables.
-
-See custom_lookup for more detail. If multiple lookup substances are used, 
-the filepath should either be an excel workbook, the specific filepaths 
-should be specified in custom_lookup.py, or this could be convered to a 
-dictionary.
-"""
-
 outdir = 'BlackBlox_output' 
 """str: The default output directory.
 
@@ -57,12 +51,51 @@ Unless an absolute path is specified, BlackBlox will create the directory
 as a subfolder of the current working directory.
 """
 
+filepaths = {'unit_process_library_file': unit_process_library_file,
+             'unit_process_library_sheet': unit_process_library_sheet,
+             'outdir': outdir,
+             }
+        
+
 # USER DATA
-user_data = {"name": "S.E. Tanzer",
-             "affiliation": "TU Delft",
-             "project": "BlackBlox Development",
+user_data = {"name": "Mysterious Stranger",
+             "affiliation": "Mysterious Organization",
+             "project": "Mysterious Project",
 }
 
+
+# LOOKUP VARIABLES
+lookup_var_dict = { 
+    'fuel': dict(filepath='/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx',
+                 sheet='Fuels',
+                 lookup_var='fuelType'),
+    'fossil fuel': dict(filepath='/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx',
+                 sheet='Fuels',
+                 lookup_var='fossil fuel type'),
+    'biofuel': dict(filepath='/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx',
+                 sheet='Fuels',
+                 lookup_var='biofuel type')
+    } 
+"""dictionary of special lookup substance names
+Lookup_var_dict is a dictionary with the names of substance, that when used
+in the unit process calculations file, will trigger the program to replace
+the lookup substance name with the substance name specified in the unit 
+process's variable data table for the scenario currently in use.
+
+Each entry in this dictionary should be formatted with the following:
+
+    **key** *(str)*: the substance name to be used in the calcuations file
+
+    **value** *(dict)*: a dictionary of lookup variable attributes, containing:
+        **lookup_var** *(str)*: the header of the column in the unit process 
+        variable file that contains the value with which to replace
+        the lookup substance word.
+
+        **data_frame** *(optional)*: a data frame with additional custom data
+        about the lookup variable, such as to be used in custom functions,
+        below. These are not used elsewhere in BlackBlox.py.
+
+"""
 
 # COLUMN HEADERS
 # for UNIT LIBRARY tabular data:
@@ -177,3 +210,17 @@ Usable in flow names. Must be used at the beginning or end of the flow name.
 """
 
 default_emissions = ['CO2', 'SO2', 'H2O']
+
+
+def set_config(config_data, user_data):
+    """Allows user to specify config data without changing module default values
+    """
+    if type(config_data) is not type(user_data):
+        raise ValueError(f"user data ({type(user_data)}) is not of the same type as the config data ({type(config_data)})")
+    if isinstance(user_data, dict):
+        for var in user_data:
+            config_data[var] = user_data[var]
+    else:
+        config_data = user_data
+
+    logger.debug(f"{config_data} replaced with {user_data}")
