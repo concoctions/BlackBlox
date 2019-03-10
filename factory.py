@@ -488,7 +488,7 @@ class Factory:
 
         # gets product chains
         for c in self.chain_dict:
-            d_kwargs = dict(view_diagram=False,
+            d_kwargs = dict(view=False,
                             outdir=f'{outdir}/{self.name}')
             diagram_dict = dict(diagram=self.chain_dict[c]['chain'].diagram(**d_kwargs),
                                 process_list=self.chain_dict[c]['chain'].process_list, 

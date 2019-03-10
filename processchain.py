@@ -273,8 +273,8 @@ class ProductChain:
         return io_dicts['i'], io_dicts['o'], intermediate_product_dict, internal_flows
 
 
-    def diagram(self, view_diagram=True, outdir=f'{dat.outdir}/pfd'):
-        """diagram(self, view_diagram=True, outdir=f'{dat.outdir}/pfd')
+    def diagram(self, view=True, save=True, outdir=f'{dat.outdir}/pfd'):
+        """diagram(self, view_diagram=True, save=True, outdir=f'{dat.outdir}/pfd')
         Generates a diagram of the chain
 
         Using Graphviz, takes the unit process names, sets of inflows and 
@@ -293,10 +293,12 @@ class ProductChain:
         for use in larger factory diagrams.
 
         Args:
-            view_diagram(bool): If True, displays the diagram in the system
+            view(bool): If True, displays the diagram in the system
                 viewer. 
                 (Defaults to True)
-            outdir(str): The output directory where to write the files.
+            save (bool): If True, writes the diagram to file
+                (Defaults to True)
+            outdir(str/bool): The output directory where to write the files.
                 (Defaults to the output directory specified in dataconfig in
                 a 'pfd' subfolder.)
 
@@ -368,12 +370,14 @@ class ProductChain:
 
             prevunit = name
 
-        chain_diagram.subgraph(product_flow)        
-        chain_diagram.render()
-        chain_diagram.format = 'svg'
-        chain_diagram.render()
+        chain_diagram.subgraph(product_flow)   
 
-        if view_diagram:
+        if save is True:     
+            chain_diagram.render()
+            chain_diagram.format = 'svg'
+            chain_diagram.render()
+
+        if view is True:
             chain_diagram.view()
 
         logger.debug(f"diagram created for {self.name} chain")
