@@ -58,9 +58,9 @@ as a subfolder of the current working directory.
 """
 
 # USER DATA
-user_data = {"name": "Unknown User",
-             "affiliation": "Unknown Institution",
-             "project": "Unknown Project",
+user_data = {"name": "S.E. Tanzer",
+             "affiliation": "TU Delft",
+             "project": "BlackBlox Development",
 }
 
 
