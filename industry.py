@@ -40,7 +40,10 @@ class Industry:
             name = f[dat.factory_name]
             if dat.factory_filepath in self.factories_df:
                 f_chains_file = f[dat.factory_filepath]
-                f_connections_file = f[dat.factory_filepath]
+                if f[dat.factory_filepath] in dat.no_var:
+                    f_connections_file = None
+                else:
+                    f_connections_file = f[dat.factory_filepath]
             else:
                 f_chains_file = f[dat.f_chain_list_file]
                 f_connections_file = f[dat.f_connections_file]
@@ -66,17 +69,19 @@ class Industry:
             self.factory_dict = factory_dict
             self.product_list = product_list
     
-    def balance(self, products_data=None, products_sheet=None, mass_energy=True, 
+    def balance(self, production_data_file=None, production_data_sheet=None, mass_energy=True, 
                 energy_flows=dat.energy_flows, force_scenario=None, 
                 write_to_xls=True, outdir=dat.outdir, subfolder=True, 
                 foldertime=True, file_id='', diagrams=True):
         """Balances an industry using one scenario for each factory.
+
         """
         logger.debug(f"attempting to balance {self.name }industry")
 
         if self.factory_dict is None:
             self.build()
 
+        # build full filename
         if subfolder is True:
             subfolder = self.name
 
@@ -84,12 +89,13 @@ class Industry:
                                         file_id_list=[file_id],
                                         time=foldertime)
             
-        if products_data is None and products_sheet is None:
+        # get information about production at each factory in the industry
+        if production_data_file is None and production_data_sheet is None:
             raise Exception("Neither data file path nor data sheet provided")
-        elif products_data is None:
-            products_data = self.factory_file
+        elif production_data_file is None:
+            production_data_file = self.factory_file
 
-        product_df = iof.make_df(products_data, sheet=products_sheet)
+        product_df = iof.make_df(production_data_file, sheet=production_data_sheet)
         f_production_dict = defaultdict(dict)
 
         fractions = defaultdict(float) 
@@ -120,7 +126,7 @@ class Industry:
                         scenario = f[dat.f_scenario]
                 
 
-                f_production_dict[i] = dict(main_product_qty=product_qty,
+                f_production_dict[i] = dict(product_qty=product_qty,
                                     scenario=scenario,
                                     write_to_xls=write_to_xls,
                                     outdir=f'{outdir}/factories',
@@ -188,8 +194,8 @@ class Industry:
         scenario_dict = iof.nested_dicts(4)
         
         for scenario in scenario_list:
-            s_dict = self.balance(products_data=products_data, 
-                                  products_sheet=products_sheet, 
+            s_dict = self.balance(production_data_file=products_data, 
+                                  production_data_sheet=products_sheet, 
                                   force_scenario=scenario, 
                                   write_to_xls=write_to_xls, 
                                   outdir=f'{outdir}/{scenario}', 
@@ -237,13 +243,13 @@ class Industry:
                       subfolder=None,
                       foldertime=False)
 
-        start_io = self.balance(products_data=start_data, 
-                                products_sheet=start_sheet, 
+        start_io = self.balance(production_data_file=start_data, 
+                                production_data_sheet=start_sheet, 
                                 outdir=f'{outdir}/start_{start_step}',
                                 **kwargs)
 
-        end_io = self.balance(products_data=end_data, 
-                              products_sheet=end_sheet, 
+        end_io = self.balance(production_data_file=end_data, 
+                              production_data_sheet=end_sheet, 
                               outdir=f'{outdir}/end_{end_step}',
                               **kwargs)
 
@@ -303,13 +309,13 @@ class Industry:
             df_list = [meta_df, cumulative_infows_df, cumulative_outflows_df]
             sheet_list = ["meta", "cum inflows", "cum outflows"]
             df_dict = iof.nested_dicts(2)
-            df_dict['i']['culmulative'] = cumulative_infows_df
-            df_dict['o']['culmulative'] = cumulative_outflows_df
+            # df_dict['i']['culmulative'] = cumulative_infows_df
+            # df_dict['o']['culmulative'] = cumulative_outflows_df
 
 
             for flow in annual_flows:
                 for factory in annual_flows[flow]:
-                    df = iof.make_df(annual_flows[flow][factory], drop_zero=True, sort=True)
+                    df = iof.make_df(annual_flows[flow][factory], drop_zero=False, sort=True)
                     sheet_name = f'{factory} {flow}'
                     df_dict[flow[0]][factory] = df
                     if 'total' in factory: 
@@ -335,37 +341,106 @@ class Industry:
         return annual_flows, cumulative_dict
 
     
-    # def evolve_multistep(self, start_data, step_data, start_sheet=None, step_sheets=None, outdir=dat.outdir):
-    #     step_annual_flows = []
-    #     step_cumulative_flows = [] 
-    #     for step in step_data:
-    #         start_step = False
-    #         end_step = False
-    #         s_kwargs = dict(start_data=None, 
-    #                         start_sheet=None, 
-    #                         end_data=None, 
-    #                         end_sheet=None,
-    #                         start_step=start_step, 
-    #                         end_step=end_step, 
-    #                         mass_energy=True, 
-    #                         energy_flows=dat.energy_flows, 
-    #                         write_to_xls=False, 
-    #                         diagrams=False)
-    #         annual, cumulative = self.evolve(**s_kwargs)
-    #         step_annual_flows.append(annual)
-    #         step_cumulative_flows.append(cumulative)
+    def evolve_multistep(self, steps=None, production_data_files=None, step_sheets=None, file_id='',
+                        outdir=dat.outdir, write_to_xls=True, graph_inflows=False, graph_outflows=False):
+        """the same as evolve, but takes a list of an arbitrary number of steps
+        Args:
+            steps (list[int]): list of numerical time steps
+            production_data_files (list):
+            step_sheets (list)
+        """
 
-    #     merged_annual_flows = iof.nested_dicts(4) #[flow i_o][factory][substance][timestep] = float
-    #     for step_dict in step_annual_flows:
-    #         for i_o, factory_dict in step_dict.items():
-    #             for factory, substance_dict in factory_dict.items():
-    #                 for substance, timestep_dict in substance_dict.items():
-    #                     for timestep, qty in substance_dict.items:
-    #                         merged_annual_flows[i_o][factory][substance][timestep] = qty
+        outdir = iof.build_filedir(outdir, subfolder=self.name,
+                                    file_id_list=['evolve_multistep', steps[0], steps[-1], file_id],
+                                    time=True)       
 
-    #     merged_cumulative_flows = iof.nested_dicts(3) #[flow i_o][factory][substance] = float
-    #     for step_dict in step_cumulative_flows:
-    #         for i_o, factory_dict in step_dict.items():
-    #             for factory, substance_dict in factory_dict.items():
-    #                 for substance, qty in substance_dict.items():
-    #                     merged_cumulative_flows[i_o][factory][substance] = qty
+        step_annual_flows = []
+        step_cumulative_flows = [] 
+
+        if len(steps) > 3:
+            raise ValueError("There should be at least three steps to use this function")
+
+        if production_data_files is None:
+            production_data_files = [None for i in range(len(steps))]
+
+        for i, step in enumerate(steps):
+            if i == 0:
+                pass
+            else:
+                s_kwargs = dict(start_data=production_data_files[i-1], 
+                                start_sheet=step_sheets[i-1], 
+                                end_data=production_data_files[i], 
+                                end_sheet=step_sheets[i],
+                                start_step=prev_step, 
+                                end_step=step, 
+                                mass_energy=True, 
+                                energy_flows=dat.energy_flows, 
+                                write_to_xls=False, 
+                                diagrams=False)
+                annual, cumulative = self.evolve(**s_kwargs)
+                step_annual_flows.append(annual)
+                step_cumulative_flows.append(cumulative)
+            prev_step = step
+
+        merged_annual_flows = iof.nested_dicts(4) #[flow i_o][factory][substance][timestep] = float
+        for step_dict in step_annual_flows:
+            for i_o, factory_dict in step_dict.items():
+                for factory, substance_dict in factory_dict.items():
+                    for substance, timestep_dict in substance_dict.items():
+                        for timestep, qty in timestep_dict.items():
+                            merged_annual_flows[i_o][factory][substance][timestep] = qty
+
+        merged_cumulative_flows = iof.nested_dicts(3) #[flow i_o][factory][substance] = float
+        for step_dict in step_cumulative_flows:
+            for i_o, factory_dict in step_dict.items():
+                for factory, substance_dict in factory_dict.items():
+                    for substance, qty in substance_dict.items():
+                        merged_cumulative_flows[i_o][factory][substance] = qty
+
+        if write_to_xls is True:
+
+            filename = (f'i_{self.name}_{steps[0]}-{steps[-1]}_{file_id}'
+                        f'_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+
+            cumulative_infows_df = iof.make_df(merged_cumulative_flows['inflows'], drop_zero=True)
+            cumulative_infows_df = iof.mass_energy_df(cumulative_infows_df)
+            cumulative_outflows_df = iof.make_df(merged_cumulative_flows['outflows'], drop_zero=True)
+            cumulative_outflows_df = iof.mass_energy_df(cumulative_outflows_df)
+
+            meta_df = iof.metadata_df(user=dat.user_data, name=self.name, 
+                            level="Industry", scenario="n/a", product=" ,".join(self.product_list),
+                            product_qty="n/a", energy_flows=dat.energy_flows)
+
+            df_list = [meta_df, cumulative_infows_df, cumulative_outflows_df]
+            sheet_list = ["meta", "cum inflows", "cum outflows"]
+            df_dict = iof.nested_dicts(2)
+            # df_dict['i']['culmulative'] = cumulative_infows_df
+            # df_dict['o']['culmulative'] = cumulative_outflows_df
+
+
+            for flow in merged_annual_flows:
+                for factory in merged_annual_flows[flow]:
+                    df = iof.make_df(merged_annual_flows[flow][factory], drop_zero=False, sort=True)
+                    sheet_name = f'{factory} {flow}'
+                    df_dict[flow[0]][factory] = df
+                    if 'total' in factory: 
+                        df_list.insert(1, df)
+                        sheet_list.insert(1,sheet_name)
+                    else:
+                        df_list.append(df)
+                        sheet_list.append(sheet_name)
+            
+            iof.write_to_excel(df_list, sheet_list=sheet_list, 
+                                filedir=outdir, filename=filename)
+
+        
+        if type(graph_outflows) is list:
+            for flow in graph_outflows:
+                iof.plot_annual_flows(df_dict['o'], flow, outdir)
+
+        if type(graph_inflows) is list:
+            for flow in graph_outflows:
+                iof.plot_annual_flows(df_dict['i'], flow, outdir)
+
+        
+        return merged_annual_flows, merged_cumulative_flows
