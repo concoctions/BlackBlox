@@ -26,9 +26,9 @@ copyright = '2019, S.E. Tanzer'
 author = 'S.E. Tanzer'
 
 # The short X.Y version
-version = 'blackblox v0.2'
+version = 'blackblox v0.0.2'
 # The full version, including alpha/beta/rc tags
-release = '0.2.0'
+release = '0.0.2'
 
 
 # -- General configuration ---------------------------------------------------
