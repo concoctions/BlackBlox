@@ -401,8 +401,9 @@ def write_to_excel(df_or_df_list, sheet_list=None, filedir=dat.outdir,
 
 def format_and_save_plot(filepath):
    plt.style.use('tableau-colorblind10')
-   plt.save(f"{filepath}.png", format='png', dpi=300)
-   plt.save(f"{filepath}.svg", format='svg')
+   plt.grid(True)
+   plt.savefig(f"{filepath}.png", format='png', dpi=300)
+   plt.savefig(f"{filepath}.svg", format='svg')
 
 
 def plot_annual_flows(df_dict, flow, outdir, unit_dict=dat.default_units):
