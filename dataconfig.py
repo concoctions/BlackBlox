@@ -33,29 +33,26 @@ Module Outline:
 from bb_log import get_logger
 logger = get_logger("config")
 
+
+
 # DEFAULT FILEPATHS 
-unit_process_library_file = '/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx' 
+unit_process_library_file = "demoData/toy cement/toycement_unitlibrary.xlsx" 
 """str: The filepath whre the unit process library file exists.
 """
 
-unit_process_library_sheet = 'Unit Processes'
+unit_process_library_sheet = "Unit Processes"
 """The worksheet of the unit process library, if in an Excel workbook
 
 If not an excel worksheet, this variable should be None.
 """
 
-outdir = 'BlackBlox_output' 
-"""str: The default output directory.
+outdir = 'demo_output' 
+"""str: The file output directory.
 
 Unless an absolute path is specified, BlackBlox will create the directory 
 as a subfolder of the current working directory.
-"""
+"""        
 
-filepaths = {'unit_process_library_file': unit_process_library_file,
-             'unit_process_library_sheet': unit_process_library_sheet,
-             'outdir': outdir,
-             }
-        
 
 # USER DATA
 user_data = {"name": "Mysterious Stranger",
@@ -66,10 +63,16 @@ user_data = {"name": "Mysterious Stranger",
 
 # LOOKUP VARIABLES
 lookup_var_dict = { 
-    'fuel': dict(filepath='/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx',
+    'fuel': dict(filepath='demoData/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='fuelType'),
-    } 
+    'fossil fuel': dict(filepath='demoData/fuels.xlsx',
+                 sheet='Fuels',
+                 lookup_var='fossil fuel type'),
+    'biofuel': dict(filepath='demoData/fuels.xlsx',
+                 sheet='Fuels',
+                 lookup_var='biofuel type'),
+} 
 """dictionary of special lookup substance names
 Lookup_var_dict is a dictionary with the names of substance, that when used
 in the unit process calculations file, will trigger the program to replace
@@ -211,17 +214,3 @@ If used to specify an industry-wide total product production quantity,
 each factory producing that product should specify their production quantity 
 as a fraction of that total as a decimal between 0 and 1.
 """
-
-
-def set_config(config_data, user_data):
-    """Allows user to specify config data without changing module default values
-    """
-    if type(config_data) is not type(user_data):
-        raise ValueError(f"user data ({type(user_data)}) is not of the same type as the config data ({type(config_data)})")
-    if isinstance(user_data, dict):
-        for var in user_data:
-            config_data[var] = user_data[var]
-    else:
-        config_data = user_data
-
-    logger.debug(f"{config_data} replaced with {user_data}")
