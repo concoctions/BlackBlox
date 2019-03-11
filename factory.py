@@ -484,7 +484,7 @@ class Factory:
         """
 
         if outdir == dat.outdir:
-            outdir = f'{outdir}/{dat.outdir}/{self.name}_{datetime.now().strftime("%Y-%m-%d_%H%M")}/pfd'
+            outdir = f'{outdir}/{self.name}_{datetime.now().strftime("%Y-%m-%d_%H%M")}/pfd'
 
         if not self.chain_dict:
             self.build()
