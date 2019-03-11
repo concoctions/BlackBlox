@@ -182,8 +182,12 @@ class ProductChain:
                     raise ValueError("i_o must start with 'i' for inflow or 'o' for outflow")
             if product is False:
                 raise ValueError(f"If specifying a unit process, product cannot be False")
-            if product not in chain[unit_index][i_o]:
-                raise KeyError(f"{product} is not an {i_o}-flow of {start.name}")
+            if i_o == 'i':
+                if product not in chain[unit_index]['process'].inflows:
+                    raise KeyError(f"{product} is not an {i_o}-flow of {start.name}")
+            elif i_o == 'o':
+                if product not in chain[unit_index]['process'].outflows:
+                    raise KeyError(f"{product} is not an {i_o}-flow of {start.name}")
         
         else:
             if product is False:
