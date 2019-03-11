@@ -503,23 +503,28 @@ class Factory:
             origin_chain = c[dat.origin_chain]
 #            o_io = iof.clean_str(c[dat.origin_io][0])  # currently unused
             d_io = iof.clean_str(c[dat.dest_io][0])
+
+        
+            connection_color = 'blue'
             if d_io == 'i':
                 dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][0]['process'].name
             elif d_io == 'o':
                 dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][-1]['process'].name
+            if dat.dest_unit in c:
+                if c[dat.dest_unit] in [u['process'].name for u in factory_diagrams[c[dat.dest_chain]]['process_list']]:
+                    dest_chain = c[dat.dest_chain]+c[dat.dest_unit]
+                    connection_color = 'green'
 
-            
             if c[dat.origin_unit] == dat.connect_all:
-                origin_list = [c[dat.origin_chain]+p['process'].name for 
-                p in factory_diagrams[origin_chain]['process_list']]
+                origin_list = [c[dat.origin_chain]+p['process'].name for p in factory_diagrams[origin_chain]['process_list']]
             else:
                 origin_list = [c[dat.origin_chain]+c[dat.origin_unit]]
 
             for origin in origin_list:
                 if d_io == 'i':
-                    factory_diagram.edge(origin, dest_chain, label=product)
+                    factory_diagram.edge(origin, dest_chain, label=product, color=connection_color, fontcolor=connection_color)
                 elif d_io == 'o':
-                    factory_diagram.edge(dest_chain, origin, label=product)
+                    factory_diagram.edge(dest_chain, origin, label=product, color=connection_color, fontcolor=connection_color)
                 
 
         # add inflows and outflows
