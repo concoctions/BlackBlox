@@ -22,6 +22,7 @@ logs/
 *.gv.png
 outputFiles/
 BlackBlox_output/
+demo_output/
 
 #others
 ~$*
