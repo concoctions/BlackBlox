@@ -1,5 +1,5 @@
 about_blackblox = {"name": "blackblox.py",
-                   "version": "0.0.2",
+                   "version": "0.0.2 (unreleased)",
                    "url": "OFFLINE",
                    "documentation_url": "OFFLINE",
                    "github_url": "OFFLINE",

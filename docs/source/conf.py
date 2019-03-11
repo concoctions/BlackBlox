@@ -28,7 +28,7 @@ author = 'S.E. Tanzer'
 # The short X.Y version
 version = 'blackblox v0.0.2'
 # The full version, including alpha/beta/rc tags
-release = '0.0.2'
+release = '0.0.2 (unreleased)'
 
 
 # -- General configuration ---------------------------------------------------
