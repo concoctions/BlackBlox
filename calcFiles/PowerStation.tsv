@@ -1,4 +1,0 @@
-KnownQty	k_QtyFrom	UnknownQty	u_QtyTo	Calculation	Variable
-heatEnergy	tmp	electricity	output	Ratio	generatorEff
-fuel	input	heatEnergy	tmp	Combustion	combustEff
-heatEnergy	tmp	waste heat	output	Remainder	generatorEff

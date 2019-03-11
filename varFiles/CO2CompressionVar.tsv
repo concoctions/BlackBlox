@@ -1,6 +1,0 @@
-scenario	elecDemand	compressionLoss
-meta-units	mj/t CO2	t/t
-default	300	0.05
-EU-bat	250	0.02
-EU-typ	300	0.06
-EU-old	450	0.1

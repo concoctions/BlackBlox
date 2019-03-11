@@ -1,5 +1,0 @@
-KnownQty	k_QtyFrom	UnknownQty	u_QtyTo	Calculation	Variable
-meal	output	CaCO3	input	Ratio	CaCO3
-meal	output	clay	input	Ratio	Clay
-meal	output	flyAsh	input	Ratio	flyAsh
-meal	output	electricity	input	Ratio	elecDemand

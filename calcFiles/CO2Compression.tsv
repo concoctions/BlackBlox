@@ -1,4 +1,0 @@
-KnownQty	k_QtyFrom	UnknownQty	u_QtyTo	Calculation	Variable	meta-comment
-capturedCO2	input	CO2	output	Ratio	compressionLoss
-capturedCO2	input	compressedCO2	output	Remainder	compressionLoss	compressed CO2 is input CO2 less the compressionLosses
-capturedCO2	input	electricity	input	Ratio	elecDemand

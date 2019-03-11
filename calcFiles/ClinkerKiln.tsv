@@ -1,8 +1,0 @@
-KnownQty	k_QtyFrom	UnknownQty	u_QtyTo	Calculation	Variable
-clinker	output	CaO	tmp	Ratio	CaO_Clinker
-CaO	tmp	CaCO3	tmp	MolMassRatio	NONE
-CaCO3	tmp	meal	input	Ratio	CaCO3_Meal
-clinker	output	energyFuel	tmp	Ratio	fuelDemand
-CaCO3	tmp	CO2	output	MolMassRatio	NONE
-energyFuel	tmp	fuel	input	Combustion	combustEff
-clinker	output	electricity	input	Ratio	elecDemand

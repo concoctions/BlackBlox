@@ -1,4 +1,0 @@
-ChainName	ChainType	Product	Product_IO	ConnectsTo	ChainFile
-cement	main	cement	outflow	gate  cementProdFlow.tsv
-CO2capture	aux	CO2	inflow	kiln	CO2CapFlow.tsv
-power	aux-multi	electricity	outflow	all	powerStation.tsv

@@ -1,5 +1,0 @@
-KnownQty	k_QtyFrom	UnknownQty	u_QtyTo	Calculation	Variable
-CO2	input	capturedCO2	output	Ratio	captureEff
-CO2	input	CO2processed	tmp	ReturnValue	none
-CO2	input	CO2	output	Remainder	captureEff
-CO2processed	tmp	electricity	input	Ratio	elecDemand
