@@ -227,7 +227,7 @@ while stop == '':
 ##############################################################################
 ## PROCESS CHAIN TEST
 ##############################################################################
-factory_file = "demoData/toy cement/factories/cementFactory_withCCS.xlsx"
+factory_file = "demo_data/toy cement/factories/cementFactory_withCCS.xlsx"
 df_cols = ['mixer', 'kiln', 'blender', 'chain totals']
 
 print("\n\n\nPROCESS CHAIN TEST - outputs to console. ")
@@ -375,7 +375,7 @@ while stop == '':
 ###############################################################################
 ## INDUSTRY TEST
 ###############################################################################
-industry_file = "demoData/toy cement/cementIndustry.xlsx"
+industry_file = "demo_data/toy cement/cementIndustry.xlsx"
 
 print('\n\n\nINDUSTRY TEST - outputs to file.')
 stop = input('\nPress enter or type a character to skip: ')
@@ -413,7 +413,7 @@ while stop == '':
     for s in s_list:
         print("  ",s)
 
-    print("\nWorking...")
+    print("\nworking...")
     
 
     s_kwargs = dict(scenario_list=s_list, 
@@ -429,7 +429,7 @@ while stop == '':
     stop = input("\n\n\nPress enter to model the cement industry from 1990 to 2010 and generate outflow graphs for cement and CO2: ")
     if stop != '':
         break  
-    print("\nWorking....\n")
+    print("\nworking....\n")
 
     e_kwargs = dict(start_sheet='1990', 
                     end_sheet='2010',
@@ -445,7 +445,7 @@ while stop == '':
     stop = input("\n\n\nPress enter to model the cement industry from 1990 to 2000 to 2010 and generate outflow graphs for cement and CO2: ")
     if stop != '':
         break 
-    print("\nWorking....")
+    print("\nworking....")
 
     m_kwargs = dict(steps=[1990,2000,2010], 
                     production_data_files=None, 

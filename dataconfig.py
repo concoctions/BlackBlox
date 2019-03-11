@@ -36,7 +36,7 @@ logger = get_logger("config")
 
 
 # DEFAULT FILEPATHS 
-unit_process_library_file = "demoData/toy cement/toycement_unitlibrary.xlsx" 
+unit_process_library_file = "demo_data/toy cement/toycement_unitlibrary.xlsx" 
 """str: The filepath whre the unit process library file exists.
 """
 
@@ -63,13 +63,13 @@ user_data = {"name": "Mysterious Stranger",
 
 # LOOKUP VARIABLES
 lookup_var_dict = { 
-    'fuel': dict(filepath='demoData/fuels.xlsx',
+    'fuel': dict(filepath='demo_data/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='fuelType'),
-    'fossil fuel': dict(filepath='demoData/fuels.xlsx',
+    'fossil fuel': dict(filepath='demo_data/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='fossil fuel type'),
-    'biofuel': dict(filepath='demoData/fuels.xlsx',
+    'biofuel': dict(filepath='demo_data/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='biofuel type'),
 } 
