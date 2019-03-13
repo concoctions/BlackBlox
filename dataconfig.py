@@ -46,7 +46,7 @@ unit_process_library_sheet = "Unit Processes"
 If not an excel worksheet, this variable should be None.
 """
 
-outdir = 'output' 
+outdir = 'output/demo' 
 """str: The file output directory.
 
 Unless an absolute path is specified, BlackBlox will create the directory 

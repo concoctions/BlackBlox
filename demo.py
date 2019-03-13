@@ -12,7 +12,7 @@ import industry as ind
 
 
 # USER DATA CONFIG
-dat.outdir = "demo_output"
+dat.outdir = "output/demo"
 
 dat.user_data = {"name": "S.E. Tanzer",
              "affiliation": "TU Delft",
