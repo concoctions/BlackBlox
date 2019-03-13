@@ -47,7 +47,7 @@ while stop == '':
     if stop != '':
         break
     unit_list =uni.df_unit_library.index.tolist()
-    kiln = uni.UnitProcess('kiln')
+    kiln = uni.UnitProcess('demo_kiln')
     qty = round(random.uniform(10, 1000),2)
     product = kiln.default_product
 
@@ -224,7 +224,7 @@ while stop == '':
 ##############################################################################
 ## PROCESS CHAIN TEST
 ##############################################################################
-factory_file = "demo_data/toy cement/factories/cementFactory_withCCS.xlsx"
+factory_file = "data/demo/factories/cementFactory_withCCS.xlsx"
 df_cols = ['mixer', 'kiln', 'blender', 'chain totals']
 
 print("\n\n\nPROCESS CHAIN TEST - outputs to console. ")
@@ -285,7 +285,7 @@ while stop == '':
     if stop != '':
         break  
 
-    inflows, outflows, int_flows, int_rows = cement_chain.balance(0.8, product="clinker", i_o='outflow', unit_process='kiln', scenario="default")
+    inflows, outflows, int_flows, int_rows = cement_chain.balance(0.8, product="clinker", i_o='outflow', unit_process='demo_kiln', scenario="default")
     inflows = pan.DataFrame(inflows)
     inflows = inflows[df_cols]
     outflows = pan.DataFrame(outflows)
@@ -351,7 +351,7 @@ while stop == '':
     inflows, outflows = cement_factory.balance(product_qty = 10.68249258, 
                                                 product = 'fuel',
                                                 product_io = 'inflow',
-                                                product_unit = 'kiln',
+                                                product_unit = 'demo_kiln',
                                                 scenario=dat.default_scenario, 
                                                 write_to_xls=True, 
                                                 outdir=dat.outdir, 
@@ -372,7 +372,7 @@ while stop == '':
 ###############################################################################
 ## INDUSTRY TEST
 ###############################################################################
-industry_file = "demo_data/toy cement/cementIndustry.xlsx"
+industry_file = "data/demo/cementIndustry.xlsx"
 
 print('\n\n\nINDUSTRY TEST - outputs to file.')
 stop = input('\nPress enter or type a character to skip: ')
