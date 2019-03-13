@@ -59,13 +59,14 @@ for var in lookup_var_dict:
 
 
 class UnitProcess:
-    """UnitProcess(name, var_df=False, calc_df=False, units_df=df_unit_library)
+    """UnitProcess(u_id, display_name=False, var_df=False, calc_df=False, units_df=df_unit_library)
     Unit processes have inflows and outflows with defined relationships.
 
     The relationships of the unit process flows must be defined so that
 
     Args:
-        name (str): Unique name for the process
+        u_id (str): the unique ID of the process
+        name (str/bool): a name 
         var_df (str/dataframe/bool): Optional. Dataframe or filepath tof
             tabular data of the variable values to use when balancing the 
             unit process. If False, __init__ uses df_unit_library to fetch 
@@ -82,7 +83,7 @@ class UnitProcess:
             (Defaults to df_unit_library)
 
     Attributes:
-        name (str): Name of process
+        display_name (str): Name of process
         var_df (dataframe): Dataframe of relationship variable values
             indexed by scenario name.
         calc_df (dataframe): Dataframe of relationships between unit
@@ -99,32 +100,40 @@ class UnitProcess:
     """
 
     def __init__(self, 
-                 name, 
+                 u_id,
+                 display_name=False, 
                  var_df=False, 
                  calc_df=False, 
                  units_df=df_unit_library):
-        logger.debug(f"creating unit process object for {name}")
+        logger.debug(f"creating unit process object for {u_id}")
 
-        self.name = name
+        self.u_id = u_id
+
+        if display_name is not False:
+            self.name = display_name
+        elif dat.unit_name in units_df:
+            self.name = units_df.at[u_id, dat.unit_name]
+        else:
+            self.name = u_id
 
         if var_df is not False:
             self.var_df = iof.make_df(var_df)
         else:
-            v_sheet = iof.check_for_col(units_df, dat.var_sheetname, name)
-            self.var_df = iof.make_df(units_df.at[name, dat.var_filepath], 
+            v_sheet = iof.check_for_col(units_df, dat.var_sheetname, u_id)
+            self.var_df = iof.make_df(units_df.at[u_id, dat.var_filepath], 
                                       sheet=v_sheet)
 
         if calc_df is not False:
             self.calc_df = calc_df
         else:
-            c_sheet = iof.check_for_col(units_df, dat.calc_sheetname, name)
-            self.calc_df = iof.make_df(units_df.at[name, dat.calc_filepath], 
+            c_sheet = iof.check_for_col(units_df, dat.calc_sheetname, u_id)
+            self.calc_df = iof.make_df(units_df.at[u_id, dat.calc_filepath], 
                                        sheet=c_sheet, 
                                        index=None)
 
         #create sets of process inflows and outflows
-        self.default_product = units_df.at[name, dat.unit_product]
-        self.default_io = units_df.at[name, dat.unit_product_io]
+        self.default_product = units_df.at[u_id, dat.unit_product]
+        self.default_io = units_df.at[u_id, dat.unit_product_io]
         
         self.inflows = set() 
         self.outflows = set() 

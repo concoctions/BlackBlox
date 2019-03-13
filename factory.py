@@ -524,8 +524,10 @@ class Factory:
                 elif d_io == 'o':
                     dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][-1]['process'].name
                 if dat.dest_unit in c:
-                    if c[dat.dest_unit] in [u['process'].name for u in factory_diagrams[c[dat.dest_chain]]['process_list']]:
-                        dest_chain = c[dat.dest_chain]+c[dat.dest_unit]
+                    process_id_list = [u['process'].u_id for u in factory_diagrams[c[dat.dest_chain]]['process_list']]
+                    if c[dat.dest_unit] in [u['process'].u_id for u in factory_diagrams[c[dat.dest_chain]]['process_list']]:
+                        unit_index = process_id_list.index(c[dat.dest_unit])
+                        dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][unit_index]['process'].name
                         connection_color = 'green'
 
                 if c[dat.origin_unit] == dat.connect_all:

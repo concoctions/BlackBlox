@@ -36,7 +36,7 @@ logger = get_logger("config")
 
 
 # DEFAULT FILEPATHS 
-unit_process_library_file = "demo_data/toy cement/toycement_unitlibrary.xlsx" 
+unit_process_library_file = "data/unitlibrary.xlsx" 
 """str: The filepath whre the unit process library file exists.
 """
 
@@ -46,7 +46,7 @@ unit_process_library_sheet = "Unit Processes"
 If not an excel worksheet, this variable should be None.
 """
 
-outdir = 'demo_output' 
+outdir = 'output' 
 """str: The file output directory.
 
 Unless an absolute path is specified, BlackBlox will create the directory 
@@ -63,13 +63,13 @@ user_data = {"name": "Mysterious Stranger",
 
 # LOOKUP VARIABLES
 lookup_var_dict = { 
-    'fuel': dict(filepath='demo_data/fuels.xlsx',
+    'fuel': dict(filepath='data/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='fuelType'),
-    'fossil fuel': dict(filepath='demo_data/fuels.xlsx',
+    'fossil fuel': dict(filepath='data/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='fossil fuel type'),
-    'biofuel': dict(filepath='demo_data/fuels.xlsx',
+    'biofuel': dict(filepath='data/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='biofuel type'),
 } 
@@ -111,7 +111,8 @@ default_emissions = ['CO2', 'SO2', 'H2O']
 
 # COLUMN HEADERS
 # for UNIT LIBRARY tabular data:
-unit_name_col = 'name'
+unit_id = 'ID'
+unit_name = 'display name'
 unit_product = 'product'
 unit_product_io = 'productType'
 var_filepath = 'varFile'
@@ -135,7 +136,7 @@ combustion_efficiency_var = 'combustEff'
 # for production CHAIN linkages tabular data:
 inflow_col = 'Inflow'
 outflow_col = 'Outflow'
-process_col = 'Process'
+process_col = 'Process_ID'
 
 # for FACTORY chain list tabular data:
 chain_name = 'ChainName'

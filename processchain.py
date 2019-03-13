@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-""" Product Chain class
+""" Chain class
 
 This module contains the Product Chain class, which are objects that 
 link together (and can generate) a linear sequence of unit processes.
@@ -75,6 +75,7 @@ class ProductChain:
         self.default_product = False
         self.process_list = False
         self.process_names = False
+        self.process_ids = False
         self.process_dict = False
     
     def build(self):
@@ -89,6 +90,7 @@ class ProductChain:
         logger.debug(f"initializing chain for {self.name}")
         process_list = []
         process_names = []
+        process_ids = []
         process_dict = dict()
 
         for index, process_row in self.process_chain_df.iterrows():
@@ -104,11 +106,13 @@ class ProductChain:
                 raise KeyError(f"{outflow} not found in {process.name} outflows")
  
             process_list.append(dict(process=process, i=inflow, o=outflow))
+            process_ids.append(process.u_id)
             process_names.append(process.name)
-            process_dict[process.name] = process
+            process_dict[process.u_id] = process
             
         self.process_list = process_list
         self.process_names = process_names
+        self.process_ids = process_ids
         self.process_dict = process_dict
 
         if not self.default_product:
@@ -166,8 +170,8 @@ class ProductChain:
         chain = self.process_list.copy()
 
         if unit_process is not False:
-            if unit_process in self.process_names:
-                unit_index = self.process_names.index(unit_process)
+            if unit_process in self.process_ids:
+                unit_index = self.process_ids.index(unit_process)
                 upstream = chain[0:unit_index]
                 upstream.reverse()
                 downstream = chain[unit_index+1:]
