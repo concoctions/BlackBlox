@@ -25,9 +25,9 @@ dat.default_units = {'mass': 'tonnes',
 
 print("\n\nWELCOME\n\n")
 
-input("\n\n\nPress enter to start demo. \n")
+input("\n\n\nPress enter to start demo: ")
 
-print(f"\nblackblox.py v0.0.2 Demonstration")
+print(f"\n\nblackblox.py v0.0.2 Demonstration")
 print(f"{datetime.now().strftime('%A, %d %B %Y at %H:%M')}")
 
 print(f"\nUsing unit process data from {dat.unit_process_library_file}")
@@ -35,7 +35,8 @@ print(f"and outputting any files to {dat.outdir}")
 
 print('\nNOTE: Throughout this demo, directly pressing ENTER moves you forward one step,\n' 
         'while entering a character skips to the next part of the demonstration')
-    
+
+input('\n\n\nPress enter to continue: ')   
 ##############################################################################
 ## UNIT PROCESS TEST
 ##############################################################################
@@ -126,8 +127,7 @@ while stop == '':
             print(f'  {k}: {v}')
     print(f"\nRECYCLE FLOW leftover: {leftover}")
             
-    stop = input(f"\n\n\nPress enter to balance {kiln.name} on a random outflow"
-        "\nusing its quantity from the initial balance: ")
+    stop = input(f"\n\n\nPress enter to balance {kiln.name} on a random outflow: ")
     if stop != '':
         break
 
@@ -214,12 +214,13 @@ while stop == '':
     for k, v in r1_in.items():
         print(f'  {k}: {v}')
     print("\nrecalculated outflow quantities:")
-    for k, v in r1_in.items():
+    for k, v in r1_out.items():
         print(f'  {k}: {v}')
     print(f"\nRECYCLE FLOW leftover: {leftover}")
 
     stop = 'stop'
     
+input('\n\n\nPress enter to continue: ')  
 
 ##############################################################################
 ## PROCESS CHAIN TEST
@@ -259,7 +260,7 @@ while stop == '':
     chain_outflows = chain_outflows[df_cols]
     chain_outflows = iof.mass_energy_df(chain_outflows)
 
-    print("\ncement chain inflows:\n", chain_inflows,)
+    print("\ncement chain inflows:\n", chain_inflows)
     print("\ncement chain outflows:\n", chain_outflows)
 
     print("\ncement chain intermediate flows:")
@@ -297,6 +298,8 @@ while stop == '':
 
 
     stop = 'stop'
+
+input('\n\n\nPress enter to continue: ')  
 
 ##############################################################################
 ## FACTORY TEST
@@ -368,6 +371,7 @@ while stop == '':
 
     stop = 'stop'
 
+input('\n\n\nPress enter to continue: ')  
 
 ###############################################################################
 ## INDUSTRY TEST
