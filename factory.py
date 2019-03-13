@@ -523,17 +523,19 @@ class Factory:
                     dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][0]['process'].name
                 elif d_io == 'o':
                     dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][-1]['process'].name
-                if dat.dest_unit in c:
-                    process_id_list = [u['process'].u_id for u in factory_diagrams[c[dat.dest_chain]]['process_list']]
+                if dat.dest_unit in c: # if there's a destination unit, get the process index in the process list and them the name from the process
+                    d_process_id_list = [u['process'].u_id for u in factory_diagrams[c[dat.dest_chain]]['process_list']]
                     if c[dat.dest_unit] in [u['process'].u_id for u in factory_diagrams[c[dat.dest_chain]]['process_list']]:
-                        unit_index = process_id_list.index(c[dat.dest_unit])
-                        dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][unit_index]['process'].name
+                        d_unit_index = d_process_id_list.index(c[dat.dest_unit])
+                        dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][d_unit_index]['process'].name
                         connection_color = 'green'
 
                 if c[dat.origin_unit] == dat.connect_all:
                     origin_list = [c[dat.origin_chain]+p['process'].name for p in factory_diagrams[origin_chain]['process_list']]
                 else:
-                    origin_list = [c[dat.origin_chain]+c[dat.origin_unit]]
+                    o_process_id_list = [u['process'].u_id for u in factory_diagrams[c[dat.origin_chain]]['process_list']]
+                    o_unit_index = o_process_id_list.index(c[dat.origin_unit])
+                    origin_list = [c[dat.origin_chain]+factory_diagrams[c[dat.origin_chain]]['process_list'][o_unit_index]['process'].name]
 
                 for origin in origin_list:
                     if d_io == 'i':
