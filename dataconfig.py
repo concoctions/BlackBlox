@@ -188,7 +188,7 @@ If present in the variables data index, the default scenario will be used
 when a scenario of variables is not otherwise specified.
 """
 
-no_var = ['none', 'false', 'na', '-', '--', '', 'nan', 0, '0', None, False, float('nan')] 
+no_var = ['None', 'none', 'false', 'na', '-', '--', '', 'nan', 0, '0', None, False, float('nan')] 
 """str: indicator that no variable is used in the calculation
 
 Usable in the unit process calculation table, to indicate that the 
