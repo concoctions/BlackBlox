@@ -1,6 +1,5 @@
 #VS code stuff
 .vscode/
-scratch.py
 
 # Byte-compiled / optimized / DLL files
 *.py[cod]
@@ -27,3 +26,4 @@ demo_output/
 #others
 ~$*
 scratch.xlsx
+scratch.py
