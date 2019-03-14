@@ -11,7 +11,7 @@ balance processes balance on an arbitrary known quantity even though
 the user is specifying only a single-directional relationship between substance
 quantities in the relationships table.
 
-Note, the use of \*\*kwargs in the function argument calls is required to 
+Note, the use of **kwargs in the function argument calls is required to 
 allow the functions to work properly, since all possible calculatr variables  
 are provided to the calculator function in unitprocess.py, whether or
 not they are used by that specific function.
@@ -314,18 +314,69 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
             raise ValueError(f'IMBALANCED! Total In:  {total_in} v Total Out: {total_out}')
 
     else:
-        logger.debug(f"Total Inflow Mass:  {totals[0]}")
-        logger.debug(f"Total Outflow Mass: {totals[1]}")
+        logger.debug(f"Total Inflow:  {totals[0]}")
+        logger.debug(f"Total Outflow: {totals[1]}")
         logger.debug(f"Inflows:  {flows[0]}")
         logger.debug(f"Outflows: {flows[1]}")
 
     return total_in, total_out
 
 
+def Energy_Content(known_substance, qty, unknown_substance, LHV=False, fuels_df=df_fuels, **kwargs):
+    if (known_substance.split('__')[0] not in fuels_df.index and unknown_substance.split('__')[0] not in fuels_df.index):
+        raise Exception("Neither {} nor {} is a known_substance fuel type".format(known_substance, unknown_substance))
+
+    if (known_substance.split('__')[0] in fuels_df.index and unknown_substance.split('__')[0] in fuels_df.index):
+        raise Exception("Both {} and {} are known_substance fuel types.".format(known_substance, unknown_substance))
+
+    if LHV is True:
+        HV = 'LHV'
+    else:
+        HV = 'HHV'
+
+    if known_substance.split('__')[0] in fuels_df.index:
+        fuel_type = known_substance.split('__')[0]
+        fuel_qty = qty
+        energy_qty = qty * fuels_df.at[fuel_type, HV] # total energy in fuel
+        return_qty = energy_qty # useful energy after combustion
+
+    else:
+        energy_qty = qty
+        fuel_type = unknown_substance.split('__')[0]
+        fuel_qty = energy_qty / fuels_df.at[fuel_type, HV]
+        return_qty = fuel_qty
+
+    return return_qty
+
+# def Energy_Content_LHV(known_substance, qty, unknown_substance, fuels_df=df_fuels, **kwargs):
+#     if (known_substance not in fuels_df.index and unknown_substance not in fuels_df.index):
+#         raise Exception(f"Neither {known_substance} nor {unknown_substance} is a known fuel type")
+
+#     if (known_substance in fuels_df.index and unknown_substance in fuels_df.index):
+#         raise Exception(f"Both {known_substance} and {unknown_substance} are known fuel types.")
+
+#     if known_substance in fuels_df.index:
+#         fuel_type = known_substance
+#         fuel_qty = qty
+#         energy_qty = qty * fuels_df.at[fuel_type, 'LHV'] 
+#         return_qty = energy_qty 
+#         logger.debug(f"{energy_qty} of energy for {fuel_type} calculated")
+
+#     else:
+#         energy_qty = qty
+#         fuel_type = unknown_substance
+#         fuel_qty = energy_qty / fuels_df.at[fuel_type, 'LHV']
+#         return_qty = fuel_qty
+#         logger.debug(f"{fuel_qty} of fuel for {fuel_type} calculated")
+
+
+#     return return_qty
+
+
 def Combustion(known_substance, qty, unknown_substance, var, 
                emissions_dict=False, inflows_dict=False, 
                emissions_list = dat.default_emissions, fuels_df=df_fuels, 
-               **kwargs):
+               LHV=False, write_energy_in=True, **kwargs):
     """Calculates fuel or energy quantity and combustion emissions
 
     This is a function designed to calculate the quantity of fuel 
@@ -388,32 +439,37 @@ def Combustion(known_substance, qty, unknown_substance, var,
     """
     logger.debug("Attempting combustion calcuation for {} using qty {} of {} and efficiency of {}".format(unknown_substance, qty, known_substance, var))
 
-    if (known_substance not in fuels_df.index 
-        and unknown_substance not in fuels_df.index):
+    if (known_substance.split('__')[0] not in fuels_df.index 
+        and unknown_substance.split('__')[0] not in fuels_df.index):
         raise Exception("Neither {} nor {} is a known_substance fuel type".format(known_substance, unknown_substance))
 
-    if (known_substance in fuels_df.index 
-        and unknown_substance in fuels_df.index):
+    if (known_substance.split('__')[0] in fuels_df.index 
+        and unknown_substance.split('__')[0] in fuels_df.index):
         raise Exception("Both {} and {} are known_substance fuel types.".format(known_substance, unknown_substance))
 
     
-    if var is None:
+    if var is None or var in dat.no_var:
         combust_eff = 1.0
     elif var < 0 or var > 1:
         raise ValueError(f'quantity should be between 0 and 1. Currently: {qty}')
     else:
         combust_eff = var
 
-    if known_substance in fuels_df.index:
-        fuel_type = known_substance
+    if LHV is True:
+        HV = 'LHV'
+    else:
+        HV = 'HHV'
+
+    if known_substance.split('__')[0] in fuels_df.index:
+        fuel_type = known_substance.split('__')[0]
         fuel_qty = qty
-        energy_qty = qty * fuels_df.at[fuel_type, 'HHV'] # total energy in fuel
+        energy_qty = qty * fuels_df.at[fuel_type, HV] # total energy in fuel
         return_qty = energy_qty * combust_eff # useful energy after combustion
 
     else:
-        fuel_type = unknown_substance
+        fuel_type = unknown_substance.split('__')[0]
         energy_qty = qty * (1/combust_eff) # total energy in fuel
-        fuel_qty = energy_qty / fuels_df.at[fuel_type, 'HHV']
+        fuel_qty = energy_qty / fuels_df.at[fuel_type, HV]
         return_qty = fuel_qty
 
     combustion_emissions = dict()
@@ -426,30 +482,51 @@ def Combustion(known_substance, qty, unknown_substance, var,
     if type(emissions_dict) == defaultdict:
         if type(inflows_dict) == defaultdict:
             inflows_dict['O2'] += sum(combustion_emissions.values()) - fuel_qty # closes mass balance
-            inflows_dict[f'energy in {fuel_type}'] = energy_qty
+            if write_energy_in is True:
+                inflows_dict[f'energy in combusted {fuel_type} ({HV})'] = energy_qty
         emissions_dict['waste heat'] += waste_heat
         for emission in combustion_emissions:
             emissions_dict[emission] += combustion_emissions[emission]
 
         
-    else:
-        logger.debug("Emission Data discarded:")
-        for emission in combustion_emissions:
-            logger.debug(f"{emission}: {combustion_emissions[emission]}")
-        logger.debug(f"waste_heat: {waste_heat}")
+    logger.debug("Emission Data Calculated:")
+    for emission in combustion_emissions:
+        logger.debug(f"{emission}: {combustion_emissions[emission]}")
+    logger.debug(f"waste_heat: {waste_heat}")
 
     return return_qty
+
+# def Combustion_LHV(known_substance, qty, unknown_substance, var, 
+#                emissions_dict=False, inflows_dict=False, 
+#                emissions_list = dat.default_emissions, fuels_df=df_fuels, LHV=False,
+#                **kwargs):
+
+#     return Combustion(known_substance=known_substance, 
+#                       qty=qty,
+#                       unknown_substance=unknown_substance, 
+#                       var=var,
+#                       emissions_dict=emissions_dict, 
+#                       inflows_dict=inflows_dict, 
+#                       emissions_list = emissions_list, 
+#                       fuels_df=df_fuels, 
+#                       LHV=True,
+#     )
 
 
 #Calculation Type lookup dictionary
 calcs_dict = {
-    'ratio': Ratio,
-    'remainder': Remainder,
-    'molmassratio': MolMassRatio,
-    'returnvalue': ReturnValue,
-    'subtraction': Subtraction,
-    'addition': Addition,
-    'combustion': Combustion
+    'ratio': {'function': Ratio, 'kwargs': {}},
+    'remainder': {'function': Remainder, 'kwargs': {}},
+    'molmassratio': {'function': MolMassRatio, 'kwargs': {}},
+    'returnvalue': {'function': ReturnValue, 'kwargs': {}},
+    'subtraction': {'function': Subtraction, 'kwargs': {}},
+    'addition': {'function': Addition, 'kwargs': {}},
+    'energycontent-lhv': {'function': Energy_Content, 'kwargs': {'LHV':True}},
+    'energycontent-hhv': {'function': Energy_Content, 'kwargs': {}},
+    'combustion': {'function': Combustion, 'kwargs': {}},
+    'combustion-noenergyin': {'function': Combustion, 'kwargs': {'write_energy_in':False}},
+    'combustion-lhv': {'function': Combustion, 'kwargs': {'LHV':True}},
+    'combustion-lhv-noenergyin': {'function': Combustion, 'kwargs': {'LHV':True, 'write_energy_in':False}},
 }
 """Dictionary of calculators available to process unit process relationships.
 Must be manually updated if additional calculators are added to this module. 
