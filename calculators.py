@@ -348,30 +348,6 @@ def Energy_Content(known_substance, qty, unknown_substance, LHV=False, fuels_df=
 
     return return_qty
 
-# def Energy_Content_LHV(known_substance, qty, unknown_substance, fuels_df=df_fuels, **kwargs):
-#     if (known_substance not in fuels_df.index and unknown_substance not in fuels_df.index):
-#         raise Exception(f"Neither {known_substance} nor {unknown_substance} is a known fuel type")
-
-#     if (known_substance in fuels_df.index and unknown_substance in fuels_df.index):
-#         raise Exception(f"Both {known_substance} and {unknown_substance} are known fuel types.")
-
-#     if known_substance in fuels_df.index:
-#         fuel_type = known_substance
-#         fuel_qty = qty
-#         energy_qty = qty * fuels_df.at[fuel_type, 'LHV'] 
-#         return_qty = energy_qty 
-#         logger.debug(f"{energy_qty} of energy for {fuel_type} calculated")
-
-#     else:
-#         energy_qty = qty
-#         fuel_type = unknown_substance
-#         fuel_qty = energy_qty / fuels_df.at[fuel_type, 'LHV']
-#         return_qty = fuel_qty
-#         logger.debug(f"{fuel_qty} of fuel for {fuel_type} calculated")
-
-
-#     return return_qty
-
 
 def Combustion(known_substance, qty, unknown_substance, var, 
                emissions_dict=False, inflows_dict=False, 
