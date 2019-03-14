@@ -26,11 +26,11 @@ Module Outline:
 
 from collections import defaultdict
 from copy import copy
+from math import isnan
 from bb_log import get_logger
 import io_functions as iof
 import dataconfig as dat
 import calculators  as calc
-
 
 logger = get_logger("Unit Process")
 
@@ -121,7 +121,7 @@ class UnitProcess:
         else:
             v_sheet = iof.check_for_col(units_df, dat.var_sheetname, u_id)
             self.var_df = iof.make_df(units_df.at[u_id, dat.var_filepath], 
-                                      sheet=v_sheet)
+                                      sheet=v_sheet, lower_cols=True)
 
         if calc_df is not False:
             self.calc_df = calc_df
@@ -240,20 +240,32 @@ class UnitProcess:
             unknown_substance = calc_df.at[i, dat.unknown]
             calc_type = iof.clean_str(calc_df.at[i, dat.calc_type])
             invert = False
-            var = None
             known_substance2 = None
             known_qty2 = None
-            if iof.clean_str(calc_df.at[i, dat.calc_var]) not in dat.no_var:
-                var = self.var_df.at[scenario, calc_df.at[i, dat.calc_var]] 
+            var = None
+            raw_var = calc_df.at[i, dat.calc_var]
+            if isinstance(raw_var, str) and iof.clean_str(raw_var) not in dat.no_var:
+                var = self.var_df.at[scenario, iof.clean_str(raw_var)]
 
             logger.debug(f"current index: {i}, current product: {known_substance}")
             if attempt >= len(calc_df): 
                 raise Exception(f"Cannot process {known_substance}. Breaking to prevent infinite loop")
 
             if known_substance in lookup_var_dict:
-                known_substance = self.var_df.at[scenario, lookup_var_dict[known_substance]['lookup_var']] 
+                known_substance = self.var_df.at[scenario, lookup_var_dict[known_substance]['lookup_var']]
             if unknown_substance in lookup_var_dict:
-                unknown_substance = self.var_df.at[scenario, lookup_var_dict[unknown_substance]['lookup_var']] 
+                unknown_substance = self.var_df.at[scenario, lookup_var_dict[unknown_substance]['lookup_var']]
+
+            #allows for the use of multiple substances that refer to the same thing in a lookup table
+            if known_substance.split('__')[0] in lookup_var_dict:
+                 known_proxy = self.var_df.at[scenario, lookup_var_dict[known_substance.split('__')[0]]['lookup_var']]
+            else:
+                known_proxy = known_substance
+            if unknown_substance.split('__')[0] in lookup_var_dict:
+                 unknown_proxy = self.var_df.at[scenario, lookup_var_dict[unknown_substance.split('__')[0]]['lookup_var']]
+            else:
+                unknown_proxy = unknown_substance
+            
 
             if known_substance in io_dicts[known_io]:
                 pass
@@ -269,7 +281,7 @@ class UnitProcess:
                 continue
             
             if calc_type not in calc.calcs_dict:
-                raise Exception(f"{calc_type} is an unknown_substance calculation type")
+                raise Exception(f"{calc_type} is an unknown calculation type")
             if unknown_io not in io_dicts:
                 raise Exception(f"{unknown_io} is an unknown destination")
 
@@ -289,15 +301,16 @@ class UnitProcess:
             qty_known = io_dicts[known_io][known_substance]
             kwargs = dict(qty=qty_known, 
                           var=var, 
-                          known_substance=known_substance, 
-                          unknown_substance=unknown_substance,
+                          known_substance=known_proxy, 
+                          unknown_substance=unknown_proxy,
                           known_substance2 = known_substance2,
                           qty2 = known_qty2,
                           invert=invert, 
                           emissions_dict=io_dicts['e'],
                           inflows_dict=io_dicts['c'])
+            kwargs = {**kwargs, **calc.calcs_dict[calc_type]['kwargs']}
             logger.debug(f"Attempting {calc_type} calculation for {unknown_substance} using {qty_known} of {known_substance}")
-            qty_calculated = calc.calcs_dict[calc_type](**kwargs)
+            qty_calculated = calc.calcs_dict[calc_type]['function'](**kwargs)
             io_dicts[unknown_io][unknown_substance] = qty_calculated
 
             calc_df = calc_df.drop(i)
