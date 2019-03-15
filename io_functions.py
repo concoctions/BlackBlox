@@ -150,7 +150,8 @@ def is_energy(string, energy_strings=dat.energy_flows):
 # DATA FRAME CONSTRUCTORS 
 
 def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta", 
-            col_order = False, T = False, drop_zero=False, sort=False, lower_cols=False):
+            col_order = False, T = False, drop_zero=False, sort=False, 
+            lower_cols=False, fillna=True):
     """ Creates a Pandas dataframe from various file types
 
     Numbers that are initially read as strings will be converted to 
@@ -180,6 +181,8 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
             index
         lower_cols (bool): If true, will convert the column names to all lower case
             (Defaults to False)
+        fillna (bool): If true, will convert NaNs to zeros.
+            (Defualts to True)
 
     Returns:
         The generated dataframe.
@@ -221,6 +224,9 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
 
     if lower_cols is True:
         df.columns = [clean_str(c) for c in df.columns]
+
+    if fillna is True:
+        df = df.fillna(0)
 
     return df
 
