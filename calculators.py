@@ -323,6 +323,20 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
 
 
 def Energy_Content(known_substance, qty, unknown_substance, LHV=False, fuels_df=df_fuels, **kwargs):
+    """
+    Returns the energy value of a requested fuel quantity or the fuel
+    quantity, when provided an energy value of a requested fuel
+    Args:
+        known_substance (str): name of the known quantity, either 
+            a fuel in fuels_df or the name of that fuel's energy flow
+        qty (float): quantity of known substance
+        unknown_substance (str): name of the unknown quantity, either
+            the fuel or enery flow
+        LHV (bool): If True, uses the LHV heating value. If False, used
+            the HHV.
+            (Defaults to False)
+        fuels_df: data frame with fuels data
+    """
     if (known_substance.split('__')[0] not in fuels_df.index and unknown_substance.split('__')[0] not in fuels_df.index):
         raise Exception("Neither {} nor {} is a known_substance fuel type".format(known_substance, unknown_substance))
 
@@ -345,6 +359,8 @@ def Energy_Content(known_substance, qty, unknown_substance, LHV=False, fuels_df=
         fuel_type = unknown_substance.split('__')[0]
         fuel_qty = energy_qty / fuels_df.at[fuel_type, HV]
         return_qty = fuel_qty
+        
+        logger.debug(f"{return_qty} of {unknown_substance} derived from {qty} of {known_substance}")
 
     return return_qty
 
@@ -472,24 +488,6 @@ def Combustion(known_substance, qty, unknown_substance, var,
 
     return return_qty
 
-# def Combustion_LHV(known_substance, qty, unknown_substance, var, 
-#                emissions_dict=False, inflows_dict=False, 
-#                emissions_list = dat.default_emissions, fuels_df=df_fuels, LHV=False,
-#                **kwargs):
-
-#     return Combustion(known_substance=known_substance, 
-#                       qty=qty,
-#                       unknown_substance=unknown_substance, 
-#                       var=var,
-#                       emissions_dict=emissions_dict, 
-#                       inflows_dict=inflows_dict, 
-#                       emissions_list = emissions_list, 
-#                       fuels_df=df_fuels, 
-#                       LHV=True,
-#     )
-
-
-#Calculation Type lookup dictionary
 calcs_dict = {
     'ratio': {'function': Ratio, 'kwargs': {}},
     'remainder': {'function': Remainder, 'kwargs': {}},
@@ -506,8 +504,9 @@ calcs_dict = {
 }
 """Dictionary of calculators available to process unit process relationships.
 Must be manually updated if additional calculators are added to this module. 
-Automatically pulls in calculators in the custom_lookup module, if they are
-specified in the custom_calcs_dict in that module.
+
+Can also be used to create alias names for functions with non-default keyword
+arguments that would not be typically passed by the data in calc_df.
 
 Used by the Unit Process class's balance function.
 

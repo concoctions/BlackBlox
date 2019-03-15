@@ -412,6 +412,10 @@ def format_and_save_plot(filepath):
 
 
 def plot_annual_flows(df_dict, flow, outdir, unit_dict=dat.default_units):
+    """
+    Generated a line plot for each column of a dataframe, using the index
+    as the x-axis labels.
+    """
     flow_series = []
     for df_name in df_dict:
         if 'cumulative' in df_name:
@@ -432,15 +436,13 @@ def plot_annual_flows(df_dict, flow, outdir, unit_dict=dat.default_units):
     else:
         flow_unit = unit_dict['mass']
 
-    #plt.style.use('tableau-colorblind10')
     flow_df.plot(title=f"annual outflows of {flow}")
     plt.xticks(list(range(len(df_index))), df_index, rotation=90)
     plt.ylabel(f"{flow_unit} {flow}")
 
     format_and_save_plot(f'{outdir}/{flow}')
-   # plt.savefig(f'{outdir}/{flow}')
-
-
+   
+   
 # MISCELLANEOUS FUNCTIONS
 
 def nested_dicts(levels=2, final=float):
