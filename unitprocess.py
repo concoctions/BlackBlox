@@ -258,14 +258,17 @@ class UnitProcess:
 
             #allows for the use of multiple substances that refer to the same thing in a lookup table
             if known_substance.split('__')[0] in lookup_var_dict:
-                 known_proxy = self.var_df.at[scenario, lookup_var_dict[known_substance.split('__')[0]]['lookup_var']]
+                known_proxy = self.var_df.at[scenario, lookup_var_dict[known_substance.split('__')[0]]['lookup_var']]
+            elif '__' in known_substance:
+                known_proxy = known_substance.split('__')[0]
             else:
                 known_proxy = known_substance
             if unknown_substance.split('__')[0] in lookup_var_dict:
-                 unknown_proxy = self.var_df.at[scenario, lookup_var_dict[unknown_substance.split('__')[0]]['lookup_var']]
+                unknown_proxy = self.var_df.at[scenario, lookup_var_dict[unknown_substance.split('__')[0]]['lookup_var']]
+            elif '__' in unknown_substance:
+                unknown_proxy = unknown_substance.split('__')[0]            
             else:
                 unknown_proxy = unknown_substance
-            
 
             if known_substance in io_dicts[known_io]:
                 pass
@@ -311,7 +314,11 @@ class UnitProcess:
             kwargs = {**kwargs, **calc.calcs_dict[calc_type]['kwargs']}
             logger.debug(f"Attempting {calc_type} calculation for {unknown_substance} using {qty_known} of {known_substance}")
             qty_calculated = calc.calcs_dict[calc_type]['function'](**kwargs)
-            io_dicts[unknown_io][unknown_substance] = qty_calculated
+            
+            if unknown_io in ['c', 'e']:
+                io_dicts[unknown_io][unknown_substance] += qty_calculated
+            else:
+                io_dicts[unknown_io][unknown_substance] = qty_calculated
 
             calc_df = calc_df.drop(i)
             calc_df = calc_df.reset_index(drop=True)
