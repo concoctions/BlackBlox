@@ -335,8 +335,8 @@ class ProductChain:
 
         for i, unit in enumerate(self.process_list):
             name = unit['process'].name
-            inflows = '\n'.join(unit['process'].inflows)
-            outflows = '\n'.join(unit['process'].outflows)
+            inflows = iof.clean_str('\n'.join(unit['process'].inflows))
+            outflows = iof.clean_str('\n'.join(unit['process'].outflows))
             product_flow.node(c+name, label=name)
 
             if i == 0:
