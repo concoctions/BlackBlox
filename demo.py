@@ -75,7 +75,7 @@ while stop == '':
     print(f"\nselecting random inflow...")
     product = random.choice(tuple(kiln.inflows))
     if product == 'fuel':
-            qty = u_in[kiln.var_df.at[s, 'fuelType']]
+            qty = u_in[kiln.var_df.at[s, 'fueltype']]
     else:
         qty = u_in[product]
     print(f"\nnow balacing {kiln.name} on {qty} {dat.default_units['mass']} of {product} ({'inflow'}) using {s} values")
@@ -137,7 +137,7 @@ while stop == '':
         print('cannot balance on slag, because slag is calculated as a remainder of an inflow and outflow. Selecting alternate outflow.')
         product = random.choice(tuple(kiln.outflows))
     if product == 'fuel':
-            qty = u_out[kiln.var_df.at[s, 'fuelType']]
+            qty = u_out[kiln.var_df.at[s, 'fueltype']]
 
     qty = u_out[product]
     print(f"\nnow balacing {kiln.name} on {qty} of {product} ({'outflow'}) using {s} values")
@@ -189,8 +189,8 @@ while stop == '':
             print(f'  {k}: {v}')
         print(f"\nRECYCLE FLOW leftover: {leftover}")
 
-    fuel_type = kiln.var_df.at[s, 'fuelType']
-    fuel_qty =  u_in[kiln.var_df.at[s, 'fuelType']]
+    fuel_type = kiln.var_df.at[s, 'fueltype']
+    fuel_qty =  u_in[kiln.var_df.at[s, 'fueltype']]
     recycled_energy_qty = round(fuel_qty * random.uniform(30,100),2)
     max_replace_fraction = round(random.uniform(0.01, 1.0),2)
 
