@@ -22,6 +22,7 @@ logs/
 outputFiles/
 BlackBlox_output/
 demo_output/
+output/
 
 #others
 ~$*
