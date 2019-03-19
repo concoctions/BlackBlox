@@ -337,10 +337,10 @@ def Energy_Content(known_substance, qty, unknown_substance, LHV=False, fuels_df=
             (Defaults to False)
         fuels_df: data frame with fuels data
     """
-    if (known_substance.split('__')[0] not in fuels_df.index and unknown_substance.split('__')[0] not in fuels_df.index):
+    if (known_substance.split(dat.ignore_sep)[0] not in fuels_df.index and unknown_substance.split(dat.ignore_sep)[0] not in fuels_df.index):
         raise Exception("Neither {} nor {} is a known_substance fuel type".format(known_substance, unknown_substance))
 
-    if (known_substance.split('__')[0] in fuels_df.index and unknown_substance.split('__')[0] in fuels_df.index):
+    if (known_substance.split(dat.ignore_sep)[0] in fuels_df.index and unknown_substance.split(dat.ignore_sep)[0] in fuels_df.index):
         raise Exception("Both {} and {} are known_substance fuel types.".format(known_substance, unknown_substance))
 
     if LHV is True:
@@ -348,15 +348,15 @@ def Energy_Content(known_substance, qty, unknown_substance, LHV=False, fuels_df=
     else:
         HV = 'HHV'
 
-    if known_substance.split('__')[0] in fuels_df.index:
-        fuel_type = known_substance.split('__')[0]
+    if known_substance.split(dat.ignore_sep)[0] in fuels_df.index:
+        fuel_type = known_substance.split(dat.ignore_sep)[0]
         fuel_qty = qty
         energy_qty = qty * fuels_df.at[fuel_type, HV] # total energy in fuel
         return_qty = energy_qty # useful energy after combustion
 
     else:
         energy_qty = qty
-        fuel_type = unknown_substance.split('__')[0]
+        fuel_type = unknown_substance.split(dat.ignore_sep)[0]
         fuel_qty = energy_qty / fuels_df.at[fuel_type, HV]
         return_qty = fuel_qty
         
@@ -431,12 +431,12 @@ def Combustion(known_substance, qty, unknown_substance, var,
     """
     logger.debug("Attempting combustion calcuation for {} using qty {} of {} and efficiency of {}".format(unknown_substance, qty, known_substance, var))
 
-    if (known_substance.split('__')[0] not in fuels_df.index 
-        and unknown_substance.split('__')[0] not in fuels_df.index):
+    if (known_substance.split(dat.ignore_sep)[0] not in fuels_df.index 
+        and unknown_substance.split(dat.ignore_sep)[0] not in fuels_df.index):
         raise Exception("Neither {} nor {} is a known_substance fuel type".format(known_substance, unknown_substance))
 
-    if (known_substance.split('__')[0] in fuels_df.index 
-        and unknown_substance.split('__')[0] in fuels_df.index):
+    if (known_substance.split(dat.ignore_sep)[0] in fuels_df.index 
+        and unknown_substance.split(dat.ignore_sep)[0] in fuels_df.index):
         raise Exception("Both {} and {} are known_substance fuel types.".format(known_substance, unknown_substance))
 
     
@@ -452,14 +452,14 @@ def Combustion(known_substance, qty, unknown_substance, var,
     else:
         HV = 'HHV'
 
-    if known_substance.split('__')[0] in fuels_df.index:
-        fuel_type = known_substance.split('__')[0]
+    if known_substance.split(dat.ignore_sep)[0] in fuels_df.index:
+        fuel_type = known_substance.split(dat.ignore_sep)[0]
         fuel_qty = qty
         energy_qty = qty * fuels_df.at[fuel_type, HV] # total energy in fuel
         return_qty = energy_qty * combust_eff # useful energy after combustion
 
     else:
-        fuel_type = unknown_substance.split('__')[0]
+        fuel_type = unknown_substance.split(dat.ignore_sep)[0]
         energy_qty = qty * (1/combust_eff) # total energy in fuel
         fuel_qty = energy_qty / fuels_df.at[fuel_type, HV]
         return_qty = fuel_qty
