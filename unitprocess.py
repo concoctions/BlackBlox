@@ -145,10 +145,11 @@ class UnitProcess:
                  iof.clean_str(self.calc_df.at[i, dat.unknown_io][0]))]
 
             for product, i_o in products:
-                if i_o == 'i':
-                    self.inflows.add(product)
-                elif i_o == 'o':
-                    self.outflows.add(product)
+                if not product.startswith(dat.consumed_indicator): #ignores those that are said to be consumed
+                    if i_o == 'i':
+                        self.inflows.add(product)
+                    elif i_o == 'o':
+                        self.outflows.add(product)
             
  
     def balance(self, 
@@ -246,10 +247,18 @@ class UnitProcess:
             raw_var = calc_df.at[i, dat.calc_var]
             if isinstance(raw_var, str) and iof.clean_str(raw_var) not in dat.no_var:
                 var = self.var_df.at[scenario, iof.clean_str(raw_var)]
+            
+            # removes blank rows
+            if type(known_substance) is not str:
+                calc_df = calc_df.drop(i)
+                calc_df = calc_df.reset_index(drop=True)
+                attempt = 0
+                logger.debug(f"known substance is not a string. Dropping this row")
+                continue
 
             logger.debug(f"current index: {i}, current product: {known_substance}")
             if attempt >= len(calc_df): 
-                raise Exception(f"Cannot process {known_substance}. Breaking to prevent infinite loop")
+                raise Exception(f"Cannot process {known_substance} ({known_io}-flow), when trying to calculate {unknown_substance} ({unknown_io}-flow) via {calc_type}. Breaking to prevent infinite loop. Try checking flow location and remember that substance names are case sensitive.")
 
             if known_substance in lookup_var_dict:
                 known_substance = self.var_df.at[scenario, lookup_var_dict[known_substance]['lookup_var']]
@@ -257,16 +266,16 @@ class UnitProcess:
                 unknown_substance = self.var_df.at[scenario, lookup_var_dict[unknown_substance]['lookup_var']]
 
             #allows for the use of multiple substances that refer to the same thing in a lookup table
-            if known_substance.split('__')[0] in lookup_var_dict:
-                known_proxy = self.var_df.at[scenario, lookup_var_dict[known_substance.split('__')[0]]['lookup_var']]
-            elif '__' in known_substance:
-                known_proxy = known_substance.split('__')[0]
+            if known_substance.split(dat.ignore_sep)[0] in lookup_var_dict:
+                known_proxy = self.var_df.at[scenario, lookup_var_dict[known_substance.split(dat.ignore_sep)[0]]['lookup_var']]
+            elif dat.ignore_sep in known_substance:
+                known_proxy = known_substance.split(dat.ignore_sep)[0]
             else:
                 known_proxy = known_substance
-            if unknown_substance.split('__')[0] in lookup_var_dict:
-                unknown_proxy = self.var_df.at[scenario, lookup_var_dict[unknown_substance.split('__')[0]]['lookup_var']]
-            elif '__' in unknown_substance:
-                unknown_proxy = unknown_substance.split('__')[0]            
+            if unknown_substance.split(dat.ignore_sep)[0] in lookup_var_dict:
+                unknown_proxy = self.var_df.at[scenario, lookup_var_dict[unknown_substance.split(dat.ignore_sep)[0]]['lookup_var']]
+            elif dat.ignore_sep in unknown_substance:
+                unknown_proxy = unknown_substance.split(dat.ignore_sep)[0]            
             else:
                 unknown_proxy = unknown_substance
 
@@ -274,8 +283,9 @@ class UnitProcess:
                 pass
             elif unknown_io not in ['c', 'e'] and unknown_substance in io_dicts[unknown_io]:
                 invert = True
-                known_substance, unknown_substance = (unknown_substance, known_substance)
+                known_substance, unknown_substance = unknown_substance, known_substance
                 known_io, unknown_io = unknown_io, known_io
+                known_proxy, unknown_proxy = unknown_proxy, known_proxy
                 logger.debug(f"{known_substance} not found, but {unknown_substance} found. Inverting calculations")
             else:
                 i += 1
