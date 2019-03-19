@@ -13,6 +13,8 @@ Module Outline:
 - import statements and logger
 - module variables: default filepaths (str)
 - module variables: user data (dict)
+- module variables: lookup variables (dict)
+- module variables: substance name variables
 - module variables: column headers (str)
     - for unit process library tabular data
     - for unit process relationships tabular data
@@ -20,13 +22,6 @@ Module Outline:
     - for factory product chain list tabular data
     - for factory linkages tabular data
     - for industry data
-- module variables: reserved words for tabular data
-    - same_xls (list)
-    - default_scenario (str)
-    - no_var (list)
-    - massless_flows (list)
-    - connect_all (str)
-    - all_factories (list)
 
 """
 
@@ -53,6 +48,14 @@ Unless an absolute path is specified, BlackBlox will create the directory
 as a subfolder of the current working directory.
 """        
 
+same_xls = ['thisfile', 'same', 'here']
+"""list: strings indicating the data is in the current Excel workbook
+
+Usable as a replacement for a filepath for input data that is in an
+Excel workbook with multiple sheets. The correct Excel sheet must still
+be specified.
+"""
+
 
 # USER DATA
 user_data = {"name": "Mysterious Stranger",
@@ -65,7 +68,7 @@ user_data = {"name": "Mysterious Stranger",
 lookup_var_dict = { 
     'fuel': dict(filepath='data/fuels.xlsx',
                  sheet='Fuels',
-                 lookup_var='fuelType'),
+                 lookup_var='fueltype'),
     'fossil fuel': dict(filepath='data/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='fossil fuel type'),
@@ -94,92 +97,38 @@ Each entry in this dictionary should be formatted with the following:
 
 """
 
-# SUBSTANCE VARIABLES
-
+# SUBSTANCE NAME VARIABLES
 default_units = {'mass': 'tonnes', 
                  'energy':'GJ',
 }
 
 
-energy_flows = ['heat', 'energy', 'electricity', 'power']
-"""list: indicator that a substance is an energy flow
+energy_flows = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV']
+"""list: strings that indicate that a substance is an energy flow
 
 Usable in flow names. Must be used at the beginning or end of the flow name.
 """
 
 default_emissions = ['CO2', 'SO2', 'H2O']
-
-# COLUMN HEADERS
-# for UNIT LIBRARY tabular data:
-unit_id = 'ID'
-unit_name = 'display name'
-unit_product = 'product'
-unit_product_io = 'productType'
-var_filepath = 'varFile'
-var_sheetname = 'varSheet'
-calc_filepath = 'calcFile'
-calc_sheetname = 'calcSheet'
-
-# for UNIT PROCESS relationship tabular data:
-known = 'KnownQty'
-known_io = 'k_QtyFrom'
-unknown = 'UnknownQty'
-unknown_io = 'u_QtyTo'
-calc_type = 'Calculation'
-calc_var = 'Variable'
-known2 = '2nd Known Substance'
-known2_io = '2Qty Origin'
-
-# for UNIT PROCESS scenario values tabular data:
-combustion_efficiency_var = 'combustEff'
-
-# for production CHAIN linkages tabular data:
-inflow_col = 'Inflow'
-outflow_col = 'Outflow'
-process_col = 'Process_ID'
-
-# for FACTORY chain list tabular data:
-chain_name = 'ChainName'
-chain_product = 'ChainType'
-chain_product = 'ChainProduct'
-chain_io = 'Product_IO'
-chain_filepath = 'ChainFile'
-chain_sheetname = 'ChainSheet'
-
-# for FACTORY connections tabular data:
-origin_chain = "Origin_Chain"
-origin_unit = "Origin_Unit"
-origin_io = "Product_IO_of_Origin"
-connect_product = "Product"
-dest_chain = "Destination_Chain"
-dest_unit = "Destination_Unit"
-dest_io = "Product_IO_of_Destination"
-replace = "Recycle_Replacing"
-purge_fraction = "Purge_Fraction"
-max_replace_fraction = "Max_Replace_Fraction"
-
-
-# for INDUSTRY tablular data
-factory_name = "Factory Name"
-factory_filepath = "Factory File"
-f_chain_list_file = "Chains File"
-f_chains_sheet = "Factory Chains Sheet"
-f_connections_file = "Connections File"
-f_connections_sheet = "Factory Connections Sheet"
-f_product = "Factory Product"
-f_product_qty = "Product Qty"
-f_scenario = "Scenario"
-
-
-# SPECIAL FILE VARIALBES
-same_xls = ['thisfile', 'same', 'here']
-"""list: strings indicating the data is in the current Excel workbook
-
-Usable as a replacement for a filepath for input data that is in an
-Excel workbook with multiple sheets. The correct Excel sheet must still
-be specified.
+"""list: emissions that the program automatically checks for factors for
 """
 
+ignore_sep = '__'
+"""str: indicator to ignore text after this string when performing calculations
+This is useful when the calculation is sensitive to the substance name (e.g. in
+MolMassRatio calculations or Combustion calculations), but when the substance
+name needs to be unique (e.g. fuel__from place A, fuel__from place B)
+"""
+
+consumed_indicator = 'CONSUMED'
+"""str: when this string begins a substance name (case sensitive), the substance
+is ignored in the unit process inflows/outflows list and in the diagram. However,
+it will still show up in the mass/energy balance.
+E.g. heat is used by a process and there is no useful heat byproduct, but
+you still want it to show up in the energy balance.
+"""
+
+# OTHER DATA NAMING VARIABLES
 default_scenario = "default" 
 """str: the index used for the default scenario of variables
 
@@ -215,3 +164,69 @@ If used to specify an industry-wide total product production quantity,
 each factory producing that product should specify their production quantity 
 as a fraction of that total as a decimal between 0 and 1.
 """
+
+
+# COLUMN HEADERS:
+
+# for UNIT LIBRARY tabular data:
+unit_id = 'ID'
+unit_name = 'display name'
+unit_product = 'product'
+unit_product_io = 'productType'
+var_filepath = 'varFile'
+var_sheetname = 'varSheet'
+calc_filepath = 'calcFile'
+calc_sheetname = 'calcSheet'
+
+# for UNIT PROCESS relationship tabular data:
+known = 'KnownQty'
+known_io = 'k_QtyFrom'
+unknown = 'UnknownQty'
+unknown_io = 'u_QtyTo'
+calc_type = 'Calculation'
+calc_var = 'Variable'
+known2 = '2nd Known Substance'
+known2_io = '2Qty Origin'
+
+# for UNIT PROCESS scenario values tabular data:
+combustion_efficiency_var = 'combusteff'
+
+# for production CHAIN linkages tabular data:
+inflow_col = 'Inflow'
+outflow_col = 'Outflow'
+process_col = 'Process_ID'
+
+# for FACTORY chain list tabular data:
+chain_name = 'ChainName'
+chain_product = 'ChainType'
+chain_product = 'ChainProduct'
+chain_io = 'Product_IO'
+chain_filepath = 'ChainFile'
+chain_sheetname = 'ChainSheet'
+
+# for FACTORY connections tabular data:
+origin_chain = "Origin_Chain"
+origin_unit = "Origin_Unit"
+origin_io = "Product_IO_of_Origin"
+origin_product = "Product"
+dest_chain = "Destination_Chain"
+dest_unit = "Destination_Unit"
+dest_product = "Product_At_Destination"
+dest_io = "Product_IO_of_Destination"
+replace = "Recycle_Replacing"
+purge_fraction = "Purge_Fraction"
+max_replace_fraction = "Max_Replace_Fraction"
+
+
+
+
+# for INDUSTRY tablular data
+factory_name = "Factory Name"
+factory_filepath = "Factory File"
+f_chain_list_file = "Chains File"
+f_chains_sheet = "Factory Chains Sheet"
+f_connections_file = "Connections File"
+f_connections_sheet = "Factory Connections Sheet"
+f_product = "Factory Product"
+f_product_qty = "Product Qty"
+f_scenario = "Scenario"
