@@ -111,17 +111,33 @@ class Factory:
 
         for i, c in self.chains_df.iterrows():
             name = c[dat.chain_name] 
+            is_unit = False
             if i == 0:
                 self.main_chain = name
                 self.main_product = c[dat.chain_product]
             
             chain_sheet = iof.check_for_col(self.chains_df, dat.chain_sheetname, i)
+            chain_unit = iof.check_for_col(self.chains_df, dat.single_unit_chain, i)
 
-            if (dat.chain_filepath not in self.chains_df 
-                or iof.clean_str(c[dat.chain_filepath]) in dat.same_xls):
-                chain_file = self.chains_file
-            else:
-                chain_file = c[dat.chain_filepath]
+            if type(chain_unit) is str and chain_unit not in dat.no_var:
+                if chain_unit in unit.df_unit_library.index.values:
+                    unit_inflow = 'start'
+                    unit_outflow = 'end'
+                    if iof.clean_str(c[dat.chain_io][0]) == 'i':
+                        unit_inflow = c[dat.chain_product]
+                    elif iof.clean_str(c[dat.chain_io][0]) == 'o':
+                        unit_outflow = c[dat.chain_product]
+                    chain_data = [[unit_inflow, chain_unit, unit_outflow]]
+                    chain_header = [dat.inflow_col, dat.process_col, dat.outflow_col]
+                    chain_file = pan.DataFrame(chain_data, columns=chain_header)
+                    logger.debug(f"single unit process chain will be created for {chain_unit}")
+                    is_unit = True
+
+            if is_unit is not True:
+                if dat.chain_filepath not in self.chains_df or iof.clean_str(c[dat.chain_filepath]) in dat.same_xls:
+                    chain_file = self.chains_file
+                else:
+                    chain_file = c[dat.chain_filepath]
                 
             chain_dict[name] = dict(chain=cha.ProductChain(chain_file, 
                                     name=name, xls_sheet=chain_sheet), 
@@ -210,6 +226,7 @@ class Factory:
                 origin_product = aux[dat.origin_product]
                 dest_unit = False
                 dest_unit_name = False
+                dest_unit_id = False
                 destination_product = False
                 i_tmp = None
                 o_tmp = None
@@ -235,11 +252,12 @@ class Factory:
                     logger.debug(f"using {qty} of {origin_product} from all units in {orig_chain.name}")
                 else:
                     orig_unit = orig_chain.process_dict[aux[dat.origin_unit]]
-                    if product in remaining_product_dict[orig_product_io][orig_chain.name][orig_unit.name]: #check if some of the product has already been used for something
-                        qty = remaining_product_dict[orig_product_io][orig_chain.name][orig_unit.name][product]
+                    if origin_product in remaining_product_dict[orig_product_io][orig_chain.name][orig_unit.name]: #check if some of the product has already been used for something
+                        qty = remaining_product_dict[orig_product_io][orig_chain.name][orig_unit.name][origin_product]
                         logger.debug(f"{origin_product} found in remaining_product_dict, {qty} unused.")
                     else:
-                        qty = io_dicts[orig_product_io][orig_chain.name][orig_unit.name][product]
+                        print(io_dicts[orig_product_io][orig_chain.name][orig_unit.name])
+                        qty = io_dicts[orig_product_io][orig_chain.name][orig_unit.name][origin_product]
                         logger.debug(f"using {qty} of {origin_product} from {orig_unit.name} in {orig_chain.name}")
 
                 if dat.purge_fraction in aux: 
@@ -335,11 +353,12 @@ class Factory:
                     else:
                         destination_product = origin_product
 
-                    logger.debug(f"sending {qty} of {origin_product } to {dest_chain.name} as {destination_product} ({dest_product_io}-flow)")
+                    logger.debug(f"sending {qty} of {origin_product} to {dest_chain.name} as {destination_product} ({dest_product_io}-flow)")
                     c_kwargs = dict(qty=qty, 
                                     product=destination_product, 
+                                    product_alt_name = origin_product,
                                     i_o=dest_product_io, 
-                                    unit_process = dest_unit_name,
+                                    unit_process = dest_unit_id,
                                     scenario=scenario,
                                     )
                     (i_tmp, 
@@ -366,6 +385,7 @@ class Factory:
                 intermediate_product_dict[origin_product] += (qty - qty_remaining)
                 logger.debug(f"{qty - qty_remaining} of {origin_product} added to intermediate_product_dict")
 
+                # generate names for internal flows list
                 orig_chain_name = orig_chain.name
                 dest_chain_name = dest_chain.name
                 if orig_unit and orig_unit.name:
@@ -376,6 +396,7 @@ class Factory:
                     orig_unit_name = 'unknown'
                 if dest_unit and dest_unit.name:
                     dest_unit_name = dest_unit.name
+                    dest_unit_id = dest_unit.u_id
                 elif dest_product_io == 'i':
                     dest_unit_name = dest_chain.process_names[0]
                 elif dest_product_io == 'o':
@@ -387,8 +408,11 @@ class Factory:
                     orig_chain_name, dest_chain_name = dest_chain_name, orig_chain_name
                     orig_unit_name, dest_unit_name = dest_unit_name, orig_unit_name
 
-                internal_flows.append([orig_chain_name, orig_unit_name, f'{origin_product} as {destination_product}', (qty-qty_remaining), dest_chain_name, dest_unit_name])
-    
+                if replace_flow is not None:
+                    internal_flows.append([orig_chain_name, orig_unit_name, f'{origin_product} REPLACING {replace_flow}', (qty-qty_remaining), dest_chain_name, dest_unit_name])
+                else:
+                    internal_flows.append([orig_chain_name, orig_unit_name, f'{origin_product} AS {destination_product}', (qty-qty_remaining), dest_chain_name, dest_unit_name])
+
 
         factory_totals = {
             'i': defaultdict(float),
@@ -422,20 +446,29 @@ class Factory:
             internal_flows_header = ['origin chain', 'origin unit', 'flow product', 'quantity', 'destination chain', 'destination unit']
             internal_flows_df = pan.DataFrame(internal_flows, columns=internal_flows_header)
 
+            if len(self.name) > 23:
+                factory_name = self.name[:23]
+            else:
+                factory_name = self.name
+
             df_list = [meta_df, totals_df, internal_flows_df]
-            sheet_list = ['metadata', f'{self.name} totals', 'internal flows']
+            sheet_list = ['metadata', f'{factory_name} totals', 'internal flows']
 
             all_inflows = defaultdict(lambda: defaultdict(float))
             all_outflows = defaultdict(lambda: defaultdict(float))
 
             for chain in io_dicts['i']:
+                if len(chain) > 23:
+                    chain_name = chain[:23]
+                else:
+                    chain_name = chain
                 columns = self.chain_dict[chain]['chain'].process_names + ['chain totals']
                 chain_inflow_df = iof.make_df(io_dicts['i'][chain], 
                                               col_order=columns, 
                                               drop_zero=True)
                 chain_inflow_df = iof.mass_energy_df(chain_inflow_df)
                 df_list.append(chain_inflow_df)
-                sheet_list.append(chain+" inflows")
+                sheet_list.append(chain_name+" in")
 
                 chain_outflow_df = iof.make_df(io_dicts['o'][chain], 
                                                col_order=columns,
@@ -444,7 +477,7 @@ class Factory:
                 chain_outflow_df = iof.mass_energy_df(chain_outflow_df)
                 logger.debug(chain_outflow_df)
                 df_list.append(chain_outflow_df)
-                sheet_list.append(chain+" outflows")
+                sheet_list.append(chain_name+" out")
 
                 for process_dict in io_dicts['i'][chain]:
                     if 'total' not in process_dict:
@@ -523,8 +556,17 @@ class Factory:
               # o_io = iof.clean_str(c[dat.origin_io][0])  # currently unused
                 d_io = iof.clean_str(c[dat.dest_io][0])
 
-            
+                #set line style
                 connection_color = 'blue'
+                if dat.replace in c and type(c[dat.replace]) is str and c[dat.replace] not in dat.no_var:
+                    connection_color = 'green' # if recycle flow
+
+                line_style = 'solid'
+                if iof.is_energy(product):
+                    line_style = 'dotted'
+                    connection_color = 'orange'
+
+                # determines destination
                 if d_io == 'i':
                     dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][0]['process'].name
                 elif d_io == 'o':
@@ -534,8 +576,8 @@ class Factory:
                     if c[dat.dest_unit] in [u['process'].u_id for u in factory_diagrams[c[dat.dest_chain]]['process_list']]:
                         d_unit_index = d_process_id_list.index(c[dat.dest_unit])
                         dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][d_unit_index]['process'].name
-                        connection_color = 'green'
 
+                #determines origin
                 if c[dat.origin_unit] == dat.connect_all:
                     origin_list = [c[dat.origin_chain]+p['process'].name for p in factory_diagrams[origin_chain]['process_list']]
                 else:
@@ -545,9 +587,9 @@ class Factory:
 
                 for origin in origin_list:
                     if d_io == 'i':
-                        factory_diagram.edge(origin, dest_chain, label=product, color=connection_color, fontcolor=connection_color)
+                        factory_diagram.edge(origin, dest_chain, label=product, color=connection_color, fontcolor=connection_color, style=line_style)
                     elif d_io == 'o':
-                        factory_diagram.edge(dest_chain, origin, label=product, color=connection_color, fontcolor=connection_color)
+                        factory_diagram.edge(dest_chain, origin, label=product, color=connection_color, fontcolor=connection_color, style=line_style)
                     
 
         # add inflows and outflows
@@ -562,18 +604,30 @@ class Factory:
 
                 if self.connections_df is not None:
                     for dummy_index, c in self.connections_df.iterrows():
+
+                        origin_product = c[dat.origin_product]
+                        if dat.dest_product in c and type(c[dat.dest_product]) is str and c[dat.dest_product] not in dat.no_var:
+                            product =c[dat.dest_product]
+                        else:
+                            product = c[dat.origin_product]
+                        
+
                         if chain == c[dat.origin_chain]:
                             if process == c[dat.origin_unit] or c[dat.origin_unit] == dat.connect_all:
                                 if iof.clean_str(c[dat.origin_io][0]) == 'i':
-                                    inflows = inflows.replace(c[dat.origin_product], '')
+                                    inflows = inflows.replace(f'{origin_product}\n', '')
+                                    inflows = inflows.replace(f'\n{origin_product}', '')
                                 if iof.clean_str(c[dat.origin_io][0]) == 'o':
-                                    outflows = outflows.replace(c[dat.origin_product], '')
+                                    outflows = outflows.replace(f'{origin_product}\n', '')
+                                    outflows = outflows.replace(f'\n{origin_product}', '')
                             
                         if chain == c[dat.dest_chain]:
                             if iof.clean_str(c[dat.dest_io][0]) == 'i' and unit == process_list[0]:
-                                inflows = inflows.replace(c[dat.origin_product], '')
+                                inflows = inflows.replace(f'{product}\n', '')
+                                inflows = inflows.replace(f'\n{product}', '')
                             if iof.clean_str(c[dat.dest_io][0]) == 'o' and unit == process_list[-1]:
-                                outflows = outflows.replace(c[dat.origin_product], '')
+                                outflows = outflows.replace(f'{product}\n', '')
+                                outflows = outflows.replace(f'\n{product}', '')
 
                 if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
                 if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
@@ -589,7 +643,8 @@ class Factory:
                             factory_diagram.edge(chain+process, chain+process+outflows)
 
                     elif outflows != unit['o']:
-                        outflows = outflows.replace(unit['o'], '')
+                        outflows = outflows.replace(f"{unit['o']}\n", '')
+                        outflows = outflows.replace(f"\n{unit['o']}", '')
                         if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
                         if outflows and not outflows.isspace():
                             io_diagram.node(chain+process+outflows, label=outflows)
@@ -598,14 +653,16 @@ class Factory:
 
                 elif i < len(process_list) - 1:
                     if inflows != unit['i']:
-                        inflows = inflows.replace(unit['i'], '')
+                        inflows = inflows.replace(f"{unit['i']}\n", '')
+                        inflows = inflows.replace(f"\n{unit['i']}", '')
                         if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
                         if inflows and not inflows.isspace():
                             io_diagram.node(chain+process+inflows, label=inflows)
                             factory_diagram.edge(chain+process+inflows, chain+process)
 
                     if outflows != unit['o']:
-                        outflows = outflows.replace(unit['o'], '')
+                        outflows = outflows.replace(f"{unit['o']}\n", '')
+                        outflows = outflows.replace(f"\n{unit['o']}", '')
                         if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
                         if outflows and not outflows.isspace():
                             io_diagram.node(chain+process+outflows, label=outflows)
@@ -613,7 +670,8 @@ class Factory:
 
                 else:
                     if inflows != unit['i']:
-                        inflows = inflows.replace(unit['i'], '')
+                        inflows = inflows.replace(f"{unit['i']}\n", '')
+                        inflows = inflows.replace(f"\n{unit['i']}", '')
                         if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
                         if inflows and not inflows.isspace():
                             io_diagram.node(chain+process+inflows, label=inflows)

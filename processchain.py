@@ -67,7 +67,7 @@ class ProductChain:
 
     """
 
-    def __init__(self, chain_data, name="Product Chain", xls_sheet=None,):
+    def __init__(self, chain_data, name="Product Chain", xls_sheet=None):
         self.name = name
         self.process_chain_df = iof.make_df(chain_data, 
                                             sheet=xls_sheet, 
@@ -126,7 +126,7 @@ class ProductChain:
                 logger.debug(f"No default product found for {self.name}.")
 
     
-    def balance(self, qty, product=False, i_o=False, unit_process=False, scenario=dat.default_scenario):
+    def balance(self, qty, product=False, i_o=False, unit_process=False, product_alt_name=False, scenario=dat.default_scenario):
         """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario)
         Calculates the mass balance of the product chain
 
@@ -170,6 +170,7 @@ class ProductChain:
         chain = self.process_list.copy()
 
         if unit_process is not False:
+            logger.debug(f"attempting to balance chain at {unit_process}")
             if unit_process in self.process_ids:
                 unit_index = self.process_ids.index(unit_process)
                 upstream = chain[0:unit_index]
@@ -219,9 +220,14 @@ class ProductChain:
         intermediate_product_dict = defaultdict(float)
         internal_flows = []
 
+        if product_alt_name is not False:
+            product_name = product_alt_name
+        else:
+            product_name = product_alt_name
+
         #balance starting process
         logger.debug(f"attempting to balance {start.name} on {qty} of {product}({i_o}) using {scenario} variables.")
-        (io_dicts['i'][start.name], io_dicts['o'][start.name]) = start.balance(qty, product, i_o, scenario)
+        (io_dicts['i'][start.name], io_dicts['o'][start.name]) = start.balance(qty, product, i_o, scenario, product_alt_name=product_alt_name)
  
         if upstream:
             for i, unit in enumerate(upstream):
@@ -338,6 +344,8 @@ class ProductChain:
             inflows = iof.clean_str('\n'.join(unit['process'].inflows))
             outflows = iof.clean_str('\n'.join(unit['process'].outflows))
             product_flow.node(c+name, label=name)
+            line_style = 'solid'
+            connection_color = 'black'
 
             if i == 0:
                 chain_diagram.node(c+name+inflows, label=inflows, color='white')
@@ -348,20 +356,23 @@ class ProductChain:
                     chain_diagram.edge(c+name, c+name+outflows)
 
                 elif outflows != unit['o']:
-                    outflows = iof.clean_str(outflows, str_to_cut=unit['o'])
+                    outflows = iof.clean_str(outflows, str_to_cut=unit['o'], cut_whole_line_only=True)
                     chain_diagram.node(c+name+outflows, label=outflows, color='white')
                     chain_diagram.edge(c+name, c+name+outflows)
 
             elif i < len(self.process_list) - 1:
-                product_flow.edge(c+prevunit, c+name, label=unit['i'])
+                if iof.is_energy(unit['i']):
+                    line_style = 'dotted'
+                    connection_color = 'red'
+                product_flow.edge(c+prevunit, c+name, label=unit['i'], color=connection_color, fontcolor=connection_color, style=line_style)
 
                 if inflows != unit['i']:
-                    inflows = iof.clean_str(inflows, str_to_cut=unit['i'])
+                    inflows = iof.clean_str(inflows, str_to_cut=unit['i'], cut_whole_line_only=True)
                     chain_diagram.node(c+name+inflows, label=inflows, color='white')
                     chain_diagram.edge(c+name+inflows, c+name)
 
                 if outflows != unit['o']:
-                    outflows = iof.clean_str(outflows, str_to_cut=unit['o'])
+                    outflows = iof.clean_str(outflows, str_to_cut=unit['o'], cut_whole_line_only=True)
                     chain_diagram.node(c+name+outflows, label=outflows, color='white')
                     chain_diagram.edge(c+name, c+name+outflows)
 
@@ -369,7 +380,7 @@ class ProductChain:
                 product_flow.edge(c+prevunit, c+name, label=unit['i'])
 
                 if inflows != unit['i']:
-                    inflows = iof.clean_str(inflows, str_to_cut=unit['i'])
+                    inflows = iof.clean_str(inflows, str_to_cut=unit['i'], cut_whole_line_only=True)
                     chain_diagram.node(c+name+inflows, label=inflows, color='white')
                     chain_diagram.edge(c+name+inflows, c+name)
 
