@@ -41,7 +41,7 @@ unit_process_library_sheet = "Unit Processes"
 If not an excel worksheet, this variable should be None.
 """
 
-outdir = 'output/demo' 
+outdir = 'output/' 
 """str: The file output directory.
 
 Unless an absolute path is specified, BlackBlox will create the directory 
@@ -66,13 +66,13 @@ user_data = {"name": "Mysterious Stranger",
 
 # LOOKUP VARIABLES
 lookup_var_dict = { 
-    'fuel': dict(filepath='data/fuels.xlsx',
+    'fuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='fueltype'),
-    'fossil fuel': dict(filepath='data/fuels.xlsx',
+    'fossil fuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='fossil fuel type'),
-    'biofuel': dict(filepath='data/fuels.xlsx',
+    'biofuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='biofuel type'),
 } 
@@ -109,7 +109,7 @@ energy_flows = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV']
 Usable in flow names. Must be used at the beginning or end of the flow name.
 """
 
-default_emissions = ['CO2', 'SO2', 'H2O']
+default_emissions = ['CO2']
 """list: emissions that the program automatically checks for factors for
 """
 
@@ -150,7 +150,8 @@ connect_all = 'all'
 
 Usable in the factory connections table, for the "origin process" column.
 Indicates that  every process of the origin chain is connected to the 
-destination chain by the specified product.
+destination chain by the specified product, and therefore uses chain total
+numbers to balance the destination chain.
 """
 
 all_factories = ['industry', 'all', 'factories'] 
@@ -189,7 +190,7 @@ known2 = '2nd Known Substance'
 known2_io = '2Qty Origin'
 
 # for UNIT PROCESS scenario values tabular data:
-combustion_efficiency_var = 'combusteff'
+combustion_efficiency_var = 'combustion eff'
 
 # for production CHAIN linkages tabular data:
 inflow_col = 'Inflow'
@@ -203,22 +204,20 @@ chain_product = 'ChainProduct'
 chain_io = 'Product_IO'
 chain_filepath = 'ChainFile'
 chain_sheetname = 'ChainSheet'
+single_unit_chain = 'This Unit Only'
 
 # for FACTORY connections tabular data:
-origin_chain = "Origin_Chain"
-origin_unit = "Origin_Unit"
-origin_io = "Product_IO_of_Origin"
-origin_product = "Product"
-dest_chain = "Destination_Chain"
-dest_unit = "Destination_Unit"
-dest_product = "Product_At_Destination"
-dest_io = "Product_IO_of_Destination"
-replace = "Recycle_Replacing"
-purge_fraction = "Purge_Fraction"
-max_replace_fraction = "Max_Replace_Fraction"
-
-
-
+origin_chain = "o chain"
+origin_unit = "o unit"
+origin_io = "o flowtype"
+origin_product = "o product"
+dest_chain = "d chain"
+dest_unit = "d unit"
+dest_product = "d product"
+dest_io = "d flowtype"
+replace = "r replacing"
+purge_fraction = "r purge %"
+max_replace_fraction = "r max replace %"
 
 # for INDUSTRY tablular data
 factory_name = "Factory Name"
