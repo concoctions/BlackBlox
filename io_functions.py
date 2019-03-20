@@ -25,7 +25,7 @@ Miscellaneous Functions
 - nested_dicts
 
 """
-
+import re
 import pandas as pan
 import numpy as np
 import matplotlib.pyplot as plt
@@ -41,7 +41,8 @@ logger = get_logger("IO")
 
 # INPUT DATA VALIDATORS AND CLENAERS
 
-def clean_str(string_to_check, str_to_cut=False, lower=True, remove_dblnewline=True):
+def clean_str(string_to_check, str_to_cut=False, lower=True, remove_dblnewline=True,
+                cut_whole_line_only=False):
     """Multipurpose function to clean user input strings
     
     Used to clean user input. First creates a copy of the string to prevent 
@@ -71,10 +72,24 @@ def clean_str(string_to_check, str_to_cut=False, lower=True, remove_dblnewline=T
         string = str.lower(string)
 
     if type(str_to_cut) is str:
-        string = string.replace(str_to_cut, '')
+        if cut_whole_line_only is True:
+            if string == str_to_cut:
+                string = ''
+            else:
+                string = string.replace(f'{str_to_cut}\n','')
+                string = string.replace(f'\n{str_to_cut}','')
+        else:
+            string = string.replace(str_to_cut, '')
     if type(str_to_cut) is list:
         for snip in str_to_cut:
-            string = string.replace(snip, '')
+            if cut_whole_line_only is True:
+                if string == snip:
+                    string = ''
+                else:
+                    string = string.replace(f'{snip}\n','')
+                    string = string.replace(f'\n{snip}','')
+            else:
+                string = string.replace(snip, '')
 
     if remove_dblnewline is True:
         if '\n\n' in string:
@@ -113,7 +128,7 @@ def check_for_col(df, col, index):
             exists.
 
     Returns:
-        Value at index, column in the dataframe, if column exists, otherwise
+        str value at index, column in the dataframe, if column exists, otherwise
         returns None
 
     """
@@ -188,6 +203,8 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
         The generated dataframe.
 
     """
+
+    logger.debug(f"Attempting to make dataframe from {data} ({type(data)}), (excel sheet: {sheet}")
 
     if isinstance(data, pan.DataFrame):
         df = data
