@@ -473,7 +473,7 @@ def Combustion(known_substance, qty, unknown_substance, var,
 
     if type(emissions_dict) == defaultdict:
         if type(inflows_dict) == defaultdict:
-            inflows_dict['O2'] += sum(combustion_emissions.values()) - fuel_qty # closes mass balance
+            inflows_dict[f'O2{dat.ignore_sep}combustion'] += sum(combustion_emissions.values()) - fuel_qty # closes mass balance
             if write_energy_in is True:
                 inflows_dict[f'energy in combusted {fuel_type}'] = energy_qty
         emissions_dict['waste heat'] += waste_heat
@@ -497,6 +497,7 @@ calcs_dict = {
     'addition': {'function': Addition, 'kwargs': {}},
     'energycontent-lhv': {'function': Energy_Content, 'kwargs': {'LHV':True}},
     'energycontent-hhv': {'function': Energy_Content, 'kwargs': {}},
+    'energycontent': {'function': Energy_Content, 'kwargs': {}},
     'combustion': {'function': Combustion, 'kwargs': {}},
     'combustion-noenergyin': {'function': Combustion, 'kwargs': {'write_energy_in':False}},
     'combustion-lhv': {'function': Combustion, 'kwargs': {'LHV':True}},
