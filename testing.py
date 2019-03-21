@@ -8,27 +8,35 @@ import unitprocess as uni
 import processchain as cha
 import factory as fac
 
-test_units = False
+test_units = True
 test_chains = False
-test_factories = True
+test_factories = False
 
-diagrams = False
+diagrams = True
 write_to_xls = True
 
 qty = 1
-scenario = 'IEAGHG 2013'
+
+scenario = dat.default_scenario
 
 unit_list = [
-            'IEAGHGsteel_coke_oven',
-            'IEAGHGsteel_sinter_plant',
-            'IEAGHGsteel_blast_furnace', 
-            'IEAGHGsteel_BOF',
-            'IEAGHGsteel_ladle',
-            'IEAGHGsteel_forming',
-            'aux_lime kiln',
-            'aux_air separation',
-            'electricity_1step',
-            'heat_collector',
+            # 'IEAGHGsteel_coke_oven',
+            # 'IEAGHGsteel_sinter_plant',
+            # 'IEAGHGsteel_blast_furnace', 
+            # 'IEAGHGsteel_BOF',
+            # 'IEAGHGsteel_ladle',
+            # 'IEAGHGsteel_forming',
+            # 'aux_lime kiln',
+            # 'aux_air separation',
+            # 'electricity_1step',
+            # 'heat_collector',
+            'birat_steel_plant',
+            # 'bb_steel_bf',
+            # 'bb_steel_eaf',
+            # 'bb_steel_bf-eaf',
+            # 'CO2_capture',
+            # 'CO2_compression',
+            # 'CO2_capture-compression',
              ]
 
 chain_dict = {
@@ -41,7 +49,8 @@ factory_dict = {
                 'reference steel': dict(chain_list_file="data/steel/steel_factories.xlsx",
                                         chain_list_sheet='ref chains', 
                                         connections_sheet='ref connections', 
-                                        name="Reference Steel Plant")}
+                                        name="IEAGHG Steel Plant",
+                                        scenario='IEAGHG 2013')}
 
 # UNIT TEST
 if test_units is True:
@@ -94,7 +103,7 @@ if test_factories is True:
             factory.diagram(view=True, save=False)
 
         inflows, outflows = factory.balance(product_qty = qty, 
-                                            scenario=scenario, 
+                                            scenario=factory_dict[f]['scenario'], 
                                             write_to_xls=write_to_xls, 
                                             outdir=dat.outdir, 
                                             mass_energy=True, 
@@ -107,4 +116,4 @@ if test_factories is True:
         print(totals)
 
         if write_to_xls is True:
-            print("\n Full results available in demo_output directory.")
+            print(f"\n Full results available in {dat.outdir} directory.")
