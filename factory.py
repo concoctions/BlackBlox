@@ -69,7 +69,7 @@ class Factory:
         chains_df (data frame): Tabular data of the factory chains and the
             location of their data.
         connections_df (data frame): Tabuloar data of the connections
-            between the factory chains.
+            between the factory chains. (optional)
         main_chain (str): the name of the factory's product chain, taken from
             the first row of chains_df.
         main_product (str): the name of the factory's main product, taken from 
@@ -78,10 +78,12 @@ class Factory:
             objects in the factory. Each chain name is an entry key, with a 
             value of a dictionary containing the process chain object, name,
             product, and whether that product is a chain inflow or outflow.  
+        **kwargs (dict): unused; allows for use of dictionaries with more variables
+            than just used to define the class
     """
 
     def __init__(self, chain_list_file, connections_file=None, chain_list_sheet=None, 
-                 connections_sheet=None, name="Factory"):
+                 connections_sheet=None, name="Factory", **kwargs):
         self.name = name
         self.chains_file = chain_list_file
         self.chains_df = iof.make_df(chain_list_file, chain_list_sheet, index=None)
@@ -352,6 +354,10 @@ class Factory:
                         destination_product = aux[dat.dest_product]
                     else:
                         destination_product = origin_product
+
+                    if purge != 0:
+                        qty = qty * (1-purge)
+                        logger.debug(f'{purge} of {origin_product} purged')
 
                     logger.debug(f"sending {qty} of {origin_product} to {dest_chain.name} as {destination_product} ({dest_product_io}-flow)")
                     c_kwargs = dict(qty=qty, 
