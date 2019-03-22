@@ -28,6 +28,7 @@ Module Outline:
 
 """
 
+import pandas as pan
 from molmass import Formula
 from collections import defaultdict
 import io_functions as iof
@@ -322,7 +323,7 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
     return total_in, total_out
 
 
-def Energy_Content(known_substance, qty, unknown_substance, LHV=False, fuels_df=df_fuels, **kwargs):
+def Energy_Content(known_substance, qty, unknown_substance, LHV=True, fuels_df=df_fuels, **kwargs):
     """
     Returns the energy value of a requested fuel quantity or the fuel
     quantity, when provided an energy value of a requested fuel
@@ -344,9 +345,9 @@ def Energy_Content(known_substance, qty, unknown_substance, LHV=False, fuels_df=
         raise Exception("Both {} and {} are known_substance fuel types.".format(known_substance, unknown_substance))
 
     if LHV is True:
-        HV = 'LHV'
+        HV = 'lhv'
     else:
-        HV = 'HHV'
+        HV = 'hhv'
 
     if known_substance.split(dat.ignore_sep)[0] in fuels_df.index:
         fuel_type = known_substance.split(dat.ignore_sep)[0]
@@ -364,11 +365,48 @@ def Energy_Content(known_substance, qty, unknown_substance, LHV=False, fuels_df=
 
     return return_qty
 
+def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df_fuels, force_df=False, **kwargs):
+    """
+    Returns the energy value of a requested fuel quantity or the fuel
+    quantity, when provided an energy value of a requested fuel
+    Args:
+        known_substance (str): name of the known quantity, either 
+            a fuel in fuels_df or the name of that fuel's energy flow
+        qty (float): quantity of known substance
+        unknown_substance (str): name of the unknown quantity, either
+            the fuel or enery flow
+        var (str): The variable (column) to use from the  lookup table
+        df: data frame with lookup data
+    """
+
+    if isinstance(force_df, pan.DataFrame):
+        lookup_df = force_df
+
+    logger.debug(f"using dataframe {lookup_df.columns}")
+
+    if (known_substance.split(dat.ignore_sep)[0] not in lookup_df.index and unknown_substance.split(dat.ignore_sep)[0] not in lookup_df.index):
+        raise Exception("Neither {} nor {} is in the specified lookup dataframe".format(known_substance, unknown_substance))
+
+    if (known_substance.split(dat.ignore_sep)[0] in lookup_df.index and unknown_substance.split(dat.ignore_sep)[0] in lookup_df.index):
+        raise Exception("Both {} and {} are are both in the lookup dataframe.".format(known_substance, unknown_substance))
+
+    if known_substance.split(dat.ignore_sep)[0] in lookup_df.index:
+        substance = known_substance.split(dat.ignore_sep)[0]
+        return_qty = qty * lookup_df.at[substance, var.lower()]
+
+    else:
+        substance = unknown_substance.split(dat.ignore_sep)[0]
+        return_qty = qty / lookup_df.at[substance, var.lower()]
+        
+        logger.debug(f"{return_qty} of {unknown_substance} derived from {qty} of {known_substance} using {var} ratio")
+
+    return return_qty
+
 
 def Combustion(known_substance, qty, unknown_substance, var, 
                emissions_dict=False, inflows_dict=False, 
                emissions_list = dat.default_emissions, fuels_df=df_fuels, 
-               LHV=False, write_energy_in=True, **kwargs):
+               LHV=True, write_energy_in=True, **kwargs):
     """Calculates fuel or energy quantity and combustion emissions
 
     This is a function designed to calculate the quantity of fuel 
@@ -430,6 +468,7 @@ def Combustion(known_substance, qty, unknown_substance, var,
 
     """
     logger.debug("Attempting combustion calcuation for {} using qty {} of {} and efficiency of {}".format(unknown_substance, qty, known_substance, var))
+    logger.debug(f"using dataframe with columns {fuels_df.columns}")
 
     if (known_substance.split(dat.ignore_sep)[0] not in fuels_df.index 
         and unknown_substance.split(dat.ignore_sep)[0] not in fuels_df.index):
@@ -448,26 +487,26 @@ def Combustion(known_substance, qty, unknown_substance, var,
         combust_eff = var
 
     if LHV is True:
-        HV = 'LHV'
+        HV = 'lhv'
     else:
-        HV = 'HHV'
+        HV = 'hhv'
 
     if known_substance.split(dat.ignore_sep)[0] in fuels_df.index:
         fuel_type = known_substance.split(dat.ignore_sep)[0]
         fuel_qty = qty
-        energy_qty = qty * fuels_df.at[fuel_type, HV] # total energy in fuel
+        energy_qty = qty * fuels_df.at[fuel_type, HV.lower()] # total energy in fuel
         return_qty = energy_qty * combust_eff # useful energy after combustion
 
     else:
         fuel_type = unknown_substance.split(dat.ignore_sep)[0]
         energy_qty = qty * (1/combust_eff) # total energy in fuel
-        fuel_qty = energy_qty / fuels_df.at[fuel_type, HV]
+        fuel_qty = energy_qty / fuels_df.at[fuel_type, HV.lower()]
         return_qty = fuel_qty
 
     combustion_emissions = dict()
     for emission in emissions_list:
-        if emission in fuels_df:
-            combustion_emissions[emission] = fuels_df.at[fuel_type, emission] * fuel_qty
+        if emission.lower() in fuels_df:
+            combustion_emissions[f'{emission}{dat.ignore_sep}emitted'] = fuels_df.at[fuel_type, emission.lower()] * fuel_qty
     waste_heat = energy_qty * (1 - combust_eff)
 
 
@@ -496,12 +535,16 @@ calcs_dict = {
     'subtraction': {'function': Subtraction, 'kwargs': {}},
     'addition': {'function': Addition, 'kwargs': {}},
     'energycontent-lhv': {'function': Energy_Content, 'kwargs': {'LHV':True}},
-    'energycontent-hhv': {'function': Energy_Content, 'kwargs': {}},
+    'energycontent-hhv': {'function': Energy_Content, 'kwargs': {'LHV': False}},
     'energycontent': {'function': Energy_Content, 'kwargs': {}},
     'combustion': {'function': Combustion, 'kwargs': {}},
     'combustion-noenergyin': {'function': Combustion, 'kwargs': {'write_energy_in':False}},
     'combustion-lhv': {'function': Combustion, 'kwargs': {'LHV':True}},
     'combustion-lhv-noenergyin': {'function': Combustion, 'kwargs': {'LHV':True, 'write_energy_in':False}},
+    'combustion-hhv': {'function': Combustion, 'kwargs': {'LHV':False}},
+    'combustion-hhv-noenergyin': {'function': Combustion, 'kwargs': {'LHV':False, 'write_energy_in':False}},
+    'lookup ratio': {'function': lookup_ratio, 'kwargs': {}},
+    'lookup ratio-fuels': {'function': lookup_ratio, 'kwargs': {'force_df': df_fuels}},
 }
 """Dictionary of calculators available to process unit process relationships.
 Must be manually updated if additional calculators are added to this module. 
@@ -517,4 +560,8 @@ twoQty_calc_list = ['subtraction', 'addition']
 """List of calculations that require two quantities to exist in the unit process flow dictionary.
 
 Used by the Unit Process class's balance function.
+"""
+
+lookup_var_calc_list = ['lookup ratio', 'lookup ratio-fuels']
+"""List of calculations where the specified variable is for the lookup df, and not the unit process variable df
 """
