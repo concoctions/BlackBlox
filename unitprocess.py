@@ -137,6 +137,10 @@ class UnitProcess:
         
         self.inflows = set() 
         self.outflows = set() 
+        self.mass_inflows = set() 
+        self.mass_outflows = set() 
+        self.energy_inflows = set() 
+        self.energy_outflows = set() 
         
         for i in self.calc_df.index: 
             # removes blank rows
@@ -148,10 +152,26 @@ class UnitProcess:
 
             for product, i_o in products:
                 if not product.startswith(dat.consumed_indicator): #ignores those that are said to be consumed
-                    if i_o == 'i':
+                    if i_o in ['i', 'c']:
                         self.inflows.add(product)
-                    elif i_o == 'o':
+                        if iof.is_energy(product):
+                            self.energy_inflows.add(product)
+                        else:
+                            self.mass_inflows.add(product)
+                    elif i_o in ['o', 'e']:
                         self.outflows.add(product)
+                        if iof.is_energy(product):
+                            self.energy_outflows.add(product)
+                        else:
+                            self.mass_outflows.add(product)
+
+                    if 'combustion' in self.calc_df.at[i, dat.calc_type]:
+                        for emission in dat.default_emissions:
+                            self.outflows.add(emission)
+                            self.mass_outflows.add(emission)
+                        self.mass_inflows.add('O2__for combustion')
+                        self.energy_inflows.add(f"energy embodied in fuels")
+                        self.energy_outflows.add("waste heat")
             
  
     def balance(self, 
@@ -258,10 +278,15 @@ class UnitProcess:
             invert = False
             known_substance2 = None
             known_qty2 = None
+            known2_proxy = None
             var = None
             raw_var = calc_df.at[i, dat.calc_var]
             if isinstance(raw_var, str) and iof.clean_str(raw_var) not in dat.no_var:
-                var = self.var_df.at[scenario, iof.clean_str(raw_var)]
+                if calc_type in calc.lookup_var_calc_list:
+                    var = iof.clean_str(raw_var, lower=False)
+                else:
+                    var = self.var_df.at[scenario, iof.clean_str(raw_var)]
+            lookup_df = None
             
             logger.debug(f"current index: {i}, current product: {known_substance}")
             if attempt >= len(calc_df): 
@@ -274,21 +299,35 @@ class UnitProcess:
                     unknown_substance = product_alt_name
 
             if known_substance in lookup_var_dict:
+                lookup_df = lookup_var_dict[known_substance]['data_frame']
                 known_substance = self.var_df.at[scenario, lookup_var_dict[known_substance]['lookup_var']]
             if unknown_substance in lookup_var_dict:
+                if lookup_df is not None:
+                    print(f"[!] POSSIBLE ERROR [!] in ({self.name} unit process):\nBoth {known_substance} (known) and {unknown_substance} (unknown) are from lookup dicts. Only one lookup dict can be used for lookup-ratios. Defaulting to that of known substance.")
+                else:
+                    lookup_df = lookup_var_dict[unknown_substance]['data_frame']
                 unknown_substance = self.var_df.at[scenario, lookup_var_dict[unknown_substance]['lookup_var']]
 
-            #allows for the use of multiple substances that refer to the same thing in a lookup table
-            if known_substance.split(dat.ignore_sep)[0] in lookup_var_dict:
-                known_proxy = self.var_df.at[scenario, lookup_var_dict[known_substance.split(dat.ignore_sep)[0]]['lookup_var']]
-            elif dat.ignore_sep in known_substance:
-                known_proxy = known_substance.split(dat.ignore_sep)[0]
+            #allows for the use of multiple flows that are the same substance by using an "ignore after" seperator
+            if dat.ignore_sep in known_substance:
+                if known_substance.split(dat.ignore_sep)[0] in lookup_var_dict:
+                    lookup_df = lookup_var_dict[known_substance.split(dat.ignore_sep)[0]]['data_frame']
+                    known_proxy = self.var_df.at[scenario, lookup_var_dict[known_substance.split(dat.ignore_sep)[0]]['lookup_var']]
+                    known_substance = known_proxy + dat.ignore_sep + known_substance.split(dat.ignore_sep)[1]
+                else:
+                    known_proxy = known_substance.split(dat.ignore_sep)[0]
+                logger.debug(f"{dat.ignore_sep} separator found in {known_substance}. Using {known_proxy} for calculations.")
             else:
                 known_proxy = known_substance
-            if unknown_substance.split(dat.ignore_sep)[0] in lookup_var_dict:
-                unknown_proxy = self.var_df.at[scenario, lookup_var_dict[unknown_substance.split(dat.ignore_sep)[0]]['lookup_var']]
-            elif dat.ignore_sep in unknown_substance:
-                unknown_proxy = unknown_substance.split(dat.ignore_sep)[0]            
+
+            if dat.ignore_sep in unknown_substance:    
+                if unknown_substance.split(dat.ignore_sep)[0] in lookup_var_dict:
+                    lookup_df = lookup_var_dict[unknown_substance.split(dat.ignore_sep)[0]]['data_frame']                    
+                    unknown_proxy = self.var_df.at[scenario, lookup_var_dict[unknown_substance.split(dat.ignore_sep)[0]]['lookup_var']]
+                    unknown_substance = unknown_proxy + dat.ignore_sep + unknown_substance.split(dat.ignore_sep)[1]
+                else:
+                    unknown_proxy = unknown_substance.split(dat.ignore_sep)[0]  
+                logger.debug(f"{dat.ignore_sep} separator found in {unknown_substance}. Using {unknown_proxy} for calculations.")          
             else:
                 unknown_proxy = unknown_substance
 
@@ -314,8 +353,21 @@ class UnitProcess:
             if calc_type in calc.twoQty_calc_list:
                 known_substance2 = calc_df.at[i, dat.known2]
                 k2_io = iof.clean_str(calc_df.at[i, dat.known2_io][0])
+
                 if known_substance2 in lookup_var_dict:
-                    known_substance2 = self.var_df.at[scenario, lookup_var_dict[known_substance]['lookup_var']] 
+                    known_substance2 = self.var_df.at[scenario, lookup_var_dict[known_substance2]['lookup_var']] 
+
+                if dat.ignore_sep in known_substance2:    
+                    if known_substance2.split(dat.ignore_sep)[0] in lookup_var_dict:
+                        known2_proxy = self.var_df.at[scenario, lookup_var_dict[known_substance2.split(dat.ignore_sep)[0]]['lookup_var']]
+                        known_substance2 = known2_proxy + dat.ignore_sep + known_substance2.split(dat.ignore_sep)[1]
+                    else:
+                        known2_proxy  = known_substance2.split(dat.ignore_sep)[0]  
+                    logger.debug(f"{dat.ignore_sep} separator found in {known_substance2}. Using {known2_proxy} for calculations.")          
+                else:
+                    known2_proxy = known_substance2
+
+        
                 if known_substance2 in io_dicts[k2_io]:
                     known_qty2 = io_dicts[k2_io][known_substance2]
                 else:
@@ -329,17 +381,18 @@ class UnitProcess:
                           var=var, 
                           known_substance=known_proxy, 
                           unknown_substance=unknown_proxy,
-                          known_substance2 = known_substance2,
+                          known_substance2 = known2_proxy,
                           qty2 = known_qty2,
                           invert=invert, 
                           emissions_dict=io_dicts['e'],
-                          inflows_dict=io_dicts['c'])
+                          inflows_dict=io_dicts['c'],
+                          lookup_df = lookup_df)
             kwargs = {**kwargs, **calc.calcs_dict[calc_type]['kwargs']}
             logger.debug(f"Attempting {calc_type} calculation for {unknown_substance} using {qty_known} of {known_substance}")
             qty_calculated = calc.calcs_dict[calc_type]['function'](**kwargs)
 
             if qty_calculated < 0:
-                print(f"\n[!] POSSIBLE ERROR [!]\nNegative number found:\n"
+                print(f"\n[!] POSSIBLE ERROR [!] in ({self.name} unit process): \nNegative number found:\n"
                       f"{qty_calculated} of {unknown_substance} calculated while performing {calc_type} using {qty_known} of {known_substance}")
                 if known_substance2 is not None:
                     print(f"and {known_qty2} of {known_substance2}")
