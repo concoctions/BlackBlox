@@ -239,6 +239,7 @@ class Factory:
                 replace_fuel = False
                 energy_replacing_fuel = False
 
+               
                 #gets origin and destination chain objects
                 orig_chain = self.chain_dict[aux[dat.origin_chain]]['chain']
                 if not io_dicts[orig_product_io][orig_chain.name]:
@@ -254,11 +255,12 @@ class Factory:
                     logger.debug(f"using {qty} of {origin_product} from all units in {orig_chain.name}")
                 else:
                     orig_unit = orig_chain.process_dict[aux[dat.origin_unit]]
+                    if origin_product in unit.lookup_var_dict:
+                            origin_product = orig_unit.var_df.at[scenario, unit.lookup_var_dict[origin_product]['lookup_var']] 
                     if origin_product in remaining_product_dict[orig_product_io][orig_chain.name][orig_unit.name]: #check if some of the product has already been used for something
                         qty = remaining_product_dict[orig_product_io][orig_chain.name][orig_unit.name][origin_product]
                         logger.debug(f"{origin_product} found in remaining_product_dict, {qty} unused.")
                     else:
-                        print(io_dicts[orig_product_io][orig_chain.name][orig_unit.name])
                         qty = io_dicts[orig_product_io][orig_chain.name][orig_unit.name][origin_product]
                         logger.debug(f"using {qty} of {origin_product} from {orig_unit.name} in {orig_chain.name}")
 
