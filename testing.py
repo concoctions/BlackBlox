@@ -1,23 +1,37 @@
 """TESTING FILE
 """
 
+import dataconfig as dat
+from datetime import datetime
+
+dat.outdir = "output/test"
+
+dat.user_data = {"name": "S.E. Tanzer",
+             "affiliation": "TU Delft",
+             "project": f"Steel tests - {datetime.now().strftime('%d %B %Y')}",
+}
+
+dat.default_units = {'mass': 'tonnes', 
+                 'energy':'GJ',
+}
+
 import pandas as pan
 import io_functions as iof
-import dataconfig as dat
 import unitprocess as uni
 import processchain as cha
 import factory as fac
 
-test_units = True
+test_units = False
 test_chains = False
-test_factories = False
+test_factories = True
 
-diagrams = True
+view_diagrams = False
+save_diagrams = True
 write_to_xls = True
 
-qty = 1
+qty = 1.0
 
-scenario = dat.default_scenario
+scenario = 'birat-tgr-63vpsa-50bio'
 
 unit_list = [
             # 'IEAGHGsteel_coke_oven',
@@ -30,13 +44,16 @@ unit_list = [
             # 'aux_air separation',
             # 'electricity_1step',
             # 'heat_collector',
-            'birat_steel_plant',
+            # 'birat_steel_plant',
             # 'bb_steel_bf',
             # 'bb_steel_eaf',
             # 'bb_steel_bf-eaf',
             # 'CO2_capture',
             # 'CO2_compression',
             # 'CO2_capture-compression',
+            # 'bb_fuel_upstream',
+            # 'bb_biofuel_upstream',
+            # 'bb_CO2_storage',
              ]
 
 chain_dict = {
@@ -46,11 +63,32 @@ chain_dict = {
 }
 
 factory_dict = {
-                'reference steel': dict(chain_list_file="data/steel/steel_factories.xlsx",
-                                        chain_list_sheet='ref chains', 
-                                        connections_sheet='ref connections', 
+                'IEAGHG steel': dict(chain_list_file="data/steel/IEAGHG_factories.xlsx",
+                                        chain_list_sheet='IEAGHG chains', 
+                                        connections_sheet='IEAGHG connections', 
                                         name="IEAGHG Steel Plant",
-                                        scenario='IEAGHG 2013')}
+                                        scenario='IEAGHG 2013'),
+                'Birat steel base': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                                        chain_list_sheet='base chains', 
+                                        connections_sheet='base connections', 
+                                        name="BF Steel Plant",
+                                        scenario='birat-base'),
+                'Birat CCS': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                                        chain_list_sheet='TGR-CCS chains', 
+                                        connections_sheet='TGR-CCS connect', 
+                                        name="BF-TGR-CCS Steel Plant",
+                                        scenario='birat-tgr-63vpsa'),
+                'Birat BECCS': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                                        chain_list_sheet='TGR-CCS chains', 
+                                        connections_sheet='TGR-CCS connect', 
+                                        name="BF-TGR-BECCS Steel Plant",
+                                        scenario='birat-tgr-63vpsa-50bio'),
+                'Birat BECCS+upstream': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                                        chain_list_sheet='BECCS chains', 
+                                        connections_sheet='BECCS connect', 
+                                        name="BF-TGR-CCS Steel with Upstream",
+                                        scenario='birat-tgr-63vpsa-50bio'),
+}
 
 # UNIT TEST
 if test_units is True:
@@ -58,8 +96,12 @@ if test_units is True:
         unit = uni.UnitProcess(unit_id)
 
         print(str.upper(unit.name))
-        print("\ninflows:", ', '.join(unit.inflows))
-        print("outflows:", ', '.join(unit.outflows))
+        # print("\ninflows:", ', '.join(unit.inflows))
+        # print("outflows:", ', '.join(unit.outflows))
+        print("\nmass inflows:", ', '.join(unit.mass_inflows))
+        print("mass outflows:", ', '.join(unit.mass_outflows))
+        print("\nenergy inflows:", ', '.join(unit.energy_inflows))
+        print("energy outflows:", ', '.join(unit.energy_outflows))
         u_in, u_out = unit.balance(qty, scenario=scenario)
 
         flows = iof.make_df(dict(inflows=u_in, outflows=u_out))
@@ -73,8 +115,8 @@ if test_chains is True:
         chain = cha.ProductChain(**chain_dict[c])
         chain.build()
 
-        if diagrams is True:
-            chain.diagram(view=True, save=False)
+        if view_diagrams is True or save_diagrams is True:
+            chain.diagram(view=view_diagrams, save=save_diagrams)
         
         print(chain.process_dict)
 
@@ -99,8 +141,8 @@ if test_factories is True:
         factory.build()
         print(f"\n{factory.name} factory")
 
-        if diagrams is True:
-            factory.diagram(view=True, save=False)
+        if view_diagrams is True or save_diagrams is True:
+            factory.diagram(view=view_diagrams, save=save_diagrams)
 
         inflows, outflows = factory.balance(product_qty = qty, 
                                             scenario=factory_dict[f]['scenario'], 
