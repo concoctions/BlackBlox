@@ -166,7 +166,7 @@ def is_energy(string, energy_strings=dat.energy_flows):
 
 def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta", 
             col_order = False, T = False, drop_zero=False, sort=False, 
-            lower_cols=False, fillna=True):
+            lower_cols=True, fillna=True):
     """ Creates a Pandas dataframe from various file types
 
     Numbers that are initially read as strings will be converted to 

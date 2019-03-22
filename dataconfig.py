@@ -69,6 +69,15 @@ lookup_var_dict = {
     'fuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='fueltype'),
+    'other fuel': dict(filepath='data/shared/fuels.xlsx',
+                 sheet='Fuels',
+                 lookup_var='other fuel type'),
+    'primary fuel': dict(filepath='data/shared/fuels.xlsx',
+                 sheet='Fuels',
+                 lookup_var='primary fuel type'),
+    'secondary fuel': dict(filepath='data/shared/fuels.xlsx',
+                 sheet='Fuels',
+                 lookup_var='secondary fuel type'),
     'fossil fuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='fossil fuel type'),
@@ -103,14 +112,14 @@ default_units = {'mass': 'tonnes',
 }
 
 
-energy_flows = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV']
+energy_flows = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV', 'lhv', 'hhv']
 """list: strings that indicate that a substance is an energy flow
 
 Usable in flow names. Must be used at the beginning or end of the flow name.
 """
 
 default_emissions = ['CO2']
-"""list: emissions that the program automatically checks for factors for
+"""list: emissions that the program automatically checks for factors for.
 """
 
 ignore_sep = '__'
@@ -168,43 +177,44 @@ as a fraction of that total as a decimal between 0 and 1.
 
 
 # COLUMN HEADERS:
+# These should all be lower case here. In the file itself, case does not matter (though spaces do)
 
 # for UNIT LIBRARY tabular data:
-unit_id = 'ID'
+unit_id = 'id'
 unit_name = 'display name'
 unit_product = 'product'
-unit_product_io = 'productType'
-var_filepath = 'varFile'
-var_sheetname = 'varSheet'
-calc_filepath = 'calcFile'
-calc_sheetname = 'calcSheet'
+unit_product_io = 'producttype'
+var_filepath = 'varfile'
+var_sheetname = 'varsheet'
+calc_filepath = 'calcfile'
+calc_sheetname = 'calcsheet'
 
 # for UNIT PROCESS relationship tabular data:
-known = 'KnownQty'
-known_io = 'k_QtyFrom'
-unknown = 'UnknownQty'
-unknown_io = 'u_QtyTo'
-calc_type = 'Calculation'
-calc_var = 'Variable'
-known2 = '2nd Known Substance'
-known2_io = '2Qty Origin'
+known = 'knownqty'
+known_io = 'k_qtyfrom'
+unknown = 'unknownqty'
+unknown_io = 'u_qtyto'
+calc_type = 'calculation'
+calc_var = 'variable'
+known2 = '2nd known substance'
+known2_io = '2qty origin'
 
 # for UNIT PROCESS scenario values tabular data:
 combustion_efficiency_var = 'combustion eff'
 
 # for production CHAIN linkages tabular data:
-inflow_col = 'Inflow'
-outflow_col = 'Outflow'
-process_col = 'Process_ID'
+inflow_col = 'inflow'
+outflow_col = 'outflow'
+process_col = 'process_id'
 
 # for FACTORY chain list tabular data:
-chain_name = 'ChainName'
-chain_product = 'ChainType'
-chain_product = 'ChainProduct'
-chain_io = 'Product_IO'
-chain_filepath = 'ChainFile'
-chain_sheetname = 'ChainSheet'
-single_unit_chain = 'This Unit Only'
+chain_name = 'chainname'
+chain_product = 'chaintype'
+chain_product = 'chainproduct'
+chain_io = 'product_io'
+chain_filepath = 'chainfile'
+chain_sheetname = 'chainsheet'
+single_unit_chain = 'this unit only'
 
 # for FACTORY connections tabular data:
 origin_chain = "o chain"
@@ -220,12 +230,12 @@ purge_fraction = "r purge %"
 max_replace_fraction = "r max replace %"
 
 # for INDUSTRY tablular data
-factory_name = "Factory Name"
-factory_filepath = "Factory File"
-f_chain_list_file = "Chains File"
-f_chains_sheet = "Factory Chains Sheet"
-f_connections_file = "Connections File"
-f_connections_sheet = "Factory Connections Sheet"
-f_product = "Factory Product"
-f_product_qty = "Product Qty"
-f_scenario = "Scenario"
+factory_name = "factory name"
+factory_filepath = "factory file"
+f_chain_list_file = "chains file"
+f_chains_sheet = "factory chains sheet"
+f_connections_file = "connections file"
+f_connections_sheet = "factory connections sheet"
+f_product = "factory product"
+f_product_qty = "product qty"
+f_scenario = "scenario"
