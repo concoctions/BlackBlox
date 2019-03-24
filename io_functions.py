@@ -458,10 +458,10 @@ def format_and_save_plot(filepath):
    plt.savefig(f"{filepath}.svg", format='svg')
 
 
-def plot_annual_flows(df_dict, flow, outdir, unit_dict=dat.default_units):
+def plot_annual_flows(df_dict, flow, outdir, file_id="", unit_dict=dat.default_units):
     """
     Generated a line plot for each column of a dataframe, using the index
-    as the x-axis labels.
+    as the x-axis labels (which should be a list of years).
     """
     flow_series = []
     for df_name in df_dict:
@@ -469,12 +469,13 @@ def plot_annual_flows(df_dict, flow, outdir, unit_dict=dat.default_units):
             pass
         else:
             df = df_dict[df_name].fillna(0)
-            if flow in df:
-                s = df.loc[:,flow]
+            if str.lower(flow) in df:
+                s = df.loc[:, str.lower(flow)]
                 s = s.rename(df_name)
                 flow_series.append(s)
-    
+
     flow_df = pan.concat(flow_series, axis=1, sort=True)
+    flow_df.index = flow_df.index.map(int) #converts year strings to integers
     df_index = flow_df.index.tolist()
 
     energy_flow = is_energy(flow)
@@ -483,11 +484,18 @@ def plot_annual_flows(df_dict, flow, outdir, unit_dict=dat.default_units):
     else:
         flow_unit = unit_dict['mass']
 
+    ticks = len(df_index)
+    tick_step = 1
+    while ticks > 20:
+        ticks = ticks / 2
+        tick_step = tick_step  * 2
+
     flow_df.plot(title=f"annual outflows of {flow}")
-    plt.xticks(list(range(len(df_index))), df_index, rotation=90)
+
+    plt.xticks(range(df_index[0], df_index[-1]+1, tick_step), rotation=90)
     plt.ylabel(f"{flow_unit} {flow}")
 
-    format_and_save_plot(f'{outdir}/{flow}')
+    format_and_save_plot(f'{outdir}/{flow}{file_id}')
    
    
 # MISCELLANEOUS FUNCTIONS
