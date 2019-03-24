@@ -84,7 +84,9 @@ lookup_var_dict = {
     'biofuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='biofuel type'),
+    'biomass': dict(lookup_var='biomass type')
 } 
+
 """dictionary of special lookup substance names
 Lookup_var_dict is a dictionary with the names of substance, that when used
 in the unit process calculations file, will trigger the program to replace
@@ -110,7 +112,6 @@ Each entry in this dictionary should be formatted with the following:
 default_units = {'mass': 'tonnes', 
                  'energy':'GJ',
 }
-
 
 energy_flows = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV', 'lhv', 'hhv']
 """list: strings that indicate that a substance is an energy flow
