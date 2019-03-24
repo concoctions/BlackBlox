@@ -450,12 +450,12 @@ class Factory:
             totals_dict['factory inflows'] = factory_totals['i']
             totals_dict['factory outflows'] = factory_totals['o']
             totals_df = iof.make_df(totals_dict, drop_zero=True)
-            totals_df = iof.mass_energy_df(totals_df)
+            totals_df = iof.mass_energy_df(totals_df, aggregate_consumed=True)
             internal_flows_header = ['origin chain', 'origin unit', 'flow product', 'quantity', 'destination chain', 'destination unit']
             internal_flows_df = pan.DataFrame(internal_flows, columns=internal_flows_header)
 
-            if len(self.name) > 23:
-                factory_name = self.name[:23]
+            if len(self.name) > 20:
+                factory_name = self.name[:20]+'...'
             else:
                 factory_name = self.name
 
@@ -466,8 +466,8 @@ class Factory:
             all_outflows = defaultdict(lambda: defaultdict(float))
 
             for chain in io_dicts['i']:
-                if len(chain) > 23:
-                    chain_name = chain[:23]
+                if len(chain) > 20:
+                    chain_name = chain[:20]+'...'
                 else:
                     chain_name = chain
                 columns = self.chain_dict[chain]['chain'].process_names + ['chain totals']
@@ -709,3 +709,53 @@ class Factory:
             io_diagram.render()
 
         logger.debug(f"created diagram for {self.name} factory")
+
+    def run_scenarios(self, scenario_list, 
+                      product_qty, product=False, product_unit=False, product_io=False, 
+                      mass_energy=True, energy_flows=dat.energy_flows, 
+                      write_to_xls=True, outdir=dat.outdir, file_id=''):
+        """Balances the factory on a set of different scenarios
+        """
+
+        outdir = iof.build_filedir(outdir, subfolder=self.name,
+                                    file_id_list=['multiScenario', file_id],
+                                    time=True)
+
+        scenario_dict = iof.nested_dicts(3)
+        
+        for scenario in scenario_list:
+            f_in, f_out = self.balance(product_qty=product_qty, 
+                                       product=product, 
+                                       product_unit=product_unit, 
+                                       product_io=product_io, 
+                                       scenario=scenario,
+                                       mass_energy=mass_energy, 
+                                       energy_flows=dat.energy_flows, 
+                                       write_to_xls=write_to_xls, 
+                                       outdir=dat.outdir)
+            
+            scenario_dict['i'][scenario] = f_in
+            scenario_dict['o'][scenario] = f_out
+
+        inflows_df = iof.make_df(scenario_dict['i'], drop_zero=True)
+        inflows_df = iof.mass_energy_df(inflows_df, aggregate_consumed=True)
+        outflows_df = iof.make_df(scenario_dict['o'], drop_zero=True)
+        outflows_df = iof.mass_energy_df(outflows_df, aggregate_consumed=True)
+
+        if product is False:
+            product= self.main_product
+
+        meta_df = iof.metadata_df(user=dat.user_data, 
+                                    name=self.name, 
+                                    level="Factory", 
+                                    scenario=" ,".join(scenario_list), 
+                                    product=product,
+                                    product_qty=product_qty, 
+                                    energy_flows=dat.energy_flows)
+
+        iof.write_to_excel(df_or_df_list=[meta_df, inflows_df, outflows_df],
+                            sheet_list=["meta", "inflows", "outflows"], 
+                            filedir=outdir, 
+                            filename=f'{self.name}_multiscenario_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+
+        return inflows_df, outflows_df
