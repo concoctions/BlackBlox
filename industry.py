@@ -226,7 +226,8 @@ class Industry:
 
     def evolve(self, start_data=None, start_sheet=None, end_data=None, end_sheet=None,
                 start_step=0, end_step=1, mass_energy=True, energy_flows=dat.energy_flows, 
-                write_to_xls=True, outdir=dat.outdir, file_id='', diagrams=True, graph_outflows=False, graph_inflows=True):  
+                write_to_xls=True, outdir=dat.outdir, file_id='', diagrams=True, graph_outflows=False, 
+                graph_inflows=True, **kwargs):  
         """Calculates timestep and cumulative inflows and outflows of an industry
         using a specified starting scenario and end scenario
         """
@@ -341,8 +342,9 @@ class Industry:
         return annual_flows, cumulative_dict
 
     
-    def evolve_multistep(self, steps=None, production_data_files=None, step_sheets=None, file_id='',
-                        outdir=dat.outdir, write_to_xls=True, graph_inflows=False, graph_outflows=False):
+    def evolve_multistep(self, steps=None, production_data_files=None, step_sheets=None, 
+                        file_id='', outdir=dat.outdir, write_to_xls=True, 
+                        graph_inflows=False, graph_outflows=False, **kwargs):
         """the same as evolve, but takes a list of an arbitrary number of steps
         Args:
             steps (list[int]): list of numerical time steps
@@ -357,8 +359,13 @@ class Industry:
         step_annual_flows = []
         step_cumulative_flows = [] 
 
-        if len(steps) > 3:
-            raise ValueError("There should be at least three steps to use this function")
+        if len(steps) < 2:
+            raise ValueError("Too few steps were specified")
+        elif len(steps) == 2:
+            two_step = True
+            logger.debug("only two steps given; only performing a single-evolve function")
+        else:
+            two_step = False
 
         if production_data_files is None:
             production_data_files = [None for i in range(len(steps))]
@@ -375,9 +382,11 @@ class Industry:
                                 end_step=step, 
                                 mass_energy=True, 
                                 energy_flows=dat.energy_flows, 
-                                write_to_xls=False, 
+                                write_to_xls=two_step, 
                                 diagrams=False)
                 annual, cumulative = self.evolve(**s_kwargs)
+                if two_step is True:
+                    return annual, cumulative
                 step_annual_flows.append(annual)
                 step_cumulative_flows.append(cumulative)
             prev_step = step
@@ -444,3 +453,4 @@ class Industry:
 
         
         return merged_annual_flows, merged_cumulative_flows
+        
