@@ -248,7 +248,8 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
     return df
 
 
-def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True, units=dat.default_units):
+def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True, aggregate_consumed=False,
+                    units=dat.default_units):
     """Reorders dataframe to seperate mass and energy flows
 
     Uses a list of prefix/suffixes to identify mass and energy flows
@@ -270,18 +271,40 @@ def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True, units=dat.d
 
     mass_df = pan.DataFrame(columns=cols)
     energy_df = pan.DataFrame(columns=cols)
+    consumed_mass_df = pan.DataFrame(columns=cols)
+    consumed_energy_df = pan.DataFrame(columns=cols)
 
     for i, row in df.iterrows():
-        clean_i = clean_str(i)
+        if i.startswith(dat.consumed_indicator):
+            consumed = True
+        else:
+            consumed = False
+        clean_i = clean_str(i, str_to_cut=dat.consumed_indicator)
         energy_flow = False
+
         for string in energy_strings:
             if clean_i.startswith(string) or clean_i.endswith(string):
                 energy_flow = True
                 break
-        if energy_flow is True:
-            energy_df = energy_df.append(row)
+
+        if energy_flow is True: 
+            if consumed is True and aggregate_consumed is True:
+                consumed_energy_df = consumed_energy_df.append(row)
+            else:
+                energy_df = energy_df.append(row)
+
         else:
-            mass_df = mass_df.append(row)
+            if consumed is True and aggregate_consumed is True:
+                consumed_mass_df = consumed_mass_df.append(row)
+            else:
+                mass_df = mass_df.append(row)
+
+    if aggregate_consumed is True:
+        if not consumed_mass_df.empty:
+            mass_df = mass_df.append(consumed_mass_df.sum().rename(f'CONSUMED/EMBODIED/&c mass'))
+        if not consumed_energy_df.empty:
+            energy_df = energy_df.append(consumed_energy_df.sum().rename(f'CONSUMED/EMBODIED/&c energy'))
+
 
     if not mass_df.empty:
         mass_df['index-lowercase'] = mass_df.index.str.lower()
@@ -297,6 +320,7 @@ def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True, units=dat.d
             mass_df = mass_df.append(mass_df.sum().rename(f'TOTAL MASS, in {units["mass"]}'))
         if not energy_df.empty:
             energy_df = energy_df.append(energy_df.sum().rename(f'TOTAL ENERGY, in {units["energy"]}'))
+
 
     combined_df = pan.concat([mass_df, energy_df], keys=['Mass', 'Energy'])
 

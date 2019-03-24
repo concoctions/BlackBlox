@@ -165,9 +165,9 @@ class Industry:
                                       energy_flows=energy_flows)
 
             inflows_df = iof.make_df(io_dicts['inflows'], drop_zero=True)
-            inflows_df = iof.mass_energy_df(inflows_df)
+            inflows_df = iof.mass_energy_df(inflows_df, aggregate_consumed=True)
             outflows_df = iof.make_df(io_dicts['outflows'], drop_zero=True)
-            outflows_df = iof.mass_energy_df(outflows_df)
+            outflows_df = iof.mass_energy_df(outflows_df, aggregate_consumed=True)
         
 
             df_list = [meta_df, inflows_df, outflows_df]
@@ -188,7 +188,7 @@ class Industry:
         """
 
         outdir = iof.build_filedir(outdir, subfolder=self.name,
-                                    file_id_list=['multiScenario', file_id],
+                                    file_id_list=['multiscenario', file_id],
                                     time=True)
 
         scenario_dict = iof.nested_dicts(4)
@@ -204,24 +204,24 @@ class Industry:
             scenario_dict['i'][scenario] = s_dict['inflows']['industry totals'] 
             scenario_dict['o'][scenario] = s_dict['outflows']['industry totals'] 
 
-            inflows_df = iof.make_df(scenario_dict['i'], drop_zero=True)
-            inflows_df = iof.mass_energy_df(inflows_df)
-            outflows_df = iof.make_df(scenario_dict['o'], drop_zero=True)
-            outflows_df = iof.mass_energy_df(outflows_df)
+        inflows_df = iof.make_df(scenario_dict['i'], drop_zero=True)
+        inflows_df = iof.mass_energy_df(inflows_df, aggregate_consumed=True)
+        outflows_df = iof.make_df(scenario_dict['o'], drop_zero=True)
+        outflows_df = iof.mass_energy_df(outflows_df, aggregate_consumed=True)
 
-            meta_df = iof.metadata_df(user=dat.user_data, 
-                                      name=self.name, 
-                                      level="Industry", 
-                                      scenario=" ,".join(scenario_list), 
-                                      product=" ,".join(self.product_list),
-                                      product_qty="--", 
-                                      energy_flows=dat.energy_flows)
+        meta_df = iof.metadata_df(user=dat.user_data, 
+                                    name=self.name, 
+                                    level="Industry", 
+                                    scenario=" ,".join(scenario_list), 
+                                    product=" ,".join(self.product_list),
+                                    product_qty="--", 
+                                    energy_flows=dat.energy_flows)
 
-            if write_to_xls is True:
-                iof.write_to_excel(df_or_df_list=[meta_df, inflows_df, outflows_df],
-                                    sheet_list=["meta", "inflows", "outflows"], 
-                                    filedir=outdir, 
-                                    filename=f'{self.name}_multiscenario_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+        if write_to_xls is True:
+            iof.write_to_excel(df_or_df_list=[meta_df, inflows_df, outflows_df],
+                                sheet_list=["meta", "inflows", "outflows"], 
+                                filedir=outdir, 
+                                filename=f'{self.name}_multiscenario_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 
 
     def evolve(self, start_data=None, start_sheet=None, end_data=None, end_sheet=None,
@@ -403,9 +403,9 @@ class Industry:
                         f'_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 
             cumulative_infows_df = iof.make_df(merged_cumulative_flows['inflows'], drop_zero=True)
-            cumulative_infows_df = iof.mass_energy_df(cumulative_infows_df)
+            cumulative_infows_df = iof.mass_energy_df(cumulative_infows_df, aggregate_consumed=True)
             cumulative_outflows_df = iof.make_df(merged_cumulative_flows['outflows'], drop_zero=True)
-            cumulative_outflows_df = iof.mass_energy_df(cumulative_outflows_df)
+            cumulative_outflows_df = iof.mass_energy_df(cumulative_outflows_df, aggregate_consumed=True)
 
             meta_df = iof.metadata_df(user=dat.user_data, name=self.name, 
                             level="Industry", scenario="n/a", product=" ,".join(self.product_list),
