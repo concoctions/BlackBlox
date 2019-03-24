@@ -220,10 +220,10 @@ class ProductChain:
         intermediate_product_dict = defaultdict(float)
         internal_flows = []
 
-        if product_alt_name is not False:
-            product_name = product_alt_name
-        else:
-            product_name = product_alt_name
+        # if product_alt_name is not False:
+        #     product_name = product_alt_name
+        # # else:
+        # #     product_name = product_alt_name
 
         #balance starting process
         logger.debug(f"attempting to balance {start.name} on {qty} of {product}({i_o}) using {scenario} variables.")
