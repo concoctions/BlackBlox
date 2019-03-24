@@ -54,8 +54,9 @@ if the data is within excel sheets, will also be used if provided.
 
 lookup_var_dict = copy(dat.lookup_var_dict)
 for var in lookup_var_dict:
-    df = iof.make_df(lookup_var_dict[var]['filepath'], sheet=lookup_var_dict[var]['sheet'])
-    lookup_var_dict[var]['data_frame'] = df
+    if 'filepath' in lookup_var_dict[var]:
+        df = iof.make_df(lookup_var_dict[var]['filepath'], sheet=lookup_var_dict[var]['sheet'])
+        lookup_var_dict[var]['data_frame'] = df
 
 
 class UnitProcess:
@@ -169,7 +170,6 @@ class UnitProcess:
                         for emission in dat.default_emissions:
                             self.outflows.add(emission)
                             self.mass_outflows.add(emission)
-                        self.mass_inflows.add('O2__for combustion')
                         self.energy_inflows.add(f"energy embodied in fuels")
                         self.energy_outflows.add("waste heat")
             
@@ -239,9 +239,12 @@ class UnitProcess:
         if product not in self.inflows and product not in self.outflows:
             raise Exception(f'{product} not found in {self.name} inflows or outflows')
         if product in lookup_var_dict:
-            product = self.var_df.at[scenario, lookup_var_dict[product]['lookup_var']]   
+            lookup_product_key = product
+            product = self.var_df.at[scenario, lookup_var_dict[product]['lookup_var']]  
+        else:
+            lookup_product_key = False
         calc_df = self.calc_df
-        logger.debug(f"Attempting to balance {self.name} on {qty} of {product} ({i_o}) using {scenario} variables")
+        logger.debug(f"Attempting to balance {self.name} on {qty} of {product} (different name from origin: {product_alt_name}) ({i_o}) using {scenario} variables")
 
         io_dicts = {
             'i' : defaultdict(float),    # inflows dictionary
@@ -252,9 +255,11 @@ class UnitProcess:
         }
         if product_alt_name is not False:
             io_dicts[i_o][product_alt_name] = qty # primes inflow or outflow dictionary with product quantity
+            logger.debug(f"{qty} of {product_alt_name} added to {i_o} dict, in place of {product}")
         else:
             io_dicts[i_o][product] = qty # primes inflow or outflow dictionary with product quantity
-        
+            logger.debug(f"{qty} of {product} added to {i_o} dict")
+
         i = 0
         attempt = 0
 
@@ -294,18 +299,30 @@ class UnitProcess:
 
             if product_alt_name is not False:
                 if known_substance == product:
-                    known_substance = product_alt_name
+                    known_substance = product_alt_name #name at origin
+                    logger.debug(f"{product_alt_name} substitued for {product} as known substance")
+                elif lookup_product_key is not False:
+                    if known_substance == lookup_product_key:
+                        known_substance = product_alt_name #name at origin
+                        logger.debug(f"{product_alt_name} substitued for {product} as known substance")
                 if unknown_substance == product:
-                    unknown_substance = product_alt_name
+                    unknown_substance = product_alt_name #name at origin
+                    logger.debug(f"{product_alt_name} substitued for {product} as unknown substance")
+                elif lookup_product_key is not False:
+                    if unknown_substance == lookup_product_key:
+                        unknown_substance = product_alt_name #name at origin
+                        logger.debug(f"{product_alt_name} substitued for {product} as unknown substance")
 
             if known_substance in lookup_var_dict:
-                lookup_df = lookup_var_dict[known_substance]['data_frame']
+                if 'data_frame' in lookup_var_dict[known_substance]:
+                    lookup_df = lookup_var_dict[known_substance]['data_frame']
                 known_substance = self.var_df.at[scenario, lookup_var_dict[known_substance]['lookup_var']]
             if unknown_substance in lookup_var_dict:
-                if lookup_df is not None:
+                if lookup_df is not None and 'data frame' in lookup_var_dict[unknown_substance]:
                     print(f"[!] POSSIBLE ERROR [!] in ({self.name} unit process):\nBoth {known_substance} (known) and {unknown_substance} (unknown) are from lookup dicts. Only one lookup dict can be used for lookup-ratios. Defaulting to that of known substance.")
                 else:
-                    lookup_df = lookup_var_dict[unknown_substance]['data_frame']
+                    if 'data frame' in lookup_var_dict[unknown_substance]:
+                        lookup_df = lookup_var_dict[unknown_substance]['data_frame']
                 unknown_substance = self.var_df.at[scenario, lookup_var_dict[unknown_substance]['lookup_var']]
 
             #allows for the use of multiple flows that are the same substance by using an "ignore after" seperator
@@ -367,7 +384,6 @@ class UnitProcess:
                 else:
                     known2_proxy = known_substance2
 
-        
                 if known_substance2 in io_dicts[k2_io]:
                     known_qty2 = io_dicts[k2_io][known_substance2]
                 else:
