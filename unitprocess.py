@@ -295,8 +295,8 @@ class UnitProcess:
             
             logger.debug(f"current index: {i}, current product: {known_substance}")
             if attempt >= len(calc_df): 
+                print(io_dicts)
                 raise Exception(f"Cannot process {known_substance} ({known_io}-flow), when trying to calculate {unknown_substance} ({unknown_io}-flow) via {calc_type}. Breaking to prevent infinite loop. Try checking flow location and remember that substance names are case sensitive.")
-
             if product_alt_name is not False:
                 if known_substance == product:
                     known_substance = product_alt_name #name at origin
