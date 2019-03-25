@@ -15,6 +15,7 @@ Module Outline:
     - class function: Build
     - class function: Balance
     - class function: Diagram
+    - class function: Run_Scenarios
 
 """
 
@@ -159,12 +160,21 @@ class Factory:
         Based on a quantity of the factory's main product, calculates the 
         remaining quantities of all flows in the factory, assuming all unit 
         processes are well-specified with zero degrees of freedom.
+        Processes the connections in the order that they are specified in the
+        factory's connections DataFrame
 
         Args:
             product_qty (float): the quantity of the product to balance on.
             product (str/bool): the product name. If False, uses the default
                 product in the chain object attributes.
                 (Defaults to False)
+            product_unit (str/bool): The unit process in the main factory chain 
+                where the product is located. If False, checks for the product 
+                as an inflow or outflow of the main product chain.
+                (Defaults to False)
+            product_io (str/bool): Whether the product is an inflow or outflow
+                of the specified unit process. If False,checks for the product 
+                as an inflow or outflow of the main product chain.
             scenario (str): The name of the scenario of variable values to use, 
                 corresponding to the matching row index in each unit process's
                 var_df. 
@@ -216,7 +226,7 @@ class Factory:
                                                            unit_process = product_unit,
                                                            scenario=scenario)
 
-        internal_flows.extend(main_chain_internal_flows)
+        internal_flows.extend(main_chain_internal_flows) #keeps track of flows betwen units
 
         # balances auxillary chains and recycle flows based on connections dataframe
         if self.connections_df is not None:
@@ -255,6 +265,8 @@ class Factory:
                     logger.debug(f"using {qty} of {origin_product} from all units in {orig_chain.name}")
                 else:
                     orig_unit = orig_chain.process_dict[aux[dat.origin_unit]]
+
+                    # processes substance name based on seperator and lookup key rules
                     if  dat.ignore_sep in origin_product:
                         if origin_product.split(dat.ignore_sep)[0] in unit.lookup_var_dict:
                             lookup_substance = orig_unit.var_df.at[scenario, unit.lookup_var_dict[origin_product.split(dat.ignore_sep)[0]]['lookup_var']]
@@ -262,6 +274,7 @@ class Factory:
                     elif origin_product in unit.lookup_var_dict:
                             origin_product = orig_unit.var_df.at[scenario, unit.lookup_var_dict[origin_product]['lookup_var']] 
                    
+                    # checks to see if product has already been used elsewhere
                     if origin_product in remaining_product_dict[orig_product_io][orig_chain.name][orig_unit.name]: #check if some of the product has already been used for something
                         qty = remaining_product_dict[orig_product_io][orig_chain.name][orig_unit.name][origin_product]
                         logger.debug(f"{origin_product} found in remaining_product_dict, {qty} unused.")
@@ -277,13 +290,13 @@ class Factory:
                             qty = qty - purge
                             logger.debug(f"purge: {purge}, new qty: {qty}")
                 
-                if dat.max_replace_fraction in aux: # used for recycle flows only
+                if dat.max_replace_fraction in aux: # used for recycle flows only 
                     if aux[dat.max_replace_fraction] not in dat.no_var:
                         if type(aux[dat.max_replace_fraction]) in [float, int] and not isnan(aux[dat.max_replace_fraction]):
                             calc.check_qty(aux[dat.max_replace_fraction], fraction=True)
                             max_replace_fraction = aux[dat.max_replace_fraction]
                 
-                # process recycle connections
+                # rebalancer for recycle-type connections
                 if dat.replace in aux and type(aux[dat.replace]) is str and aux[dat.replace] not in dat.no_var:
                     if aux[dat.replace] in unit.lookup_var_dict:
                         replace_flow = dest_unit.var_df.at[scenario, unit.lookup_var_dict[aux[dat.replace]]['lookup_var']] 
@@ -308,6 +321,7 @@ class Factory:
                     logger.debug(io_dicts['o'][dest_chain.name][dest_unit.name])
                     logger.debug(f"purge: {purge}, max replace fraction: {max_replace_fraction}")
                     logger.debug(f'replaces fuel{replace_fuel}')
+                    
                     if replace_fuel is True:
                         logger.debug(f"{product} replacing {replace_flow}")
                         for string in dat.energy_flows:
@@ -329,7 +343,7 @@ class Factory:
                     logger.debug(io_dicts['i'][dest_chain.name][dest_unit.name])
                     logger.debug(io_dicts['o'][dest_chain.name][dest_unit.name])
 
-                    # recalculate chain totals  
+                    # recalculate chain totals using rebalanced unit
                     new_chain_totals = {
                         'i': defaultdict(float),
                         'o': defaultdict(float)
@@ -355,16 +369,13 @@ class Factory:
                     logger.debug(f"{remaining_product_dict[orig_product_io][orig_chain.name][orig_unit.name][origin_product]} {origin_product} remaining for {orig_chain.name}-{orig_unit.name}")
 
 
-                # process non-reycle connection   
-                else:         
+                # balance the connection if it is not a recycle connection 
+                else:
+                    # allow for "connect as" products         
                     if dat.dest_product in aux and type(aux[dat.dest_product]) is str and aux[dat.dest_product] not in dat.no_var:
                         destination_product = aux[dat.dest_product]
                     else:
                         destination_product = origin_product
-
-                    if purge != 0:
-                        qty = qty * (1-purge)
-                        logger.debug(f'{purge} of {origin_product} purged')
 
                     logger.debug(f"sending {qty} of {origin_product} to {dest_chain.name} as {destination_product} ({dest_product_io}-flow)")
                     c_kwargs = dict(qty=qty, 
@@ -372,12 +383,10 @@ class Factory:
                                     product_alt_name = origin_product,
                                     i_o=dest_product_io, 
                                     unit_process = dest_unit_id,
-                                    scenario=scenario,
-                                    )
-                    (i_tmp, 
-                    o_tmp, 
-                    chain_intermediates_dict[dest_chain.name],
-                    chain_internal_flows) = dest_chain.balance(**c_kwargs)
+                                    scenario=scenario,)
+                    (i_tmp, o_tmp, 
+                    chain_intermediates_dict[dest_chain.name], chain_internal_flows) = dest_chain.balance(**c_kwargs)
+                    
                     internal_flows.extend(chain_internal_flows)
                 
                     # add chain inflow/outflow data to factory inflow/outflow dictionaries
@@ -395,18 +404,22 @@ class Factory:
                     
                     logger.debug(f"{qty} of {origin_product} as product from {orig_chain.name} ({orig_product_io}) sent to to {dest_chain.name} ({dest_product_io})")
 
+                # for both recycle and non-recycle connections:
+                # add used product to dictionary counting intra-factories flows (to be deleted from totals)
                 intermediate_product_dict[origin_product] += (qty - qty_remaining)
                 logger.debug(f"{qty - qty_remaining} of {origin_product} added to intermediate_product_dict")
 
-                # generate names for internal flows list
+                # generates internal flows list data
                 orig_chain_name = orig_chain.name
                 dest_chain_name = dest_chain.name
+
                 if orig_unit and orig_unit.name:
                     orig_unit_name = orig_unit.name
                 elif aux[dat.origin_unit] == dat.connect_all:
                     orig_unit_name = 'all'
                 else:
                     orig_unit_name = 'unknown'
+
                 if dest_unit and dest_unit.name:
                     dest_unit_name = dest_unit.name
                     dest_unit_id = dest_unit.u_id
@@ -426,7 +439,7 @@ class Factory:
                 else:
                     internal_flows.append([orig_chain_name, orig_unit_name, f'{origin_product} AS {destination_product}', (qty-qty_remaining), dest_chain_name, dest_unit_name])
 
-
+        # after processing all connections, generate total data
         factory_totals = {
             'i': defaultdict(float),
             'o': defaultdict(float)
@@ -459,6 +472,7 @@ class Factory:
             internal_flows_header = ['origin chain', 'origin unit', 'flow product', 'quantity', 'destination chain', 'destination unit']
             internal_flows_df = pan.DataFrame(internal_flows, columns=internal_flows_header)
 
+            # shortens factory names to preven issues with spreadsheet name length limits
             if len(self.name) > 20:
                 factory_name = self.name[:20]+'...'
             else:
@@ -470,6 +484,7 @@ class Factory:
             all_inflows = defaultdict(lambda: defaultdict(float))
             all_outflows = defaultdict(lambda: defaultdict(float))
 
+            #shortens chain names to prevent issues with spreadsheet name length limits
             for chain in io_dicts['i']:
                 if len(chain) > 20:
                     chain_name = chain[:20]+'...'
@@ -719,7 +734,44 @@ class Factory:
                       product_qty, product=False, product_unit=False, product_io=False, 
                       mass_energy=True, energy_flows=dat.energy_flows, 
                       write_to_xls=True, outdir=dat.outdir, file_id=''):
-        """Balances the factory on a set of different scenarios
+        """Balances the factory on the same quantity for a list of different scenarios.
+        Outputs a file with total inflows and outflows for the factory for each scenario.
+
+        Args:
+            scenario_list (list[str]): List of scenario variable values to use, 
+                each corresponding to a matching row index in each unit 
+                process's var_df. 
+            product_qty (float): the quantity of the product to balance on.
+            product (str/bool): the product name. If False, uses the default
+                product in the chain object attributes.
+                (Defaults to False)
+            product_unit (str/bool): The unit process in the main factory chain 
+                where the product is located. If False, checks for the product 
+                as an inflow or outflow of the main product chain.
+                (Defaults to False)
+            product_io (str/bool): Whether the product is an inflow or outflow
+                of the specified unit process. If False,checks for the product 
+                as an inflow or outflow of the main product chain.
+            mass_energy (bool): If true, seperates mass and energy flows within 
+                each excel sheet, adding rows for the respective totals.
+                (Defaults to True)
+            energy_flows (list): list of prefix/suffixes used to identify which 
+                substances are energy flows and seperates them.
+                (Defaults to dat.energy_flows)
+            write_to_xls (bool): If True, outputs the balances of each scenario 
+                to an excel workbook, with sheets for factory totals, inflows 
+                and outflows for all unit processes, and inflows and outflows 
+                by chain.
+                (Defaults to False)
+            outdir (str): Filepath where to create the balance spreadsheets.
+                (Defaults to the outdir specified in dataconfig)  
+            file_id (str): Additional text to add to filename.
+                (Defaults to an empty string)
+
+        Returns:
+            Dataframe of compared inflows
+            Dataframe of compared outflows
+
         """
 
         outdir = iof.build_filedir(outdir, subfolder=self.name,

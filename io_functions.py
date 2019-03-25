@@ -12,15 +12,18 @@ Input Data Validators & Cleaners
 - function: if_str
 - function: check_for_col
 - function: is_energy
+
 Data Frame Constructors
 - function: make_df
 - function: mass_energy_df
 - function: metadata_df
+
 Writers to Files
 - function: build_filedir
 - function: write_to_excel
 - function: format_and_save_plot
 - function: plot_annual_flows
+
 Miscellaneous Functions
 - nested_dicts
 
@@ -57,6 +60,9 @@ def clean_str(string_to_check, str_to_cut=False, lower=True, remove_dblnewline=T
         remove_dblnewlines (bool): If True, looks for and removes instances
             of double new lines.
             (Defaults to True.)
+        cut_whole_line_only (bool): If True, only cuts string if it begins or
+            ends with a \n. 
+            (Defaults to False)
 
     Returns
         The input string, stripped of leading and trailing white space 

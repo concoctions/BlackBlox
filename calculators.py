@@ -3,8 +3,8 @@
 
 This module contains the standard set of functions used to manipulate the 
 quantites specified in the user data. The calculation type specified by the 
-user must be of one of the type specified here, or one defined by the user in
-custom_lookup.py
+user must be of one of the type specified here, as noted in calc_dict, or one 
+defined by the user in custom_lookup.py
 
 The "invert" option throughout the calculation helps the unit processes to 
 balance processes balance on an arbitrary known quantity even though
@@ -17,14 +17,20 @@ are provided to the calculator function in unitprocess.py, whether or
 not they are used by that specific function.
 
 Module Outline:
-- imports and logger
+- module variable: df_fuels
 - function: check_qty
 - function: Ratio
 - function: Remainder
 - function: ReturnValue
 - function: MolMassRatio
+- function: Subtraction
+- function: Addition
 - function: check_balance
+- function: Energy_Content
+- function: lookup_ratio
 - module variable: calcs_dict
+- module variable: twoQty_calc_list 
+- module variable: lookup_var_calc_list
 
 """
 
@@ -39,10 +45,16 @@ logger = get_logger("Calculators")
 
 # LOOKUP DATA NEEDED BY CALCULATORS
 df_fuels = None
-if 'fuel' in dat.lookup_var_dict:
+"""Dataframe of data regarding different fuel types.
+This should include at minimum: the LHV and CO2 emissions of the fuel.
+Generated if 'fuel' is in dat.lookup_var_dict
+"""
+
+if 'fuel' in dat.lookup_var_dict: 
     df_fuels = iof.make_df(dat.lookup_var_dict['fuel']['filepath'], sheet=dat.lookup_var_dict['fuel']['sheet'])
 
-# FUNCTIONS USED BY CALCUALTOR FUNCTIONS
+
+# INPUT CHECKER FUNCTIONS
 def check_qty(qty, fraction = False):
     """Checks that a quantity is > 0 and optionally < 1.
     Raises and error if the quantity is negative, and, optionally, if it is 
@@ -55,6 +67,7 @@ def check_qty(qty, fraction = False):
             (Defaults to False.)
 
     """
+
     if qty < 0:
         raise ValueError(f'quantity should be > 0. Currently: {qty}')
     
@@ -82,7 +95,7 @@ def Ratio(qty, var, invert = False, **kwargs):
     Args:
         qty: The known quantity
         var: The ratio of unknown:known quantities
-        invert (Bool): Specigy True if the ratio is known:unknown. Converts the 
+        invert (Bool): Specify True if the ratio is known:unknown. Converts the 
             ratio to 1/ratio. 
             (Default is False.)
 
@@ -188,6 +201,7 @@ def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
 
     return qty * (Formula(unknown_substance).mass / Formula(known_substance).mass)
 
+
 def Subtraction(qty, qty2, invert = False, **kwargs):
     """Subtracts one quantity from another.
 
@@ -227,8 +241,8 @@ def Addition(qty, qty2, invert = False, **kwargs):
     Returns:
         float: The quantity of a third substance
 
-
     """
+    
     if invert is False:
         return qty + qty2
 
@@ -268,6 +282,7 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
         bool: True if the mass flows are balanced. Otherwise False.
         float: sum of all mass inflows.
         float: sum of all mass outflows.
+
     """
 
     totals = [0,0]
@@ -305,8 +320,6 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
                 totals[i] += qty
                 flows[i].append(substance)
 
-
-
     total_in = round(totals[0], round_n)
     total_out = round(totals[1], round_n)
 
@@ -327,6 +340,7 @@ def Energy_Content(known_substance, qty, unknown_substance, LHV=True, fuels_df=d
     """
     Returns the energy value of a requested fuel quantity or the fuel
     quantity, when provided an energy value of a requested fuel
+
     Args:
         known_substance (str): name of the known quantity, either 
             a fuel in fuels_df or the name of that fuel's energy flow
@@ -337,6 +351,11 @@ def Energy_Content(known_substance, qty, unknown_substance, LHV=True, fuels_df=d
             the HHV.
             (Defaults to False)
         fuels_df: data frame with fuels data
+
+    Returns:
+        float: energy quantity if the the known substance was a fuel, or fuel
+            quantity, if the known substance was an energy content
+
     """
     if (known_substance.split(dat.ignore_sep)[0] not in fuels_df.index and unknown_substance.split(dat.ignore_sep)[0] not in fuels_df.index):
         raise Exception("Neither {} nor {} is a known_substance fuel type".format(known_substance, unknown_substance))
@@ -365,18 +384,26 @@ def Energy_Content(known_substance, qty, unknown_substance, LHV=True, fuels_df=d
 
     return return_qty
 
+
 def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df_fuels, force_df=False, **kwargs):
-    """
-    Returns the energy value of a requested fuel quantity or the fuel
-    quantity, when provided an energy value of a requested fuel
+    """Ratio function, but for lookup DataFrames
+    Multiplies or divides a quantity by a given ratio, based on data in a
+    dataframe that is not the unit's var_df. Note that only ONE of the known
+    and unknown substances can be in the lookup DatFrame index
+
+
     Args:
-        known_substance (str): name of the known quantity, either 
-            a fuel in fuels_df or the name of that fuel's energy flow
+        known_substance (str): name of the known quantity
         qty (float): quantity of known substance
-        unknown_substance (str): name of the unknown quantity, either
-            the fuel or enery flow
+        unknown_substance (str): name of the unknown quantity
         var (str): The variable (column) to use from the  lookup table
-        df: data frame with lookup data
+        lookup_df (DataFrame): data frame with lookup data
+        force_df (DataFrame or bool): force the use of a specific data frame,
+            even if the substance names lookup keys would cause another one
+
+    Returns:
+        float
+
     """
 
     if isinstance(force_df, pan.DataFrame):
@@ -420,7 +447,8 @@ def Combustion(known_substance, qty, unknown_substance, var,
 
     Note:
     Besides the listed emissions, it will also calculate "waste heat" based on 
-    the combustion efficiency. 
+    the combustion efficiency, and "O2 needed for combustion", based on the 
+    difference between the fuel mass and the emissions mass
 
     To maintain mass balances, the difference between the combustion emissions
     and the fuel mass is added to the inflows dictionary (if specified) as 
@@ -509,7 +537,6 @@ def Combustion(known_substance, qty, unknown_substance, var,
             combustion_emissions[f'{emission}{dat.ignore_sep}emitted'] = fuels_df.at[fuel_type, emission.lower()] * fuel_qty
     waste_heat = energy_qty * (1 - combust_eff)
 
-
     if type(emissions_dict) == defaultdict:
         if type(inflows_dict) == defaultdict:
             inflows_dict[f'O2{dat.ignore_sep}combustion'] += sum(combustion_emissions.values()) - fuel_qty # closes mass balance
@@ -519,13 +546,13 @@ def Combustion(known_substance, qty, unknown_substance, var,
         for emission in combustion_emissions:
             emissions_dict[emission] += combustion_emissions[emission]
 
-        
     logger.debug("Emission Data Calculated:")
     for emission in combustion_emissions:
         logger.debug(f"{emission}: {combustion_emissions[emission]}")
     logger.debug(f"waste_heat: {waste_heat}")
 
     return return_qty
+
 
 calcs_dict = {
     'ratio': {'function': Ratio, 'kwargs': {}},
@@ -547,6 +574,7 @@ calcs_dict = {
     'lookup ratio-fuels': {'function': lookup_ratio, 'kwargs': {'force_df': df_fuels}},
 }
 """Dictionary of calculators available to process unit process relationships.
+The keys in this dictionary should be all lowercase.
 Must be manually updated if additional calculators are added to this module. 
 
 Can also be used to create alias names for functions with non-default keyword

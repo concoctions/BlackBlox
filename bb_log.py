@@ -25,6 +25,13 @@ LOG_FILE = Path("logs/BlackBlox.log")
 #    return console_handler
 
 def get_file_handler():
+   """Chooses a file handler based on the operating system of the user
+   Windows (7, 10) doesn't like the rotating file handler,  so if the user OS is 
+   Windows, a static file handler is used, but the current date is suffixed to 
+   the filename. However, if the program is run over multiple days, the log file
+   name will  not automatically switch.
+
+   """
    if platform.system() is 'Windows':
       file_handler = logging.FileHandler(f"{LOG_FILE}_{datetime.now().strftime('%Y-%m-%d')}")
    else:

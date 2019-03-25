@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+""" Industry class
+"""
+
 import pandas as pan
 from collections import defaultdict
 from graphviz import Digraph
@@ -19,6 +23,26 @@ class Industry:
     Industries are made up of one or more factories, and are balanced on one or more
     factory products. Factories within an industry can run with different scenario
     data. Industries can change over time.
+
+    Args:
+        factory_file (str): Location of spreadsheet containing factory list data, 
+            and default location of production scenario data
+        factory_list_sheet (str/None): name of sheet in workbook  with list of
+            factories in the industry
+            (Defaults to None)
+        name (str): Name of Industry
+            (Defaults to 'Industry')
+
+    Attributes:
+        name (str): Name of Industry
+        factory_file (str): defualt location of factory production data
+        factories_df (DataFrame): DataFrame of data about factories in the Industry
+            including their name, the location of the spreadsheet containing their
+            data, and the sheet names for their list of chains and connections
+        product_list (set[str]): list of unique main output products of the factories
+        factory_dict (dict): dictionary with the factory names, main products
+            and Fac.Factory objects
+
     """
 
     def __init__(self, factory_list_file, factory_list_sheet=None, name='Industry', **kwargs):
@@ -75,6 +99,37 @@ class Industry:
                 foldertime=True, file_id='', diagrams=True):
         """Balances an industry using one scenario for each factory.
 
+        Args:
+            production_data_file (str/None): location of per-factory production 
+                tabular data. If None, uses self.factory_file.
+                (Defaults to None)
+            production_data_sheet (str/None): name of sheet in a workbook where
+                the production tabular data is. None if not an Excel file or
+                the first sheet in the workbook.
+                (Defaults to None)
+            mass_energy (bool): Whether to seperate mass and energy flows in the
+                output DataFrames.
+                (Defaults to True)
+            energy_flows (list): List of identifiers of what is an energy flow
+                (Defaults to dat.energy_flows)
+            force_scenario (str/None): Name of scenario to use for each factory,
+                overriding the scenario specified in the production data
+                (Defaults to None)
+            write_to_xls (bool): Whether to output the data to file
+                (Defaults to True)
+            outdir (str): File output directory 
+                (Defaults to dat.outdir)
+            subfolder (bool): If True, uses the industry name as a subfolder
+                of the output directory.
+                (Defaults to True)
+            foldertime (bool): If True, uses the current timestamp in the output
+                directory name. 
+                (Defaults to True)
+            file_id (str): Additional text to add to file names
+                (Defaults to True)
+            diagrams (bool): If True, includes factory and chain diagrams in the
+                output files
+
         """
         logger.debug(f"attempting to balance {self.name }industry")
 
@@ -98,14 +153,15 @@ class Industry:
         product_df = iof.make_df(production_data_file, sheet=production_data_sheet)
         f_production_dict = defaultdict(dict)
 
-        fractions = defaultdict(float) 
+        fractions = defaultdict(float)  # dictionary of products specified by relative production, rather than absolte production
         product_scenario = defaultdict(float)
 
         io_dicts=  iof.nested_dicts(3, float)
 
+        # get production scenario data
         for i, f in product_df.iterrows():
             product = f[dat.f_product]
-            if iof.clean_str(i) in dat.all_factories: 
+            if iof.clean_str(i) in dat.all_factories: # recognizes that this production total is for all factories
                 if product not in dat.no_var:
                     fractions[product] = f[dat.f_product_qty] # industry-wide product total
                 if isinstance(f[dat.f_scenario], str) and iof.clean_str(f[dat.f_scenario]) not in dat.no_var:
@@ -184,7 +240,27 @@ class Industry:
 
     def run_scenarios(self, scenario_list, products_data=None, products_sheet=None, 
                 write_to_xls=True, outdir=dat.outdir, file_id='', diagrams=False):
-        """Balances the industry on a set of forced industry-wide scenarios
+        """Balances an industry using one scenario for each factory.
+
+        Args:
+            scenario_list (str): List of scenarios to use to balance industry
+                on, forcing that scenario for each factory in the industry
+            products_data (str/None): location of per-factory production 
+                tabular data. If None, uses self.factory_file.
+                (Defaults to None)
+            products_sheet (str/None): name of sheet in a workbook where
+                the production tabular data is. None if not an Excel file or
+                the first sheet in the workbook.
+                (Defaults to None)
+            write_to_xls (bool): Whether to output the data to file
+                (Defaults to True)
+            outdir (str): File output directory 
+                (Defaults to dat.outdir)
+            file_id (str): Additional text to add to file names
+                (Defaults to True)
+            diagrams (bool): If True, includes factory and chain diagrams in the
+                output files
+
         """
 
         outdir = iof.build_filedir(outdir, subfolder=self.name,
@@ -227,9 +303,31 @@ class Industry:
     def evolve(self, start_data=None, start_sheet=None, end_data=None, end_sheet=None,
                 start_step=0, end_step=1, mass_energy=True, energy_flows=dat.energy_flows, 
                 write_to_xls=True, outdir=dat.outdir, file_id='', diagrams=True, graph_outflows=False, 
-                graph_inflows=True, **kwargs):  
+                graph_inflows=False, **kwargs):  
         """Calculates timestep and cumulative inflows and outflows of an industry
         using a specified starting scenario and end scenario
+        
+        Args:
+            start_data (str/None): location of production tabular data file for
+                start step. If none, uses self.factory_file
+            start_sheet (str/None): sheet name of start step production data
+            end_data (str/None): location of production tabular data file for
+                end step. If none, uses self.factory_file
+            end_sheet (str/None): sheet name of end step production data
+            start_step (int): numerical index of start step (e.g. start year) that
+                corresponds to the production data in start_data
+            end_step (int): numerical index of end step (e.g. end year) that
+                corresponds to the production data in end_data
+            mass_energy (bool):
+            energy_flows (list):
+            write_to_xls (bool):
+            outdir (str):
+            file_id (bool):
+            diagrams (bool):
+            graph_outflows (list/bool): list of outflows to graph with their
+                change over time, with one line for each factory
+            graph_inflows (list/bool): list of inflows to graph with their
+                change over time, with one line for each factory
         """
 
         outdir = iof.build_filedir(outdir, subfolder=self.name,
@@ -348,9 +446,19 @@ class Industry:
         """the same as evolve, but takes a list of an arbitrary number of steps
         Args:
             steps (list[int]): list of numerical time steps
-            production_data_files (list):
-            step_sheets (list)
+            production_data_files (list): list of file location of production data for
+                each time step (in step order). If None, assumes self.factory_file
+                for each step
+            step_sheets (list): List of sheets in workbooks for production data
+                for each time step. If None, assumes None for each step.
+            outdir (str):
+            write_to_xls (bool):
+            graph_outflows (list/bool): list of outflows to graph with their
+                change over time, with one line for each factory
+            graph_inflows (list/bool): list of inflows to graph with their
+                change over time, with one line for each factory
         """
+    
 
         outdir = iof.build_filedir(outdir, subfolder=self.name,
                                     file_id_list=['evolve_multistep', steps[0], steps[-1], file_id],
@@ -366,6 +474,10 @@ class Industry:
             logger.debug("only two steps given; only performing a single-evolve function")
         else:
             two_step = False
+
+        if step_sheets is None:
+            step_sheets = [None for i in range(len(steps))]
+
 
         if production_data_files is None:
             production_data_files = [None for i in range(len(steps))]

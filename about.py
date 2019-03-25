@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""About blackblox.py
+
+This module contains metadata about blackblox.py, which is used in the generation 
+of output spreadsheets in io_functions.py
+"""
+
 about_blackblox = {"name": "blackblox.py",
                    "version": "0.0.2 (unreleased)",
                    "url": "OFFLINE",

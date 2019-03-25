@@ -5,8 +5,9 @@ This module contains variables used for default file paths, column headers
 for input data files, as well as special variable strings (generally used)
 to indicate whether something is All or None.
 
-Please note that as of this time, these variables are case and white space
-sensitive.
+Please note that as of this time, non-column header variables are case and 
+white space sensitive. All colum-header variables should be given in all 
+lower case, to allow the input to be non case-sensitive
 
 Module Outline:
 
@@ -28,6 +29,12 @@ Module Outline:
 from bb_log import get_logger
 logger = get_logger("config")
 
+
+# USER DATA
+user_data = {"name": "Mysterious Stranger",
+             "affiliation": "Mysterious Organization",
+             "project": "Mysterious Project",
+}
 
 
 # DEFAULT FILEPATHS 
@@ -55,13 +62,6 @@ Usable as a replacement for a filepath for input data that is in an
 Excel workbook with multiple sheets. The correct Excel sheet must still
 be specified.
 """
-
-
-# USER DATA
-user_data = {"name": "Mysterious Stranger",
-             "affiliation": "Mysterious Organization",
-             "project": "Mysterious Project",
-}
 
 
 # LOOKUP VARIABLES

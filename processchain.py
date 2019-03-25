@@ -126,7 +126,8 @@ class ProductChain:
                 logger.debug(f"No default product found for {self.name}.")
 
     
-    def balance(self, qty, product=False, i_o=False, unit_process=False, product_alt_name=False, scenario=dat.default_scenario):
+    def balance(self, qty, product=False, i_o=False, unit_process=False, 
+                product_alt_name=False, scenario=dat.default_scenario):
         """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario)
         Calculates the mass balance of the product chain
 
@@ -137,9 +138,9 @@ class ProductChain:
 
         Args:
             qty (float): the quantity of the product to balance on.
-            product (str/bool): the product name. If False, uses the default
-                product in the chain object attributes. Required if balancing a 
-                chain on an intermediate process.
+            product (str/bool): the product name, as it appears in the chain. 
+                If False, uses the default product in the chain object attributes.
+                Required if balancing a chain on an intermediate process.
                 (Defaults to False)
             i_o (str/bool): String beginning with "i" or "o". "i" if the product
                 is an inflow of the chain's first unit process, "o" if it is an
@@ -151,6 +152,13 @@ class ProductChain:
                 (Defaults to False)
             unit_process (str): Name of the unit process that the specified product
                 belongs to. Necessary to balance chain on intermediate process.
+            product_alt_name (str): Different name to use for the chain product.
+                Will process all product calculations with the product_alt_name
+                for reading and writing from flow dictionaries. Used for "connect
+                as" products (e.g. connect "blast furnace gas" as "waste heat").
+                Only the balancing product of the chain can have an alt_name; all
+                other flows will be balanced using their original specified names 
+                from their unit.calc_df
             scenario (str): The name of the scenario of variable values to use, 
                 corresponding to the matching row index in each unit process's
                 var_df. 
@@ -220,15 +228,11 @@ class ProductChain:
         intermediate_product_dict = defaultdict(float)
         internal_flows = []
 
-        # if product_alt_name is not False:
-        #     product_name = product_alt_name
-        # # else:
-        # #     product_name = product_alt_name
-
-        #balance starting process
+        # balances starting process
         logger.debug(f"attempting to balance {start.name} on {qty} of {product}({i_o}) using {scenario} variables.")
         (io_dicts['i'][start.name], io_dicts['o'][start.name]) = start.balance(qty, product, i_o, scenario, product_alt_name=product_alt_name)
  
+        # balances upstream processes
         if upstream:
             for i, unit in enumerate(upstream):
                 process = unit['process']
@@ -247,6 +251,7 @@ class ProductChain:
 
                 previous_process = process
 
+        # balances downstream processes
         if downstream:
             for i, unit in enumerate(downstream):
                 process = unit['process']
@@ -265,7 +270,7 @@ class ProductChain:
 
                 previous_process = process
 
-            
+        # generates chain total data
         totals = {
             'i': defaultdict(float),
             'o': defaultdict(float)
