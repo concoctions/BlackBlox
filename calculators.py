@@ -82,7 +82,6 @@ def no_nan(number):
     """
     if number is not None:
         if type(number) not in [str, bool]:
-            logger.debug(f"{number} is number")
             if isnan(number):
                 number = 0
                 logger.debug("number converted from nan to 0" )
