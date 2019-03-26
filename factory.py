@@ -253,7 +253,7 @@ class Factory:
                 #gets origin and destination chain objects
                 orig_chain = self.chain_dict[aux[dat.origin_chain]]['chain']
                 if not io_dicts[orig_product_io][orig_chain.name]:
-                    raise KeyError(f"{io_dicts[orig_product_io][orig_chain.name]} has not been balanced yet. Please check the order of your connections in your connections dataframe.")
+                    raise KeyError(f"{[orig_chain.name]} has not been balanced yet. Please check the order of your connections in your connections dataframe.")
                 dest_chain = self.chain_dict[aux[dat.dest_chain]]['chain'] 
                 if dat.dest_unit in aux:
                     if aux[dat.dest_unit] in dest_chain.process_dict:
@@ -282,12 +282,17 @@ class Factory:
                         qty = io_dicts[orig_product_io][orig_chain.name][orig_unit.name][origin_product]
                         logger.debug(f"using {qty} of {origin_product} from {orig_unit.name} in {orig_chain.name}")
 
+                if qty < 0:
+                    raise ValueError(f"{qty} of {origin_product}  from {orig_unit.name} in {orig_chain.name} < 0")
+                # original_qty = qty
                 if dat.purge_fraction in aux: 
                     if aux[dat.purge_fraction] not in dat.no_var:
                         if type(aux[dat.purge_fraction]) in [float, int] and not isnan(aux[dat.purge_fraction]):
                             calc.check_qty(aux[dat.purge_fraction], fraction=True)
                             purge = qty * aux[dat.purge_fraction]
                             qty = qty - purge
+                            if qty < 0:
+                                raise ValueError(f"After purge, {qty} of {origin_product}  from {orig_unit.name} in {orig_chain.name} < 0")
                             logger.debug(f"purge: {purge}, new qty: {qty}")
                 
                 if dat.max_replace_fraction in aux: # used for recycle flows only 
@@ -333,7 +338,7 @@ class Factory:
                     if energy_replacing_fuel is False:
                         i_tmp, o_tmp, qty_remaining = dest_unit.recycle_1to1(**r_kwargs)
 
-                    logger.debug(f"sent {qty} of {origin_product} from {orig_unit.name} in {orig_chain.name} to replace {replace_flow} in {dest_unit.name} in {dest_chain.name} ")
+                    logger.debug(f"sent {qty} of {origin_product} from {orig_unit.name} in {orig_chain.name} to replace {replace_flow} in {dest_unit.name} in {dest_chain.name}")
                     io_dicts['i'][dest_chain.name][dest_unit.name].clear()
                     io_dicts['o'][dest_chain.name][dest_unit.name].clear()
                     io_dicts['i'][dest_chain.name][dest_unit.name] = i_tmp 
@@ -407,6 +412,12 @@ class Factory:
                 # add used product to dictionary counting intra-factories flows (to be deleted from totals)
                 intermediate_product_dict[origin_product] += (qty - qty_remaining)
                 logger.debug(f"{qty - qty_remaining} of {origin_product} added to intermediate_product_dict")
+
+                # code to change purged item name; does not work currently
+                # intermediate_product_dict[origin_product] += (original_qty - qty_remaining)
+                # if purge > 0:
+                #     io_dicts[orig_product_io][orig_chain.name][f"{origin_product}__purged"] = purge
+                #     logger.debug(f"{purge} of {origin_product}__purged added to {orig_product_io} dictionary")
 
                 # generates internal flows list data
                 orig_chain_name = orig_chain.name
