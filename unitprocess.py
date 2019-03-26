@@ -621,6 +621,8 @@ class UnitProcess:
                                           replaced_inflows_dict,
                                           emissions_list=emissions_list)
 
+        logger.debug(f"{recycled_qty} of {recycled_flow} assumed equivelent to {equivelent_fuel_qty} of {replaced_flow}")
+
         calc.check_qty(max_replace_fraction, fraction = True)
 
         replacable_qty = original_flows[i_o][replaced_flow] * max_replace_fraction
@@ -671,7 +673,3 @@ class UnitProcess:
             raise ValueError(f"Something went wrong. remaining_recycle_qty < 0 {remaining_energy_qty}")
 
         return rebalanced_flows['i'], rebalanced_flows['o'], remaining_energy_qty
-    
-        
-
-
