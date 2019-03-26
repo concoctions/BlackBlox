@@ -34,6 +34,7 @@ Module Outline:
 
 """
 
+from math import isnan
 import pandas as pan
 from molmass import Formula
 from collections import defaultdict
@@ -54,7 +55,7 @@ if 'fuel' in dat.lookup_var_dict:
     df_fuels = iof.make_df(dat.lookup_var_dict['fuel']['filepath'], sheet=dat.lookup_var_dict['fuel']['sheet'])
 
 
-# INPUT CHECKER FUNCTIONS
+# DATA CHECKER FUNCTIONS
 def check_qty(qty, fraction = False):
     """Checks that a quantity is > 0 and optionally < 1.
     Raises and error if the quantity is negative, and, optionally, if it is 
@@ -74,6 +75,33 @@ def check_qty(qty, fraction = False):
     if fraction is True:
         if qty > 1:
             raise ValueError(f'quantity should be between 0 and 1. Currently: {qty}')
+
+
+def no_nan(number):
+    """If number is nan, converts it to zero
+    """
+    if number is not None:
+        if type(number) not in [str, bool]:
+            logger.debug(f"{number} is number")
+            if isnan(number):
+                number = 0
+                logger.debug("number converted from nan to 0" )
+    elif number == 'nan':
+        number = 0
+        
+    return number
+
+
+def div_no_zero(qty1, qty2):
+    """Prevents divide by zero errors by returning zero if either value in 
+        a division problem is zero or nan
+    """
+    if 0 in [qty1, qty2]:
+        return 0
+    elif isnan(qty1) or isnan(qty2):
+        return 0
+    else:
+        return qty1/qty2
 
 
 # CALCULATION FUNCTIONS
@@ -110,9 +138,9 @@ def Ratio(qty, var, invert = False, **kwargs):
     check_qty(var)
 
     if invert is True:
-        var = 1/var
+        var = div_no_zero(1,var)
 
-    return qty * var
+    return (qty * var)
 
 
 def Remainder(qty, var, invert = False, **kwargs):
@@ -147,10 +175,10 @@ def Remainder(qty, var, invert = False, **kwargs):
     ratioRemaining = 1 - var
 
     if invert is True:
-        return qty / ratioRemaining
+        return div_no_zero(qty, ratioRemaining)
     
     else:
-        return qty * ratioRemaining
+        return (qty * ratioRemaining)
 
 
 def ReturnValue(qty, **kwargs):
@@ -170,7 +198,7 @@ def ReturnValue(qty, **kwargs):
     Returns:
         qty: literally the exact thing you gave it.
     """
-    return qty
+    return (qty)
 
 
 def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
@@ -199,7 +227,7 @@ def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
     """
     logger.debug("Attempting mol mass ratio calcuation using {} ({}) and {}".format(known_substance, qty, unknown_substance))
 
-    return qty * (Formula(unknown_substance).mass / Formula(known_substance).mass)
+    return (qty) * (Formula(unknown_substance).mass / Formula(known_substance).mass)
 
 
 def Subtraction(qty, qty2, invert = False, **kwargs):
@@ -220,10 +248,10 @@ def Subtraction(qty, qty2, invert = False, **kwargs):
 
     """
     if invert is False:
-        return qty - qty2
+        return (qty) - (qty2)
 
     else:
-        return qty + qty2
+        return (qty) + (qty2)
 
 def Addition(qty, qty2, invert = False, **kwargs):
     """Adds one quantity to another.
@@ -244,10 +272,10 @@ def Addition(qty, qty2, invert = False, **kwargs):
     """
     
     if invert is False:
-        return qty + qty2
+        return (qty) + (qty2)
 
     else:
-        return qty - qty2    
+        return (qty) - (qty2)    
 
 
 
@@ -317,7 +345,7 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
                     break
 
             if ignore is False:
-                totals[i] += qty
+                totals[i] += (qty)
                 flows[i].append(substance)
 
     total_in = round(totals[0], round_n)
@@ -370,19 +398,19 @@ def Energy_Content(known_substance, qty, unknown_substance, LHV=True, fuels_df=d
 
     if known_substance.split(dat.ignore_sep)[0] in fuels_df.index:
         fuel_type = known_substance.split(dat.ignore_sep)[0]
-        fuel_qty = qty
-        energy_qty = qty * fuels_df.at[fuel_type, HV] # total energy in fuel
+        fuel_qty = (qty)
+        energy_qty = (qty) * (fuels_df.at[fuel_type, HV]) # total energy in fuel
         return_qty = energy_qty # useful energy after combustion
 
     else:
-        energy_qty = qty
+        energy_qty = (qty)
         fuel_type = unknown_substance.split(dat.ignore_sep)[0]
-        fuel_qty = energy_qty / fuels_df.at[fuel_type, HV]
+        fuel_qty = div_no_zero(energy_qty, fuels_df.at[fuel_type, HV])
         return_qty = fuel_qty
         
         logger.debug(f"{return_qty} of {unknown_substance} derived from {qty} of {known_substance}")
 
-    return return_qty
+    return (return_qty)
 
 
 def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df_fuels, force_df=False, **kwargs):
@@ -419,11 +447,11 @@ def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df
 
     if known_substance.split(dat.ignore_sep)[0] in lookup_df.index:
         substance = known_substance.split(dat.ignore_sep)[0]
-        return_qty = qty * lookup_df.at[substance, var.lower()]
+        return_qty = (qty) * (lookup_df.at[substance, var.lower()])
 
     else:
         substance = unknown_substance.split(dat.ignore_sep)[0]
-        return_qty = qty / lookup_df.at[substance, var.lower()]
+        return_qty = div_no_zero(qty, lookup_df.at[substance, var.lower()])
         
         logger.debug(f"{return_qty} of {unknown_substance} derived from {qty} of {known_substance} using {var} ratio")
 
@@ -506,6 +534,7 @@ def Combustion(known_substance, qty, unknown_substance, var,
         and unknown_substance.split(dat.ignore_sep)[0] in fuels_df.index):
         raise Exception("Both {} and {} are known_substance fuel types.".format(known_substance, unknown_substance))
 
+    var = (var)
     
     if var is None or var in dat.no_var:
         combust_eff = 1.0
@@ -521,21 +550,21 @@ def Combustion(known_substance, qty, unknown_substance, var,
 
     if known_substance.split(dat.ignore_sep)[0] in fuels_df.index:
         fuel_type = known_substance.split(dat.ignore_sep)[0]
-        fuel_qty = qty
-        energy_qty = qty * fuels_df.at[fuel_type, HV.lower()] # total energy in fuel
+        fuel_qty = (qty)
+        energy_qty = qty * (fuels_df.at[fuel_type, HV.lower()]) # total energy in fuel
         return_qty = energy_qty * combust_eff # useful energy after combustion
 
     else:
         fuel_type = unknown_substance.split(dat.ignore_sep)[0]
-        energy_qty = qty * (1/combust_eff) # total energy in fuel
-        fuel_qty = energy_qty / fuels_df.at[fuel_type, HV.lower()]
+        energy_qty = (qty) * ((1/combust_eff)) # total energy in fuel
+        fuel_qty = div_no_zero(energy_qty, fuels_df.at[fuel_type, HV.lower()])
         return_qty = fuel_qty
 
     combustion_emissions = dict()
     for emission in emissions_list:
         if emission.lower() in fuels_df:
-            combustion_emissions[f'{emission}{dat.ignore_sep}emitted'] = fuels_df.at[fuel_type, emission.lower()] * fuel_qty
-    waste_heat = energy_qty * (1 - combust_eff)
+            combustion_emissions[f'{emission}{dat.ignore_sep}emitted'] = (fuels_df.at[fuel_type, emission.lower()]) * (fuel_qty)
+    waste_heat = (energy_qty) * (1 - combust_eff)
 
     if type(emissions_dict) == defaultdict:
         if type(inflows_dict) == defaultdict:

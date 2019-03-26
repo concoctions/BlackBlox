@@ -122,7 +122,7 @@ class UnitProcess:
         else:
             v_sheet = iof.check_for_col(units_df, dat.var_sheetname, u_id)
             self.var_df = iof.make_df(units_df.at[u_id, dat.var_filepath], 
-                                      sheet=v_sheet, lower_cols=True)
+                                      sheet=v_sheet, lower_cols=True, fillna=True)
 
         if calc_df is not False:
             self.calc_df = calc_df
@@ -412,12 +412,12 @@ class UnitProcess:
 
             qty_known = io_dicts[known_io][known_substance]
             
-            kwargs = dict(qty=qty_known, 
-                          var=var, 
+            kwargs = dict(qty=calc.no_nan(qty_known), 
+                          var=calc.no_nan(var), 
                           known_substance=known_proxy, 
                           unknown_substance=unknown_proxy,
                           known_substance2 = known2_proxy,
-                          qty2 = known_qty2,
+                          qty2 = calc.no_nan(known_qty2),
                           invert=invert, 
                           emissions_dict=io_dicts['e'],
                           inflows_dict=io_dicts['c'],
@@ -426,6 +426,7 @@ class UnitProcess:
             
             logger.debug(f"Attempting {calc_type} calculation for {unknown_substance} using {qty_known} of {known_substance}")
             qty_calculated = calc.calcs_dict[calc_type]['function'](**kwargs)
+            qty_calculated = calc.no_nan(qty_calculated)
 
             if qty_calculated < 0:
                 print(f"\n[!] POSSIBLE ERROR [!] in ({self.name} unit process): \nNegative number found:\n"
