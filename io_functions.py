@@ -250,6 +250,9 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
 
     if fillna is True:
         df = df.fillna(0)
+        logger.debug(f"Are there any remaining null values: {df.isnull().values.any()}")
+
+    logger.debug(f"DataFrame created ewith columns {df.columns}")
 
     return df
 
