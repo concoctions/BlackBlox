@@ -30,7 +30,7 @@ dat.default_units = {'mass': 'Mt',
 test_units = False
 test_chains = False
 test_factories = True
-test_factory_scenarios = True
+test_factory_scenarios = False
 test_industries = False
 test_industry_evolve = False
 compare_evolved_industres = False
@@ -46,10 +46,10 @@ dat.outdir = f'output/test_{datetime.now().strftime("%b%d")}/{datetime.now().str
 
 # for chain, factory, and industry tests
 view_diagrams = False
-save_diagrams = True
+save_diagrams = False
 
 # for factory and industry tests
-write_to_xls = True
+write_to_xls = False
 
 
 ###############################################################################
@@ -63,7 +63,7 @@ qty = 1.0
 # UNIT PROCESSES
 #-------------------------------------------------------------------------------
 
-scenario = 'birat-base'
+scenario = 'ieaghg-reference'
 
 # UNITS TO BE TESTED - comment out unwanted entries
 unit_list = [
@@ -77,7 +77,7 @@ unit_list = [
             # 'aux_air separation',
             # 'electricity_1step',
             # 'heat_collector',
-            # 'birat_steel_plant',
+            'birat_steel_plant',
             # 'bb_steel_bf',
             # 'bb_steel_eaf',
             # 'bb_steel_bf-eaf',
@@ -108,31 +108,36 @@ chain_dict = {
 
 # FACTORIES TO BE TESTED - comment out unwanted entries
 factory_dict = {
-                # 'IEAGHG steel': dict(chain_list_file="data/steel/IEAGHG_factories.xlsx",
-                #                         chain_list_sheet='IEAGHG chains', 
-                #                         connections_sheet='IEAGHG connections', 
-                #                         name="IEAGHG Steel Plant",
-                #                         scenario='IEAGHG 2013'),
+                'IEAGHG Ref': dict(chain_list_file="data/steel/IEAGHG_factories.xlsx",
+                                        chain_list_sheet='IEAGHG chains', 
+                                        connections_sheet='IEAGHG connections', 
+                                        name="BF Steel (IEAGHG)",
+                                        scenario='ieaghg-reference'),
                 # 'Birat steel base': dict(chain_list_file="data/steel/birat_factories.xlsx",
                 #                         chain_list_sheet='base chains', 
                 #                         connections_sheet='base connections', 
                 #                         name="BF Steel Plant",
                 #                         scenario='birat-base'),
-                'Birat CCS': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                                        chain_list_sheet='TGR-CCS chains', 
-                                        connections_sheet='TGR-CCS connect', 
-                                        name="BF-TGR-CCS Steel Plant",
-                                        scenario='birat-tgr-63vpsa'),
-                'Birat CCS_LC': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                                        chain_list_sheet='CCS-LC chains', 
-                                        connections_sheet='CCS-LC connect', 
-                                        name="BF-TGR-CCS Steel with Upstream",
-                                        scenario='birat-tgr-63vpsa-100bio'),
+                # 'Birat CCS': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                #                         chain_list_sheet='TGR-CCS chains', 
+                #                         connections_sheet='TGR-CCS connect', 
+                #                         name="BF-TGR-CCS Steel Plant",
+                #                         scenario='birat-tgr-63vpsa'),
+                # 'Birat CCS_LC': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                #                         chain_list_sheet='CCS-LC chains', 
+                #                         connections_sheet='CCS-LC connect', 
+                #                         name="BF-TGR-CCS Steel with Upstream",
+                #                         scenario='birat-tgr-63vpsa-100bio'),
                 # 'BF-EAF BB': dict(chain_list_file="data/steel/bb_steel_factories.xlsx",
                 #                         chain_list_sheet='bf-eaf chains', 
                 #                         connections_sheet='bf-eaf connections', 
                 #                         name="BF-EAF Steel Industry",
                 #                         scenario='EUROFER 2010'),
+                # 'IEAGHG Ref simplified': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                #                         chain_list_sheet='base chains', 
+                #                         connections_sheet='base connections', 
+                #                         name="BF Steel (IEAGHG-Simple)",
+                #                         scenario='ieaghg-reference'),
 }
 
 
