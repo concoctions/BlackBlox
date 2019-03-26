@@ -300,7 +300,7 @@ class Factory:
                 if dat.replace in aux and type(aux[dat.replace]) is str and aux[dat.replace] not in dat.no_var:
                     if aux[dat.replace] in unit.lookup_var_dict:
                         replace_flow = dest_unit.var_df.at[scenario, unit.lookup_var_dict[aux[dat.replace]]['lookup_var']] 
-                        if aux[dat.replace] =='fuel':
+                        if aux[dat.replace] in dat.fuel_flows:
                             replace_fuel = True
                     else: replace_flow = aux[dat.replace]
                     if replace_flow not in io_dicts[dest_product_io][dest_chain.name][dest_unit.name]:
@@ -320,12 +320,11 @@ class Factory:
                     logger.debug(io_dicts['i'][dest_chain.name][dest_unit.name])
                     logger.debug(io_dicts['o'][dest_chain.name][dest_unit.name])
                     logger.debug(f"purge: {purge}, max replace fraction: {max_replace_fraction}")
-                    logger.debug(f'replaces fuel{replace_fuel}')
                     
                     if replace_fuel is True:
-                        logger.debug(f"{product} replacing {replace_flow}")
+                        logger.debug(f"{origin_product} replacing {replace_flow}")
                         for string in dat.energy_flows:
-                            if product.startswith(string) or product.endswith(string):
+                            if origin_product.startswith(string) or origin_product.endswith(string):
                                 logger.debug("replacing fuel with energy")
                                 energy_replacing_fuel = True 
                                 i_tmp, o_tmp, qty_remaining = dest_unit.recycle_energy_replacing_fuel(**r_kwargs)  
