@@ -86,7 +86,6 @@ lookup_var_dict = {
                  lookup_var='biofuel type'),
     'biomass': dict(lookup_var='biomass type')
 } 
-
 """dictionary of special lookup substance names
 Lookup_var_dict is a dictionary with the names of substance, that when used
 in the unit process calculations file, will trigger the program to replace
@@ -106,6 +105,12 @@ Each entry in this dictionary should be formatted with the following:
         about the lookup variable, such as to be used in custom functions,
         below. These are not used elsewhere in BlackBlox.py.
 
+"""
+
+fuel_flows = ['fuel', 'other fuel', 'primary fuel', 'secondary fuel', 'fossil fuel', 'biofuel',]
+"""list: strings that indicate that a substance is an energy flow
+
+Usable in flow names. Must be used at the beginning or end of the flow name.
 """
 
 # SUBSTANCE NAME VARIABLES
