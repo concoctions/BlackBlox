@@ -460,7 +460,7 @@ def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df
 def Combustion(known_substance, qty, unknown_substance, var, 
                emissions_dict=False, inflows_dict=False, 
                emissions_list = dat.default_emissions, fuels_df=df_fuels, 
-               LHV=True, write_energy_in=True, **kwargs):
+               LHV=True, write_energy_in=True, contribution=False, **kwargs):
     """Calculates fuel or energy quantity and combustion emissions
 
     This is a function designed to calculate the quantity of fuel 
@@ -562,7 +562,10 @@ def Combustion(known_substance, qty, unknown_substance, var,
     combustion_emissions = dict()
     for emission in emissions_list:
         if emission.lower() in fuels_df:
-            combustion_emissions[f'{emission}{dat.ignore_sep}emitted'] = (fuels_df.at[fuel_type, emission.lower()]) * (fuel_qty)
+            if contribution is True:
+                combustion_emissions[f'{emission}{dat.ignore_sep}from {fuel_type}'] = (fuels_df.at[fuel_type, emission.lower()]) * (fuel_qty)
+            else:
+                combustion_emissions[f'{emission}{dat.ignore_sep}emitted'] = (fuels_df.at[fuel_type, emission.lower()]) * (fuel_qty)
     waste_heat = (energy_qty) * (1 - combust_eff)
 
     if type(emissions_dict) == defaultdict:
@@ -593,8 +596,11 @@ calcs_dict = {
     'energycontent-hhv': {'function': Energy_Content, 'kwargs': {'LHV': False}},
     'energycontent': {'function': Energy_Content, 'kwargs': {}},
     'combustion': {'function': Combustion, 'kwargs': {}},
+    'combustion-contribution': {'function': Combustion, 'kwargs': {'contribution': True}},
     'combustion-noenergyin': {'function': Combustion, 'kwargs': {'write_energy_in':False}},
+    'combustion-noenergyin-contribution': {'function': Combustion, 'kwargs': {'write_energy_in': False, 'contribution': True}},
     'combustion-lhv': {'function': Combustion, 'kwargs': {'LHV':True}},
+    'combustion-lhv-contribution': {'function': Combustion, 'kwargs': {'LHV':True, 'contribution': True}},
     'combustion-lhv-noenergyin': {'function': Combustion, 'kwargs': {'LHV':True, 'write_energy_in':False}},
     'combustion-hhv': {'function': Combustion, 'kwargs': {'LHV':False}},
     'combustion-hhv-noenergyin': {'function': Combustion, 'kwargs': {'LHV':False, 'write_energy_in':False}},

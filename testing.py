@@ -46,10 +46,10 @@ dat.outdir = f'output/test_{datetime.now().strftime("%b%d")}/{datetime.now().str
 
 # for chain, factory, and industry tests
 view_diagrams = False
-save_diagrams = False
+save_diagrams = True
 
 # for factory and industry tests
-write_to_xls = False
+write_to_xls = True
 
 
 ###############################################################################
@@ -133,11 +133,11 @@ factory_dict = {
                 #                         connections_sheet='bf-eaf connections', 
                 #                         name="BF-EAF Steel Industry",
                 #                         scenario='EUROFER 2010'),
-                # 'IEAGHG Ref simplified': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                #                         chain_list_sheet='base chains', 
-                #                         connections_sheet='base connections', 
-                #                         name="BF Steel (IEAGHG-Simple)",
-                #                         scenario='ieaghg-reference'),
+                'IEAGHG Ref simplified': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                                        chain_list_sheet='base chains', 
+                                        connections_sheet='base connections', 
+                                        name="BF Steel (IEAGHG-Simple)",
+                                        scenario='ieaghg-reference'),
 }
 
 
