@@ -84,7 +84,10 @@ lookup_var_dict = {
     'biofuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='biofuel type'),
-    'biomass': dict(lookup_var='biomass type')
+    'secondary biofuel': dict(filepath='data/shared/fuels.xlsx',
+                 sheet='Fuels',
+                 lookup_var='secondary biofuel type'),
+    'biomass': dict(lookup_var='biomass type'),
 } 
 """dictionary of special lookup substance names
 Lookup_var_dict is a dictionary with the names of substance, that when used
