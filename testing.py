@@ -18,8 +18,8 @@ dat.user_data = {"name": "S.E. Tanzer",
                  "project": f"Steel tests - {datetime.now().strftime('%d %B %Y')}",
 }
 
-dat.default_units = {'mass': 'Mt', 
-                     'energy':'PJ',
+dat.default_units = {'mass': 't', 
+                     'energy':'GJ',
 }
 
 
@@ -40,13 +40,15 @@ compare_evolved_industres = False
 # SPECIFY OUTPUT
 ################################################################################
 
+pause_between_tests = False
+
 # for all tests
 write_to_console = True
 dat.outdir = f'output/test_{datetime.now().strftime("%b%d")}/{datetime.now().strftime("%H%M")}'
 
 # for chain, factory, and industry tests
 view_diagrams = False
-save_diagrams = True
+save_diagrams = False
 
 # for factory and industry tests
 write_to_xls = True
@@ -77,7 +79,7 @@ unit_list = [
             # 'aux_air separation',
             # 'electricity_1step',
             # 'heat_collector',
-            'birat_steel_plant',
+            # 'birat_steel_plant',
             # 'bb_steel_bf',
             # 'bb_steel_eaf',
             # 'bb_steel_bf-eaf',
@@ -87,6 +89,15 @@ unit_list = [
             # 'bb_fuel_upstream',
             # 'bb_biofuel_upstream',
             # 'bb_CO2_storage',
+            # 'simple_coke',
+            # 'simple_lime',
+            # 'simple_pellets',
+            # 'simple_sinter',
+            # 'simple_BF',
+            # 'simple_BOF',
+            # 'simple_oxygen',
+            # 'simple_power',
+            # 'simple_fuel',
              ]
 
 
@@ -108,7 +119,12 @@ chain_dict = {
 
 # FACTORIES TO BE TESTED - comment out unwanted entries
 factory_dict = {
-                'IEAGHG Ref': dict(chain_list_file="data/steel/IEAGHG_factories.xlsx",
+                # 'IEAGHG Ref': dict(chain_list_file="data/steel/IEAGHG_factories.xlsx",
+                #                         chain_list_sheet='IEAGHG chains', 
+                #                         connections_sheet='IEAGHG connections', 
+                #                         name="BF Steel (IEAGHG)",
+                #                         scenario='ieaghg-reference'),
+                'IEAGHG Ref-Crude': dict(chain_list_file="data/steel/IEAGHG_factory-crudesteel.xlsx",
                                         chain_list_sheet='IEAGHG chains', 
                                         connections_sheet='IEAGHG connections', 
                                         name="BF Steel (IEAGHG)",
@@ -133,11 +149,16 @@ factory_dict = {
                 #                         connections_sheet='bf-eaf connections', 
                 #                         name="BF-EAF Steel Industry",
                 #                         scenario='EUROFER 2010'),
-                'IEAGHG Ref simplified': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                                        chain_list_sheet='base chains', 
-                                        connections_sheet='base connections', 
-                                        name="BF Steel (IEAGHG-Simple)",
-                                        scenario='ieaghg-reference'),
+                # 'IEAGHG Ref Birat': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                #                         chain_list_sheet='base chains', 
+                #                         connections_sheet='base connections', 
+                #                         name="BF Steel (IEAGHG-Birat)",
+                #                         scenario='ieaghg-reference'),
+                # 'IEAGHG Ref Simplified': dict(chain_list_file="data/steel/steel_simplified_factory.xlsx",
+                #                         chain_list_sheet='chains', 
+                #                         connections_sheet='connections', 
+                #                         name="BF Steel (IEAGHG-Simple)",
+                #                         scenario='ieaghg-reference'),
 }
 
 
@@ -228,6 +249,9 @@ if test_units is True:
             flows = iof.mass_energy_df(flows)
             print(flows)
 
+        if pause_between_tests is True:
+            dummy_continue = input("Press any key to continue")
+
 
 #------------------------------------------------------------------------------
 # CHAIN TESTS
@@ -258,6 +282,9 @@ if test_chains is True:
             print("\nintermediate flows:")
             for row in int_rows:
                 print(row)
+        
+        if pause_between_tests is True:
+            dummy_continue = input("Press any key to continue")
 
 
 #------------------------------------------------------------------------------
@@ -275,7 +302,7 @@ if test_factories is True or test_factory_scenarios is True:
             factory.diagram(view=view_diagrams, save=save_diagrams)
 
 if test_factories is True:
-    print('\nbalancing factories on {qty} of main product... \n')
+    print(f'\nbalancing factories on {qty} of main product... \n')
     for f in factory_dict:
         factory = built_factories[f]
         print(f"\n{str.upper(factory.name)} factory")
@@ -298,6 +325,8 @@ if test_factories is True:
         if write_to_xls is True:
             print(f"\n FACTORY: Full results available in {dat.outdir} directory.")
 
+        if pause_between_tests is True:
+            dummy_continue = input("Press any key to continue")
 
 if test_factory_scenarios is True:
     print(f'\ncomparing factory outputs for {scenario_list}. for {qty} of product... \n')
@@ -322,7 +351,8 @@ if test_factory_scenarios is True:
 
         print(f"\n FACTORY (multi-scenario): Full results available in {dat.outdir} directory.")
 
-
+        if pause_between_tests is True:
+            dummy_continue = input("Press any key to continue")
 
 #------------------------------------------------------------------------------
 # INDUSTRY TEST
@@ -352,6 +382,9 @@ if test_industry_evolve is True:
 
         ind_cumulative['i'][i] = cumulative['inflows']['industry totals']
         ind_cumulative['o'][i] = cumulative['outflows']['industry totals']
+
+        if pause_between_tests is True:
+            dummy_continue = input("Press any key to continue")
     
     if compare_evolved_industres is True and compare_steps is not False:
 
@@ -391,4 +424,7 @@ if test_industry_evolve is True:
                 iof.plot_annual_flows(df_dict['i'], flow, dat.outdir, file_id=f"_{compare_industry_name}-comparison")
 
     
-    print(f"\n INDUSTRY COMPARISON - Full results available in {dat.outdir} directory.")
+        print(f"\n INDUSTRY COMPARISON - Full results available in {dat.outdir} directory.")
+
+        if pause_between_tests is True:
+            dummy_continue = input("Press any key to continue")
