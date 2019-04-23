@@ -385,10 +385,10 @@ def Energy_Content(known_substance, qty, unknown_substance, LHV=True, fuels_df=d
 
     """
     if (known_substance.split(dat.ignore_sep)[0] not in fuels_df.index and unknown_substance.split(dat.ignore_sep)[0] not in fuels_df.index):
-        raise Exception("Neither {} nor {} is a known_substance fuel type".format(known_substance, unknown_substance))
+        raise Exception("Neither {} nor {} is a known fuel type".format(known_substance, unknown_substance))
 
     if (known_substance.split(dat.ignore_sep)[0] in fuels_df.index and unknown_substance.split(dat.ignore_sep)[0] in fuels_df.index):
-        raise Exception("Both {} and {} are known_substance fuel types.".format(known_substance, unknown_substance))
+        raise Exception("Both {} and {} are known fuel types.".format(known_substance, unknown_substance))
 
     if LHV is True:
         HV = 'lhv'
@@ -527,11 +527,11 @@ def Combustion(known_substance, qty, unknown_substance, var,
 
     if (known_substance.split(dat.ignore_sep)[0] not in fuels_df.index 
         and unknown_substance.split(dat.ignore_sep)[0] not in fuels_df.index):
-        raise Exception("Neither {} nor {} is a known_substance fuel type".format(known_substance, unknown_substance))
+        raise Exception("Neither {} nor {} is a known fuel type".format(known_substance, unknown_substance))
 
     if (known_substance.split(dat.ignore_sep)[0] in fuels_df.index 
         and unknown_substance.split(dat.ignore_sep)[0] in fuels_df.index):
-        raise Exception("Both {} and {} are known_substance fuel types.".format(known_substance, unknown_substance))
+        raise Exception("Both {} and {} are known fuel types.".format(known_substance, unknown_substance))
 
     var = (var)
     
