@@ -236,15 +236,15 @@ class UnitProcess:
             i_o = self.default_io
         i_o = iof.clean_str(i_o[0])
         if i_o not in ['i', 'o', 't']:
-            raise Exception(f'{i_o} not valid product destination')
+            raise Exception(f'{self.name.upper()}: {i_o} not valid product destination')
         
         if scenario not in self.var_df.index.values:
-            raise Exception(f'{scenario} not found in variables file')
+            raise Exception(f'{self.name.upper()}: {scenario} not found in variables file')
         
         if product is False:
             product = self.default_product
         if product not in self.inflows and product not in self.outflows:
-            raise Exception(f'{product} not found in {self.name} inflows or outflows')
+            raise Exception(f'{self.name.upper()}: {product} not found in inflows or outflows')
         if product in lookup_var_dict: # get product name from var_df, at variable specified in lookup_var_dict
             lookup_product_key = product 
             product = self.var_df.at[scenario, lookup_var_dict[product]['lookup_var']]  
@@ -252,7 +252,7 @@ class UnitProcess:
             lookup_product_key = False
 
         calc_df = self.calc_df
-        logger.debug(f"Attempting to balance {self.name} on {qty} of {product} (different name from origin: {product_alt_name}) ({i_o}) using {scenario} variables")
+        logger.debug(f"{self.name.upper()}: Attempting to balance on {qty} of {product} (different name from origin: {product_alt_name}) ({i_o}) using {scenario} variables")
 
         io_dicts = {
             'i' : defaultdict(float),    # inflows dictionary
@@ -265,10 +265,10 @@ class UnitProcess:
         # primes inflow or outflow dictionary with product quantity
         if product_alt_name is not False: 
             io_dicts[i_o][product_alt_name] = qty 
-            logger.debug(f"{qty} of {product_alt_name} added to {i_o} dict, in place of {product}")
+            logger.debug(f"{self.name.upper()}: {qty} of {product_alt_name} added to {i_o} dict, in place of {product}")
         else:
             io_dicts[i_o][product] = qty 
-            logger.debug(f"{qty} of {product} added to {i_o} dict")
+            logger.debug(f"{self.name.upper()}: {qty} of {product} added to {i_o} dict")
 
         i = 0
         attempt = 0
@@ -282,7 +282,7 @@ class UnitProcess:
                 calc_df = calc_df.drop(i)
                 calc_df = calc_df.reset_index(drop=True)
                 attempt = 0
-                logger.debug(f"known substance is not a string. Dropping this row")
+                logger.debug(f"{self.name.upper()}: known substance is not a string. Dropping this row")
                 continue
 
             known_substance = calc_df.at[i, dat.known]
@@ -307,27 +307,27 @@ class UnitProcess:
                     var = self.var_df.at[scenario, iof.clean_str(raw_var)]
 
             
-            logger.debug(f"current index: {i}, current product: {known_substance}")
+            logger.debug(f"{self.name.upper()}: current index: {i}, current product: {known_substance}")
             if attempt >= len(calc_df): 
                 print(io_dicts)
-                raise Exception(f"Cannot process {known_substance} ({known_io}-flow), when trying to calculate {unknown_substance} ({unknown_io}-flow) via {calc_type}. Breaking to prevent infinite loop. Try checking flow location and remember that substance names are case sensitive.")
+                raise Exception(f"{self.name.upper()}: Cannot process {known_substance} ({known_io}-flow), when trying to calculate {unknown_substance} ({unknown_io}-flow) via {calc_type}. Breaking to prevent infinite loop. Try checking flow location and remember that substance names are case sensitive.")
             
             # replaces product name with product_alt_name if and where applicable
             if product_alt_name is not False:
                 if known_substance == product:
                     known_substance = product_alt_name #name at origin
-                    logger.debug(f"{product_alt_name} substitued for {product} as known substance")
+                    logger.debug(f"{self.name.upper()}: {product_alt_name} substitued for {product} as known substance")
                 elif lookup_product_key is not False:
                     if known_substance == lookup_product_key:
                         known_substance = product_alt_name #name at origin
-                        logger.debug(f"{product_alt_name} substitued for {product} as known substance")
+                        logger.debug(f"{self.name.upper()}: {product_alt_name} substitued for {product} as known substance")
                 if unknown_substance == product:
                     unknown_substance = product_alt_name #name at origin
-                    logger.debug(f"{product_alt_name} substitued for {product} as unknown substance")
+                    logger.debug(f"{self.name.upper()}: {product_alt_name} substitued for {product} as unknown substance")
                 elif lookup_product_key is not False:
                     if unknown_substance == lookup_product_key:
                         unknown_substance = product_alt_name #name at origin
-                        logger.debug(f"{product_alt_name} substitued for {product} as unknown substance")
+                        logger.debug(f"{self.name.upper()}: {product_alt_name} substitued for {product} as unknown substance")
 
             # sets lookup_df for any lookup ratio calculations
             if known_substance in lookup_var_dict:
@@ -350,7 +350,7 @@ class UnitProcess:
                     known_substance = known_proxy + dat.ignore_sep + known_substance.split(dat.ignore_sep)[1]
                 else:
                     known_proxy = known_substance.split(dat.ignore_sep)[0]
-                logger.debug(f"{dat.ignore_sep} separator found in {known_substance}. Using {known_proxy} for calculations.")
+                logger.debug(f"{self.name.upper()}: {dat.ignore_sep} separator found in {known_substance}. Using {known_proxy} for calculations.")
             else:
                 known_proxy = known_substance
             if dat.ignore_sep in unknown_substance:    
@@ -360,7 +360,7 @@ class UnitProcess:
                     unknown_substance = unknown_proxy + dat.ignore_sep + unknown_substance.split(dat.ignore_sep)[1]
                 else:
                     unknown_proxy = unknown_substance.split(dat.ignore_sep)[0]  
-                logger.debug(f"{dat.ignore_sep} separator found in {unknown_substance}. Using {unknown_proxy} for calculations.")          
+                logger.debug(f"{self.name.upper()}: {dat.ignore_sep} separator found in {unknown_substance}. Using {unknown_proxy} for calculations.")          
             else:
                 unknown_proxy = unknown_substance
 
@@ -372,17 +372,17 @@ class UnitProcess:
                 known_substance, unknown_substance = unknown_substance, known_substance
                 known_io, unknown_io = unknown_io, known_io
                 known_proxy, unknown_proxy = unknown_proxy, known_proxy
-                logger.debug(f"{known_substance} not found, but {unknown_substance} found. Inverting calculations")
+                logger.debug(f"{self.name.upper()}: {known_substance} not found, but {unknown_substance} found. Inverting calculations")
             else:
                 i += 1
                 attempt += 1
-                logger.debug(f"neither {known_substance} nor {unknown_substance} found, skipping for now")
+                logger.debug(f"{self.name.upper()}: neither {known_substance} nor {unknown_substance} found, skipping for now")
                 continue
             
             if calc_type not in calc.calcs_dict:
-                raise Exception(f"{calc_type} is an unknown calculation type")
+                raise Exception(f"{self.name.upper()}: {calc_type} is an unknown calculation type")
             if unknown_io not in io_dicts and unknown_io != 'd': #'d' can be used for discarded substances
-                raise Exception(f"{unknown_io} is an unknown destination")
+                raise Exception(f"{self.name.upper()}: {unknown_io} is an unknown destination")
 
             # if the calculation requires two known quantities, make sure both exist
             if calc_type in calc.twoQty_calc_list:
@@ -398,7 +398,7 @@ class UnitProcess:
                         known_substance2 = known2_proxy + dat.ignore_sep + known_substance2.split(dat.ignore_sep)[1]
                     else:
                         known2_proxy  = known_substance2.split(dat.ignore_sep)[0]  
-                    logger.debug(f"{dat.ignore_sep} separator found in {known_substance2}. Using {known2_proxy} for calculations.")          
+                    logger.debug(f"{self.name.upper()}: {dat.ignore_sep} separator found in {known_substance2}. Using {known2_proxy} for calculations.")          
                 else:
                     known2_proxy = known_substance2
 
@@ -407,7 +407,7 @@ class UnitProcess:
                 else:
                     i += 1
                     attempt += 1
-                    logger.debug(f"{known_substance2} not found (both {known_substance} ({known_io}) and {known_substance2} ({k2_io}) required), skipping for now")
+                    logger.debug(f"{self.name.upper()}: {known_substance2} not found (both {known_substance} ({known_io}) and {known_substance2} ({k2_io}) required), skipping for now")
                     continue
 
             qty_known = io_dicts[known_io][known_substance]
@@ -424,12 +424,12 @@ class UnitProcess:
                           lookup_df = lookup_df)
             kwargs = {**kwargs, **calc.calcs_dict[calc_type]['kwargs']}
             
-            logger.debug(f"Attempting {calc_type} calculation for {unknown_substance} using {qty_known} of {known_substance}")
+            logger.debug(f"{self.name.upper()}: Attempting {calc_type} calculation for {unknown_substance} using {qty_known} of {known_substance}")
             qty_calculated = calc.calcs_dict[calc_type]['function'](**kwargs)
             qty_calculated = calc.no_nan(qty_calculated)
 
             if qty_calculated < 0:
-                print(f"\n[!] POSSIBLE ERROR [!] in ({self.name} unit process): \nNegative number found:\n"
+                print(f"{self.name.upper()}:\n[!] POSSIBLE ERROR [!]\nNegative number found:\n"
                       f"{qty_calculated} of {unknown_substance} calculated while performing {calc_type} using {qty_known} of {known_substance}")
                 if known_substance2 is not None:
                     print(f"and {known_qty2} of {known_substance2}")
@@ -444,10 +444,10 @@ class UnitProcess:
             calc_df = calc_df.drop(i)
             calc_df = calc_df.reset_index(drop=True)
             attempt = 0
-            logger.debug(f"{qty_calculated} of {unknown_substance} calculated. {len(calc_df)} calculations remaining.")
+            logger.debug(f"{self.name.upper()}: {qty_calculated} of {unknown_substance} calculated. {len(calc_df)} calculations remaining.")
 
-        logger.debug(f"emissions: {io_dicts['e']}")
-        logger.debug(f"coinflows: {io_dicts['c']}")
+        logger.debug(f"{self.name.upper()}: emissions: {io_dicts['e']}")
+        logger.debug(f"{self.name.upper()}: coinflows: {io_dicts['c']}")
         for substance, qty in io_dicts['e'].items(): #adds emissions dictionary to outflow dictionary
             io_dicts['o'][substance] += qty
         for substance, qty in io_dicts['c'].items(): #adds co-inflows dictionary to inflows dictionary
@@ -463,7 +463,7 @@ class UnitProcess:
             io_dicts['i']['UNKNOWN-mass'] = total_mass_out - total_mass_in
 
         if balance_energy is True:
-            logger.debug("Balancing energy")
+            logger.debug("{self.name.upper()}: Balancing energy")
             total_energy_in, total_energy_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
                                                  raise_imbalance=raise_imbalance, 
                                                  ignore_flows=[],
@@ -531,7 +531,7 @@ class UnitProcess:
             replaced_flow = self.var_df.at[scenario, lookup_var_dict[replaced_flow]['lookup_var']] 
 
         if replaced_flow in calc.df_fuels:
-            logger.debug(f'WARNING! {replaced_flow} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
+            logger.debug(f'{self.name.upper()}: WARNING! {replaced_flow} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
 
         calc.check_qty(max_replace_fraction, fraction = True)
         replacable_qty = original_flows[i_o][replaced_flow] * max_replace_fraction
@@ -550,7 +550,7 @@ class UnitProcess:
             remaining_recycle_qty = recycled_qty - used_recycle_qty
 
         if remaining_recycle_qty < 0:
-            raise ValueError(f"Something went wrong. remaining_recycle_qty < 0 {remaining_recycle_qty}")
+            raise ValueError(f"{self.name.upper()}: Something went wrong. remaining_recycle_qty < 0 {remaining_recycle_qty}")
 
         return rebalanced_flows['i'], rebalanced_flows['o'], remaining_recycle_qty
 
@@ -593,7 +593,7 @@ class UnitProcess:
 
         """
 
-        logger.debug(f"Attempting to replace {replaced_flow} (energy) with {recycled_flow}.")
+        logger.debug(f"{self.name.upper()}: Attempting to replace {replaced_flow} (energy) with {recycled_flow}.")
 
         original_flows = dict(i=original_inflows_dict,
                               o=original_outflows_dict)
@@ -603,7 +603,7 @@ class UnitProcess:
         i_o =iof.clean_str(recycle_io[0])
 
         if i_o not in ['i', 'o']:
-            raise KeyError(f'{i_o} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
+            raise KeyError(f'{self.name.upper()}: {i_o} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
 
         if replaced_flow in lookup_var_dict:
             replaced_flow = self.var_df.at[scenario, lookup_var_dict[replaced_flow]['lookup_var']] 
@@ -621,7 +621,7 @@ class UnitProcess:
                                           replaced_inflows_dict,
                                           emissions_list=emissions_list)
 
-        logger.debug(f"{recycled_qty} of {recycled_flow} assumed equivelent to {equivelent_fuel_qty} of {replaced_flow}")
+        logger.debug(f"{self.name.upper()}: {recycled_qty} of {recycled_flow} assumed equivelent to {equivelent_fuel_qty} of {replaced_flow}")
 
         calc.check_qty(max_replace_fraction, fraction = True)
 
@@ -670,6 +670,6 @@ class UnitProcess:
                     rebalanced_flows['i'][flow] = 0
 
         if remaining_energy_qty < 0:
-            raise ValueError(f"Something went wrong. remaining_recycle_qty < 0 {remaining_energy_qty}")
+            raise ValueError(f"{self.name.upper()}: Something went wrong. remaining_recycle_qty < 0 {remaining_energy_qty}")
 
         return rebalanced_flows['i'], rebalanced_flows['o'], remaining_energy_qty
