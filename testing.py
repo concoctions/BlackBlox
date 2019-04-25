@@ -29,8 +29,8 @@ dat.default_units = {'mass': 't',
 
 test_units = False
 test_chains = False
-test_factories = True
-test_factory_scenarios = False
+test_factories = False
+test_factory_scenarios = True
 test_industries = False
 test_industry_evolve = False
 compare_evolved_industres = False
@@ -89,15 +89,15 @@ unit_list = [
             # 'bb_fuel_upstream',
             # 'bb_biofuel_upstream',
             # 'bb_CO2_storage',
-            # 'simple_coke',
-            # 'simple_lime',
-            # 'simple_pellets',
-            # 'simple_sinter',
-            # 'simple_BF',
-            # 'simple_BOF',
-            # 'simple_oxygen',
-            # 'simple_power',
-            # 'simple_fuel',
+            'simple_coke',
+            'simple_lime',
+            'simple_pellets',
+            'simple_sinter',
+            'simple_BF',
+            'simple_BOF',
+            'simple_oxygen',
+            'simple_power',
+            'simple_fuel',
              ]
 
 
@@ -124,7 +124,7 @@ factory_dict = {
                 #                         connections_sheet='IEAGHG connections', 
                 #                         name="BF Steel (IEAGHG)",
                 #                         scenario='ieaghg-reference'),
-                'IEAGHG Ref-Crude': dict(chain_list_file="data/steel/IEAGHG_factory-crudesteel.xlsx",
+                'Detailed Steel-Crude': dict(chain_list_file="data/steel/IEAGHG_factory-crudesteel.xlsx",
                                         chain_list_sheet='IEAGHG chains', 
                                         connections_sheet='IEAGHG connections', 
                                         name="BF Steel (IEAGHG)",
@@ -149,28 +149,30 @@ factory_dict = {
                 #                         connections_sheet='bf-eaf connections', 
                 #                         name="BF-EAF Steel Industry",
                 #                         scenario='EUROFER 2010'),
-                # 'IEAGHG Ref Birat': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                #                         chain_list_sheet='base chains', 
-                #                         connections_sheet='base connections', 
-                #                         name="BF Steel (IEAGHG-Birat)",
-                #                         scenario='ieaghg-reference'),
-                # 'IEAGHG Ref Simplified': dict(chain_list_file="data/steel/steel_simplified_factory.xlsx",
-                #                         chain_list_sheet='chains', 
-                #                         connections_sheet='connections', 
-                #                         name="BF Steel (IEAGHG-Simple)",
-                #                         scenario='ieaghg-reference'),
+                'Birat Steel': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                                        chain_list_sheet='base chains', 
+                                        connections_sheet='base connections', 
+                                        name="BF Steel (IEAGHG-Birat)",
+                                        scenario='ieaghg-reference'),
+                'Simplified Steel': dict(chain_list_file="data/steel/steel_simplified_factory.xlsx",
+                                        chain_list_sheet='chains', 
+                                        connections_sheet='connections', 
+                                        name="BF Steel (IEAGHG-Simple)",
+                                        scenario='ieaghg-reference'),
 }
 
 
 # SCENARIOS TO BE TESTED - comment out unwanted entries
-scenario_factories = ['Birat CCS', 'Birat CCS_LC']
+scenario_factories = ['Simplified Steel']
 
 scenario_list = [
-                 'birat-base', 
-                 'birat-tgr-63vpsa',
-                 'birat-tgr-63vpsa-50bio',
-                 'birat-tgr-63vpsa-100bio',
-                 'birat-tgr-100vpsa-100bio',
+                'ieaghg-reference',
+                'china-HeEtAl2017',
+                #  'birat-base', 
+                #  'birat-tgr-63vpsa',
+                #  'birat-tgr-63vpsa-50bio',
+                #  'birat-tgr-63vpsa-100bio',
+                #  'birat-tgr-100vpsa-100bio',
 ]
 
 # PRODUCT TO BE TESTED - in run scenarios
