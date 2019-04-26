@@ -164,10 +164,14 @@ factory_dict = {
 
 # SCENARIOS TO BE TESTED - comment out unwanted entries
 scenario_factories = ['Simplified Steel']
+individual_xls = True
 
 scenario_list = [
                 'ieaghg-reference',
                 'china-HeEtAl2017',
+                'japan-Kuramochi2016',
+                'russia-Kuronov2010',
+                'usa-andersenhyman2001',
                 #  'birat-base', 
                 #  'birat-tgr-63vpsa',
                 #  'birat-tgr-63vpsa-50bio',
@@ -342,7 +346,7 @@ if test_factory_scenarios is True:
                                                   product=scenario_product, 
                                                   product_unit=scenario_unit, 
                                                   product_io=scenario_io,
-                                                  write_to_xls=False)
+                                                  write_to_xls=individual_xls)
 
         if write_to_console is True:
             print(f"\n{factory.name} inflows")
