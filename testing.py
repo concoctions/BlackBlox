@@ -29,8 +29,8 @@ dat.default_units = {'mass': 't',
 
 test_units = False
 test_chains = False
-test_factories = False
-test_factory_scenarios = True
+test_factories = True
+test_factory_scenarios = False
 test_industries = False
 test_industry_evolve = False
 compare_evolved_industres = False
@@ -52,6 +52,9 @@ save_diagrams = False
 
 # for factory and industry tests
 write_to_xls = True
+
+# for multi-scenario factory tests
+individual_xls = True
 
 
 ###############################################################################
@@ -89,15 +92,17 @@ unit_list = [
             # 'bb_fuel_upstream',
             # 'bb_biofuel_upstream',
             # 'bb_CO2_storage',
-            'simple_coke',
-            'simple_lime',
-            'simple_pellets',
-            'simple_sinter',
-            'simple_BF',
-            'simple_BOF',
-            'simple_oxygen',
-            'simple_power',
-            'simple_fuel',
+            # 'simple_coke',
+            # 'simple_lime',
+            # 'simple_pellets',
+            # 'simple_sinter',
+            # 'simple_BF',
+            # 'simple_BOF',
+            # 'simple_oxygen',
+            # 'simple_power',
+            # 'simple_fuel',
+            # 'simple_CO2capture',
+            # 'simple_CO2storage'
              ]
 
 
@@ -110,7 +115,7 @@ chain_dict = {
               'steel': dict(name='steel',
                             chain_data="data/steel/steel_factories.xlsx",
                             xls_sheet='steel chain'),
-}
+              }
 
 
 #-------------------------------------------------------------------------------
@@ -124,11 +129,11 @@ factory_dict = {
                 #                         connections_sheet='IEAGHG connections', 
                 #                         name="BF Steel (IEAGHG)",
                 #                         scenario='ieaghg-reference'),
-                'Detailed Steel-Crude': dict(chain_list_file="data/steel/IEAGHG_factory-crudesteel.xlsx",
-                                        chain_list_sheet='IEAGHG chains', 
-                                        connections_sheet='IEAGHG connections', 
-                                        name="BF Steel (IEAGHG)",
-                                        scenario='ieaghg-reference'),
+                # 'Detailed Steel-Crude': dict(chain_list_file="data/steel/IEAGHG_factory-crudesteel.xlsx",
+                #                         chain_list_sheet='IEAGHG chains', 
+                #                         connections_sheet='IEAGHG connections', 
+                #                         name="BF Steel (IEAGHG)",
+                #                         scenario='ieaghg-reference'),
                 # 'Birat steel base': dict(chain_list_file="data/steel/birat_factories.xlsx",
                 #                         chain_list_sheet='base chains', 
                 #                         connections_sheet='base connections', 
@@ -148,36 +153,44 @@ factory_dict = {
                 #                         chain_list_sheet='bf-eaf chains', 
                 #                         connections_sheet='bf-eaf connections', 
                 #                         name="BF-EAF Steel Industry",
-                #                         scenario='EUROFER 2010'),
-                'Birat Steel': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                                        chain_list_sheet='base chains', 
-                                        connections_sheet='base connections', 
-                                        name="BF Steel (IEAGHG-Birat)",
-                                        scenario='ieaghg-reference'),
-                'Simplified Steel': dict(chain_list_file="data/steel/steel_simplified_factory.xlsx",
+                # #                         scenario='EUROFER 2010'),
+                # 'Birat Steel': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                #                         chain_list_sheet='base chains', 
+                #                         connections_sheet='base connections', 
+                #                         name="BF Steel (IEAGHG-Birat)",
+                #                         scenario='ieaghg-reference'),
+                # 'Simplified Steel': dict(chain_list_file="data/steel/steel_simplified_factory.xlsx",
+                #                         chain_list_sheet='chains', 
+                #                         connections_sheet='connections', 
+                #                         name="BF-BOF Steel Mill",
+                #                         scenario='EU-BF-base'),
+                'Simplified Steel-CCS': dict(chain_list_file="data/steel/steel_simplified_factory-ccs.xlsx",
                                         chain_list_sheet='chains', 
                                         connections_sheet='connections', 
-                                        name="BF Steel (IEAGHG-Simple)",
-                                        scenario='ieaghg-reference'),
-}
+                                        name="BF-BOF Steel Mill with CCS",
+                                        scenario='test'),
+                }
 
 
 # SCENARIOS TO BE TESTED - comment out unwanted entries
-scenario_factories = ['Simplified Steel']
-individual_xls = True
+scenario_factories = [
+                      # 'Simplified Steel',
+                      'Simplified Steel-CCS',
+                      ]
 
 scenario_list = [
-                'ieaghg-reference',
-                'china-HeEtAl2017',
-                'japan-Kuramochi2016',
-                'russia-Kuronov2010',
-                'usa-andersenhyman2001',
+                'test',
+                'China-BF-base',
+                'EU-BF-base',
+                'Japan-BF-base',
+                'Russia-BF-base',
+                'USA-BF-base',
                 #  'birat-base', 
                 #  'birat-tgr-63vpsa',
                 #  'birat-tgr-63vpsa-50bio',
                 #  'birat-tgr-63vpsa-100bio',
                 #  'birat-tgr-100vpsa-100bio',
-]
+                ]
 
 # PRODUCT TO BE TESTED - in run scenarios
 scenario_product = False
