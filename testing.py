@@ -27,10 +27,10 @@ dat.default_units = {'mass': 't',
 # SPECIFY TESTS TO RUN 
 ################################################################################
 
-test_units = False
+test_units = True
 test_chains = False
-test_factories = True
-test_factory_scenarios = False
+test_factories = False
+test_factory_scenarios = True
 test_industries = False
 test_industry_evolve = False
 compare_evolved_industres = False
@@ -68,7 +68,7 @@ qty = 1.0
 # UNIT PROCESSES
 #-------------------------------------------------------------------------------
 
-scenario = 'ieaghg-reference'
+scenario = 'default'
 
 # UNITS TO BE TESTED - comment out unwanted entries
 unit_list = [
@@ -169,22 +169,34 @@ factory_dict = {
                                         connections_sheet='connections', 
                                         name="BF-BOF Steel Mill with CCS",
                                         scenario='test'),
+                'fuel test': dict(chain_list_file="data/steel/fuel_test_factory.xlsx",
+                                        chain_list_sheet='chains', 
+                                        connections_sheet='connections', 
+                                        name="upstream fuel test",
+                                        scenario='test'),
                 }
 
 
 # SCENARIOS TO BE TESTED - comment out unwanted entries
 scenario_factories = [
                       # 'Simplified Steel',
-                      'Simplified Steel-CCS',
+                      # 'Simplified Steel-CCS',
+                      'fuel test'
                       ]
 
 scenario_list = [
                 'test',
-                'China-BF-base',
-                'EU-BF-base',
-                'Japan-BF-base',
-                'Russia-BF-base',
-                'USA-BF-base',
+                'test-charcoal primary',
+                'test-woodchip primary',
+                'test-charcoal both',
+                'test-woodchip both',
+                'test-charcoal woodchip',
+                'test-woodchip charcoal',
+                # 'China-BF-base',
+                # 'EU-BF-base',
+                # 'Japan-BF-base',
+                # 'Russia-BF-base',
+                # 'USA-BF-base',
                 #  'birat-base', 
                 #  'birat-tgr-63vpsa',
                 #  'birat-tgr-63vpsa-50bio',
