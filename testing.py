@@ -30,7 +30,7 @@ dat.default_units = {'mass': 't',
 test_units = True
 test_chains = False
 test_factories = False
-test_factory_scenarios = True
+test_factory_scenarios = False
 test_industries = False
 test_industry_evolve = False
 compare_evolved_industres = False
@@ -102,7 +102,8 @@ unit_list = [
             # 'simple_power',
             # 'simple_fuel',
             # 'simple_CO2capture',
-            # 'simple_CO2storage'
+            # 'simple_CO2storage',
+            'simple_EAF'
              ]
 
 
