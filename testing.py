@@ -27,12 +27,12 @@ dat.default_units = {'mass': 't',
 # SPECIFY TESTS TO RUN 
 ################################################################################
 
-test_units = True
+test_units = False
 test_chains = False
 test_factories = False
 test_factory_scenarios = False
-test_industries = False
-test_industry_evolve = False
+test_industries = True
+test_industry_evolve = True
 compare_evolved_industres = False
 
 
@@ -237,27 +237,35 @@ scenario_io = False
 #-------------------------------------------------------------------------------
 
 industry_dict = {
-                 'steel-EUROFER': dict(factory_list_file='data/steel/steel_Eurofer_industry.xlsx',
-                                       factory_list_sheet='Factory List', 
-                                       name='EUROFER Steel',
-                                       steps=[1990, 2010, 2030, 2050],
-                                       step_sheets=['1990', '2010', '2030', '2050'], 
-                                       write_to_xls=write_to_xls, 
-                                       graph_outflows=['CO2__emitted', 'steel'],
-                                       graph_inflows=False),
-                 'steel-EUROFER-CCS': dict(factory_list_file='data/steel/steel_Eurofer_industry-CCS.xlsx',
-                                       factory_list_sheet='Factory List', 
-                                       name='EUROFER Steel CCS',
-                                       steps=[1990, 2010, 2030, 2050],
-                                       step_sheets=['1990', '2010', '2030', '2050'], 
-                                       write_to_xls=write_to_xls, 
-                                       graph_outflows=['CO2__emitted', 'steel'],
-                                       graph_inflows=False),
-                 'steel-EUROFER-noCCS': dict(factory_list_file='data/steel/steel_Eurofer_industry-noCCS.xlsx',
+                #  'steel-EUROFER': dict(factory_list_file='data/steel/steel_Eurofer_industry.xlsx',
+                #                        factory_list_sheet='Factory List', 
+                #                        name='EUROFER Steel',
+                #                        steps=[1990, 2010, 2030, 2050],
+                #                        step_sheets=['1990', '2010', '2030', '2050'], 
+                #                        write_to_xls=write_to_xls, 
+                #                        graph_outflows=['CO2__emitted', 'steel'],
+                #                        graph_inflows=False),
+                #  'steel-EUROFER-CCS': dict(factory_list_file='data/steel/steel_Eurofer_industry-CCS.xlsx',
+                #                        factory_list_sheet='Factory List', 
+                #                        name='EUROFER Steel CCS',
+                #                        steps=[1990, 2010, 2030, 2050],
+                #                        step_sheets=['1990', '2010', '2030', '2050'], 
+                #                        write_to_xls=write_to_xls, 
+                #                        graph_outflows=['CO2__emitted', 'steel'],
+                #                        graph_inflows=False),
+                #  'steel-EUROFER-noCCS': dict(factory_list_file='data/steel/steel_Eurofer_industry-noCCS.xlsx',
+                #                        factory_list_sheet='Factory List', 
+                #                        name='EUROFER Steel no CCS',
+                #                        steps=[1990, 2010, 2030, 2050],
+                #                        step_sheets=['1990', '2010', '2030', '2050'], 
+                #                        write_to_xls=write_to_xls, 
+                #                        graph_outflows=['CO2__emitted', 'steel'],
+                #                        graph_inflows=False),
+                 'steel-EU28-PBC': dict(factory_list_file='data/steel/steel_industry_EU28.xlsx',
                                        factory_list_sheet='Factory List', 
                                        name='EUROFER Steel no CCS',
-                                       steps=[1990, 2010, 2030, 2050],
-                                       step_sheets=['1990', '2010', '2030', '2050'], 
+                                       steps=[1990, 2010, 2015, 2030, 2050],
+                                       step_sheets=['1990', '2010', '2015', '2030', '2050'], 
                                        write_to_xls=write_to_xls, 
                                        graph_outflows=['CO2__emitted', 'steel'],
                                        graph_inflows=False),
