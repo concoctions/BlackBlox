@@ -13,14 +13,14 @@ from collections import defaultdict
 # SPECIFY METADATA
 ################################################################################
 
-dat.user_data = {"name": "S.E. Tanzer",
-                 "affiliation": "TU Delft",
-                 "project": f"Steel tests - {datetime.now().strftime('%d %B %Y')}",
-}
+# dat.user_data = {"name": "S.E. Tanzer",
+#                  "affiliation": "TU Delft",
+#                  "project": f"Steel tests - {datetime.now().strftime('%d %B %Y')}",
+# }
 
-dat.default_units = {'mass': 't', 
-                     'energy':'GJ',
-}
+# dat.default_units = {'mass': 't', 
+#                      'energy':'GJ',
+# }
 
 
 
@@ -28,11 +28,11 @@ dat.default_units = {'mass': 't',
 # SPECIFY OUTPUT
 ################################################################################
 
-pause_between_tests = False
+# pause_between_tests = False
 
 # for all tests
 write_to_console = True
-dat.outdir = f'output/test_{datetime.now().strftime("%b%d")}/{datetime.now().strftime("%H%M")}'
+# dat.outdir = f'output/test_{datetime.now().strftime("%b%d")}/{datetime.now().strftime("%H%M")}'
 
 # for chain, factory, and industry tests
 view_diagrams = False
@@ -91,7 +91,7 @@ unit_list = [
             # 'simple_fuel',
             # 'simple_CO2capture',
             # 'simple_CO2storage',
-            'simple_EAF'
+            # 'simple_EAF'
              ]
 
 
@@ -100,11 +100,11 @@ unit_list = [
 #-------------------------------------------------------------------------------
 
 # CHAINS TO BE TESTED - comment out unwanted entries
-chain_dict = {
-              'steel': dict(name='steel',
-                            chain_data="data/steel/steel_factories.xlsx",
-                            xls_sheet='steel chain'),
-              }
+# chain_dict = {
+#               'steel': dict(name='steel',
+#                             chain_data="data/steel/steel_factories.xlsx",
+#                             xls_sheet='steel chain'),
+#               }
 
 
 #-------------------------------------------------------------------------------
@@ -118,61 +118,61 @@ factory_dict = {
                 #                         connections_sheet='IEAGHG connections', 
                 #                         name="BF Steel (IEAGHG)",
                 #                         scenario='ieaghg-reference'),
-                'Detailed Steel-Crude': dict(chain_list_file="data/steel/IEAGHG_factory-crudesteel.xlsx",
-                                        chain_list_sheet='IEAGHG chains', 
-                                        connections_sheet='IEAGHG connections', 
-                                        name="BF Steel (IEAGHG)",
-                                        scenario='ieaghg-reference'),
-                # 'Birat steel base': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                # 'Detailed Steel-Crude': dict(chain_list_file="data/steel/IEAGHG_factory-crudesteel.xlsx",
+                #                         chain_list_sheet='IEAGHG chains', 
+                #                         connections_sheet='IEAGHG connections', 
+                #                         name="BF Steel (IEAGHG)",
+                #                         scenario='ieaghg-reference'),
+                # # 'Birat steel base': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                # #                         chain_list_sheet='base chains', 
+                # #                         connections_sheet='base connections', 
+                # #                         name="BF Steel Plant",
+                # #                         scenario='birat-base'),
+                # # 'Birat CCS': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                # #                         chain_list_sheet='TGR-CCS chains', 
+                # #                         connections_sheet='TGR-CCS connect', 
+                # #                         name="BF-TGR-CCS Steel Plant",
+                # #                         scenario='birat-tgr-63vpsa'),
+                # # 'Birat CCS_LC': dict(chain_list_file="data/steel/birat_factories.xlsx",
+                # #                         chain_list_sheet='CCS-LC chains', 
+                # #                         connections_sheet='CCS-LC connect', 
+                # #                         name="BF-TGR-CCS Steel with Upstream",
+                # #                         scenario='birat-tgr-63vpsa-100bio'),
+                # # 'BF-EAF BB': dict(chain_list_file="data/steel/bb_steel_factories.xlsx",
+                # #                         chain_list_sheet='bf-eaf chains', 
+                # #                         connections_sheet='bf-eaf connections', 
+                # #                         name="BF-EAF Steel Industry",
+                # # #                         scenario='EUROFER 2010'),
+                # 'Birat Steel': dict(chain_list_file="data/steel/birat_factories.xlsx",
                 #                         chain_list_sheet='base chains', 
                 #                         connections_sheet='base connections', 
-                #                         name="BF Steel Plant",
-                #                         scenario='birat-base'),
-                # 'Birat CCS': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                #                         chain_list_sheet='TGR-CCS chains', 
-                #                         connections_sheet='TGR-CCS connect', 
-                #                         name="BF-TGR-CCS Steel Plant",
-                #                         scenario='birat-tgr-63vpsa'),
-                # 'Birat CCS_LC': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                #                         chain_list_sheet='CCS-LC chains', 
-                #                         connections_sheet='CCS-LC connect', 
-                #                         name="BF-TGR-CCS Steel with Upstream",
-                #                         scenario='birat-tgr-63vpsa-100bio'),
-                # 'BF-EAF BB': dict(chain_list_file="data/steel/bb_steel_factories.xlsx",
-                #                         chain_list_sheet='bf-eaf chains', 
-                #                         connections_sheet='bf-eaf connections', 
-                #                         name="BF-EAF Steel Industry",
-                # #                         scenario='EUROFER 2010'),
-                'Birat Steel': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                                        chain_list_sheet='base chains', 
-                                        connections_sheet='base connections', 
-                                        name="BF Steel (IEAGHG-Birat)",
-                                        scenario='ieaghg-reference'),
-                'Simplified Steel-IEAGHG': dict(chain_list_file="data/steel/steel_simplified_factory-ieaghg.xlsx",
-                                        chain_list_sheet='chains', 
-                                        connections_sheet='connections', 
-                                        name="BF-BOF Steel Mill",
-                                        scenario='ieaghg-reference'),
-                'Simplified Steel': dict(chain_list_file="data/steel/steel_simplified_factory.xlsx",
-                                        chain_list_sheet='chains', 
-                                        connections_sheet='connections', 
-                                        name="BF-BOF Steel Mill",
-                                        scenario='EU-BF-base'),
-                'Simplified Steel-CCS': dict(chain_list_file="data/steel/steel_simplified_factory-ccs.xlsx",
-                                        chain_list_sheet='chains', 
-                                        connections_sheet='connections', 
-                                        name="BF-Steel Mill-CCS",
-                                        scenario='test'),
-                'Simplified Steel-CCS-BF': dict(chain_list_file="data/steel/steel_simplified_factory-ccs-bfonly.xlsx",
-                                        chain_list_sheet='chains', 
-                                        connections_sheet='connections', 
-                                        name="BF-Steel Mill-CCS_BF",
-                                        scenario='test'),
-                'Simplified Steel-CCS-BFC': dict(chain_list_file="data/steel/steel_simplified_factory-ccs-bfcoke.xlsx",
-                                        chain_list_sheet='chains', 
-                                        connections_sheet='connections', 
-                                        name="BF-Steel Mill-CCS_BF-CO",
-                                        scenario='test'),
+                #                         name="BF Steel (IEAGHG-Birat)",
+                #                         scenario='ieaghg-reference'),
+                # 'Simplified Steel-IEAGHG': dict(chain_list_file="data/steel/steel_simplified_factory-ieaghg.xlsx",
+                #                         chain_list_sheet='chains', 
+                #                         connections_sheet='connections', 
+                #                         name="BF-BOF Steel Mill",
+                #                         scenario='ieaghg-reference'),
+                # 'Simplified Steel': dict(chain_list_file="data/steel/steel_simplified_factory.xlsx",
+                #                         chain_list_sheet='chains', 
+                #                         connections_sheet='connections', 
+                #                         name="BF-BOF Steel Mill",
+                #                         scenario='EU-BF-base'),
+                # 'Simplified Steel-CCS': dict(chain_list_file="data/steel/steel_simplified_factory-ccs.xlsx",
+                #                         chain_list_sheet='chains', 
+                #                         connections_sheet='connections', 
+                #                         name="BF-Steel Mill-CCS",
+                #                         scenario='test'),
+                # 'Simplified Steel-CCS-BF': dict(chain_list_file="data/steel/steel_simplified_factory-ccs-bfonly.xlsx",
+                #                         chain_list_sheet='chains', 
+                #                         connections_sheet='connections', 
+                #                         name="BF-Steel Mill-CCS_BF",
+                #                         scenario='test'),
+                # 'Simplified Steel-CCS-BFC': dict(chain_list_file="data/steel/steel_simplified_factory-ccs-bfcoke.xlsx",
+                #                         chain_list_sheet='chains', 
+                #                         connections_sheet='connections', 
+                #                         name="BF-Steel Mill-CCS_BF-CO",
+                #                         scenario='test'),
                 # 'fuel test': dict(chain_list_file="data/steel/fuel_test_factory.xlsx",
                 #                         chain_list_sheet='chains', 
                 #                         connections_sheet='connections', 
@@ -183,10 +183,10 @@ factory_dict = {
 
 # SCENARIOS TO BE TESTED - comment out unwanted entries
 scenario_factories = [
-                      'Simplified Steel',
-                      'Simplified Steel-CCS',
-                      'Simplified Steel-CCS-BF',
-                      'Simplified Steel-CCS-BFC',
+                    #   'Simplified Steel',
+                    #   'Simplified Steel-CCS',
+                    #   'Simplified Steel-CCS-BF',
+                    #   'Simplified Steel-CCS-BFC',
                     #   'fuel test'
                       ]
 
@@ -199,15 +199,15 @@ scenario_list = [
                 # 'test-charcoal woodchip',
                 # 'test-woodchip charcoal',
                 # 'China-BF-base',
-                'EU-BF-base',
+                # 'EU-BF-base',
                 # 'Japan-BF-base',
                 # 'Russia-BF-base',
                 # 'USA-BF-base',
-                # 'India-BF-base',
-                'EU-BF-I',
-                'EU-BF-C',
-                'EU-BF-M',
-                'EU-BF-F',
+                # # 'India-BF-base',
+                # 'EU-BF-I',
+                # 'EU-BF-C',
+                # 'EU-BF-M',
+                # 'EU-BF-F',
                 #  'birat-base', 
                 #  'birat-tgr-63vpsa',
                 #  'birat-tgr-63vpsa-50bio',
@@ -249,15 +249,15 @@ industry_dict = {
                 #                        write_to_xls=write_to_xls, 
                 #                        graph_outflows=['CO2__emitted', 'steel'],
                 #                        graph_inflows=False),
-                 'steel-EU28-PBC': dict(factory_list_file='data/steel/steel_industry_EU28.xlsx',
-                                       factory_list_sheet='Factory List', 
-                                       name='EUROFER Steel no CCS',
-                                       steps=[1990, 2010, 2015, 2030, 2050],
-                                       step_sheets=['1990', '2010', '2015', '2030', '2050'], 
-                                       write_to_xls=write_to_xls, 
-                                       graph_outflows=['CO2__emitted', 'steel'],
-                                       graph_inflows=False),
-}
+#                  'steel-EU28-PBC': dict(factory_list_file='data/steel/steel_industry_EU28.xlsx',
+#                                        factory_list_sheet='Factory List', 
+#                                        name='EUROFER Steel no CCS',
+#                                        steps=[1990, 2010, 2015, 2030, 2050],
+#                                        step_sheets=['1990', '2010', '2015', '2030', '2050'], 
+#                                        write_to_xls=write_to_xls, 
+#                                        graph_outflows=['CO2__emitted', 'steel'],
+#                                        graph_inflows=False),
+ }
 
 compare_industry_name = 'EUROFER'
 compare_steps = [1990, 2010, 2030, 2050]
@@ -356,7 +356,11 @@ def build_factories(factory_dict):
         if view_diagrams is True or save_diagrams is True:
             factory.diagram(view=view_diagrams, save=save_diagrams)
 
-        return (built_factories)
+    print("Factories successfully built:")
+    for factory in built_factories:
+        print(factory)
+
+    return built_factories
 
 
 def test_factories(factory_dict,
@@ -364,7 +368,8 @@ def test_factories(factory_dict,
                 write_to_console=write_to_console, 
                 write_to_xls=write_to_xls,
                 view_diagrams=view_diagrams,
-                save_diagrams=save_diagrams):
+                save_diagrams=save_diagrams,
+                outdir=dat.outdir,):
 
     built_factories = build_factories(factory_dict)
 
@@ -376,7 +381,7 @@ def test_factories(factory_dict,
         inflows, outflows = factory.balance(product_qty = qty, 
                                             scenario=factory_dict[f]['scenario'], 
                                             write_to_xls=write_to_xls, 
-                                            outdir=dat.outdir, 
+                                            outdir=outdir, 
                                             mass_energy=True, 
                                             energy_flows=dat.energy_flows)
 
@@ -402,7 +407,8 @@ def test_factory_scenarios(factory_dict,
                             write_to_console=write_to_console, 
                             write_to_xls=write_to_xls,
                             view_diagrams=view_diagrams,
-                            save_diagrams=save_diagrams):
+                            save_diagrams=save_diagrams,
+                            outdir=dat.outdir):
 
     print(f'\ncomparing factory outputs for {scenario_list}. for {qty} of product... \n')
     
@@ -417,7 +423,8 @@ def test_factory_scenarios(factory_dict,
                                                   product=scenario_product, 
                                                   product_unit=scenario_unit, 
                                                   product_io=scenario_io,
-                                                  write_to_xls=individual_xls)
+                                                  write_to_xls=individual_xls,
+                                                  outdir=outdir)
 
         if write_to_console is True:
             print(f"\n{factory.name} inflows")
@@ -446,7 +453,8 @@ def test_industries(industry_dict,
                 write_to_console=write_to_console, 
                 write_to_xls=write_to_xls,
                 view_diagrams=view_diagrams,
-                save_diagrams=save_diagrams):
+                save_diagrams=save_diagrams,
+                outdir=dat.outdir):
     pass
 
 def test_industry_evolve(
@@ -461,7 +469,8 @@ def test_industry_evolve(
                 write_to_console=write_to_console, 
                 write_to_xls=write_to_xls,
                 view_diagrams=view_diagrams,
-                save_diagrams=save_diagrams):
+                save_diagrams=save_diagrams,
+                outdir=dat.outdir):
 
     built_industries = build_industries(industry_dict)
 
@@ -473,7 +482,7 @@ def test_industry_evolve(
             industry_dict[i]['steps'] = compare_steps
         if compare_evolved_industres is True and compare_step_sheets is not False:
             industry_dict[i]['step sheets'] = compare_step_sheets
-        annual, cumulative = industry.evolve_multistep(**industry_dict[i])
+        annual, cumulative = industry.evolve_multistep(outdir=outdir, **industry_dict[i])
 
         ind_annual['i'][i] = annual['inflows']['industry totals']
         ind_annual['o'][i] = annual['outflows']['industry totals']
@@ -521,8 +530,6 @@ def test_industry_evolve(
     
         print(f"\n INDUSTRY COMPARISON - Full results available in {dat.outdir} directory.")
 
-        if pause_between_tests is True:
-            dummy_continue = input("Press any key to continue")
 
 
 def main():

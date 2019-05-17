@@ -28,11 +28,11 @@ dat.default_units = {'mass': 't',
 # SPECIFY OUTPUT
 ################################################################################
 
-pause_between_tests = False
 
 # for all tests
-write_to_console = True
-outdir = f'output/test_{datetime.now().strftime("%b%d")}/{datetime.now().strftime("%H%M")}'
+write_to_console = False
+today = f'{datetime.now().strftime("%b%d")}/{datetime.now().strftime("%H%M")}'
+dat.outdir = f'output/test_{today}'
 
 # for chain, factory, and industry tests
 view_diagrams = False
@@ -75,202 +75,193 @@ com.test_factories(LoD_factory_dict,
                 qty=qty,
                 write_to_console=write_to_console, 
                 write_to_xls=write_to_xls,
-                view_diagrams=view_diagrams,
-                save_diagrams=save_diagrams)
+                view_diagrams=False,
+                save_diagrams=True,
+                outdir=f'output/test_{today}/LevelOfDetail')
 
 
 # COMPARE REGIONS BASE TECH
+dat.outdir = f'output/test_{today}/RegionCompare'
 
 base_factory_dict= {
-            'Simplified Steel': dict(chain_list_file="data/steel/steel_simplified_factory.xlsx",
+            'Simplified Steel-GtG': dict(chain_list_file="data/steel/steel_simplified_factory-noupstream.xlsx",
                                 chain_list_sheet='chains', 
                                 connections_sheet='connections', 
                                 name="BF-BOF Steel Mill",
-                                scenario='EU-BF-base'),
+                                scenario='EU-0B-2015',
+                                outdir=f'output/test_{today}/RegionCompare'),
 }
 
 
-base_factory_list = [
-                      'Simplified Steel',
-                      ]
-
-test_factory_scenarios(factory_dict,
-                        scenario_factories, 
+com.test_factory_scenarios(base_factory_dict,
+                        ['Simplified Steel-GtG'], 
                         scenario_product=False,
                         scenario_unit=False,
                         scenario_io=False,
                         qty=qty, 
-                        scenario_list=[scenario], 
+                        scenario_list=['EU-0B-2015', 'CH-0B-2015', 'JP-0B-2015', 'RU-0B-2015', 'US-0B-2015', 'IN-0B-2015'], 
                         write_to_console=write_to_console, 
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
-                        save_diagrams=save_diagrams):
+                        save_diagrams=save_diagrams,
+                        outdir=f'output/test_{today}/RegionCompare')
 
 # COMPARE BECCS - BASE TECH - EU
 
-# COMPARE BECCS - BASE TECH - CHINA
+dat.outdir = f'output/test_{today}/BECCS-EU-Factory'
 
-# EVOLVE INDUSTRY - EU
+BECCS_factory_dict = {
+                    'Steel': dict(chain_list_file="data/steel/steel_simplified_factory.xlsx",
+                                        chain_list_sheet='chains', 
+                                        connections_sheet='connections', 
+                                        name="BF-BOF",
+                                        scenario='EU-0B-2015'),
+                'Steel_CCS-max': dict(chain_list_file="data/steel/steel_simplified_factory-ccs.xlsx",
+                                        chain_list_sheet='chains', 
+                                        connections_sheet='connections', 
+                                        name="BF-BOF CCS-max",
+                                        scenario='EU-0B-2015'),
+                'Steel_CCS-BF': dict(chain_list_file="data/steel/steel_simplified_factory-ccs-bfonly.xlsx",
+                                        chain_list_sheet='chains', 
+                                        connections_sheet='connections', 
+                                        name="BF-BOF CCS-BFG",
+                                        scenario='EU-0B-2015'),
+                'Steel_CCS-BF-COG': dict(chain_list_file="data/steel/steel_simplified_factory-ccs-bfcoke.xlsx",
+                                        chain_list_sheet='chains', 
+                                        connections_sheet='connections', 
+                                        name="BF-BOF CCS-BFGCOG",
+                                        scenario='EU-0B-2015'),
+}
+
+com.test_factory_scenarios(factory_dict=BECCS_factory_dict,
+                        scenario_factories=['Steel', 'Steel_CCS-max', 'Steel_CCS-BF', 'Steel_CCS-BF-COG'], 
+                        scenario_product=False,
+                        scenario_unit=False,
+                        scenario_io=False,
+                        qty=qty, 
+                        scenario_list=['EU-0B-2015', 'EU-IB-2015', 'EU-CB-2015', 'EU-TB-2015', 'EU-FB-2015'], 
+                        write_to_console=write_to_console, 
+                        write_to_xls=write_to_xls,
+                        view_diagrams=view_diagrams,
+                        save_diagrams=save_diagrams,
+                        outdir=f'output/test_{today}/BECCS-EU-Factory/2015')
+
+com.test_factory_scenarios(factory_dict=BECCS_factory_dict,
+                        scenario_factories=['Steel', 'Steel_CCS-max', 'Steel_CCS-BF', 'Steel_CCS-BF-COG'], 
+                        scenario_product=False,
+                        scenario_unit=False,
+                        scenario_io=False,
+                        qty=qty, 
+                        scenario_list=['EU-0B-2050', 'EU-CB-2050'], 
+                        write_to_console=write_to_console, 
+                        write_to_xls=write_to_xls,
+                        view_diagrams=view_diagrams,
+                        save_diagrams=save_diagrams,
+                        outdir=f'output/test_{today}/BECCS-EU-Factory/2050')
+
+# COMPARE BECCS - BASE TECH - CHINA
+dat.outdir = f'output/test_{today}/BECCS-CN-Factory'
+
+com.test_factory_scenarios(factory_dict=BECCS_factory_dict,
+                        scenario_factories=['Steel', 'Steel_CCS-max', 'Steel_CCS-BF', 'Steel_CCS-BF-COG'], 
+                        scenario_product=False,
+                        scenario_unit=False,
+                        scenario_io=False,
+                        qty=qty, 
+                        scenario_list=['CH-0B-2015', 'CH-IB-2015', 'CH-CB-2015', 'CH-TB-2015', 'CH-FB-2015'], 
+                        write_to_console=write_to_console, 
+                        write_to_xls=write_to_xls,
+                        view_diagrams=view_diagrams,
+                        save_diagrams=save_diagrams,
+                        outdir=f'output/test_{today}/BECCS-CN-Factory/2015')
+
+com.test_factory_scenarios(factory_dict=BECCS_factory_dict,
+                        scenario_factories=['Steel', 'Steel_CCS-max', 'Steel_CCS-BF', 'Steel_CCS-BF-COG'], 
+                        scenario_product=False,
+                        scenario_unit=False,
+                        scenario_io=False,
+                        qty=qty, 
+                        scenario_list=['CH-0B-2050', 'CH-CB-2050'], 
+                        write_to_console=write_to_console, 
+                        write_to_xls=write_to_xls,
+                        view_diagrams=view_diagrams,
+                        save_diagrams=save_diagrams,
+                        outdir=f'output/test_{today}/BECCS-CN-Factory/2050')
+
+# EVOLVE INDUSTRY - EUROFER
+dat.outdir = f'output/test_{today}/EUROFER Industry'
+
+EUROFER_industry_dict = {
+                 'steel-EUROFER': dict(factory_list_file='data/steel/steel_Eurofer_industry.xlsx',
+                                       factory_list_sheet='Factory List', 
+                                       name='EUROFER Steel',
+                                       steps=[1990, 2010, 2030, 2050],
+                                       step_sheets=['1990', '2010', '2030', '2050'], 
+                                       write_to_xls=write_to_xls, 
+                                       graph_outflows=['CO2__emitted', 'steel'],
+                                       graph_inflows=False),
+                 'steel-EUROFER-CCS': dict(factory_list_file='data/steel/steel_Eurofer_industry-CCS.xlsx',
+                                       factory_list_sheet='Factory List', 
+                                       name='EUROFER Steel CCS',
+                                       steps=[1990, 2010, 2030, 2050],
+                                       step_sheets=['1990', '2010', '2030', '2050'], 
+                                       write_to_xls=write_to_xls, 
+                                       graph_outflows=['CO2__emitted', 'steel'],
+                                       graph_inflows=False),
+                 'steel-EUROFER-noCCS': dict(factory_list_file='data/steel/steel_Eurofer_industry-noCCS.xlsx',
+                                       factory_list_sheet='Factory List', 
+                                       name='EUROFER Steel no CCS',
+                                       steps=[1990, 2010, 2030, 2050],
+                                       step_sheets=['1990', '2010', '2030', '2050'], 
+                                       write_to_xls=write_to_xls, 
+                                       graph_outflows=['CO2__emitted', 'steel'],
+                                       graph_inflows=False)
+                                       }
+
+
+com.test_industry_evolve(
+                EUROFER_industry_dict,
+                qty=qty, 
+                compare_evolved_industres=True,
+                compare_industry_name='EUROFER',
+                compare_steps=[1990, 2010, 2030, 2050],
+                compare_step_sheets=['1990', '2010', '2030', '2050'],
+                compare_outflows=['CO2__emitted', 'steel'],
+                compare_inflows=False,
+                write_to_console=write_to_console, 
+                write_to_xls=write_to_xls,
+                view_diagrams=view_diagrams,
+                save_diagrams=save_diagrams,
+                outdir=f'output/test_{today}/EUROFER Industry')
+
+# EVOLVE INDUSTRY - EU BECCS
+dat.outdir = f'output/test_{today}/EU Industry'
+
+EU_industry_dict = {'steel-EU28-PBC': dict(factory_list_file='data/steel/steel_industry_EU28-Plausible.xlsx',
+                    factory_list_sheet='Factory List', 
+                    name='EU Plausible BECCS',
+                    steps=[1990, 2010, 2015, 2030, 2050],
+                    step_sheets=['1990', '2010', '2015', '2030', '2050'], 
+                    write_to_xls=write_to_xls, 
+                    graph_outflows=['CO2__emitted', 'crude steel'],
+                    graph_inflows=False),
+                    }
+
+com.test_industry_evolve(
+                EU_industry_dict,
+                qty=qty, 
+                compare_evolved_industres=False,
+                compare_industry_name='EU-28 Steel',
+                compare_steps=[1990, 2010, 2015, 2030, 2050],
+                compare_step_sheets=['1990', '2010', '2015', '2030', '2050'],
+                compare_outflows=False,
+                compare_inflows=False,
+                write_to_console=write_to_console, 
+                write_to_xls=write_to_xls,
+                view_diagrams=view_diagrams,
+                save_diagrams=save_diagrams,
+                outdir=f'output/test_{today}/EU Industry',
+                )
 
 # EVOLVE INDUSTRY - CHINA
 
-#-------------------------------------------------------------------------------
-# FACTORIES
-#-------------------------------------------------------------------------------
-
-# FACTORIES TO BE TESTED - comment out unwanted entries
-factory_dict = {
-                # 'IEAGHG Ref': dict(chain_list_file="data/steel/IEAGHG_factories.xlsx",
-                #                         chain_list_sheet='IEAGHG chains', 
-                #                         connections_sheet='IEAGHG connections', 
-                #                         name="BF Steel (IEAGHG)",
-                #                         scenario='ieaghg-reference'),
-                'Detailed Steel-Crude': dict(chain_list_file="data/steel/IEAGHG_factory-crudesteel.xlsx",
-                                        chain_list_sheet='IEAGHG chains', 
-                                        connections_sheet='IEAGHG connections', 
-                                        name="BF Steel (IEAGHG)",
-                                        scenario='ieaghg-reference'),
-                # 'Birat steel base': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                #                         chain_list_sheet='base chains', 
-                #                         connections_sheet='base connections', 
-                #                         name="BF Steel Plant",
-                #                         scenario='birat-base'),
-                # 'Birat CCS': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                #                         chain_list_sheet='TGR-CCS chains', 
-                #                         connections_sheet='TGR-CCS connect', 
-                #                         name="BF-TGR-CCS Steel Plant",
-                #                         scenario='birat-tgr-63vpsa'),
-                # 'Birat CCS_LC': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                #                         chain_list_sheet='CCS-LC chains', 
-                #                         connections_sheet='CCS-LC connect', 
-                #                         name="BF-TGR-CCS Steel with Upstream",
-                #                         scenario='birat-tgr-63vpsa-100bio'),
-                # 'BF-EAF BB': dict(chain_list_file="data/steel/bb_steel_factories.xlsx",
-                #                         chain_list_sheet='bf-eaf chains', 
-                #                         connections_sheet='bf-eaf connections', 
-                #                         name="BF-EAF Steel Industry",
-                # #                         scenario='EUROFER 2010'),
-                'Birat Steel': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                                        chain_list_sheet='base chains', 
-                                        connections_sheet='base connections', 
-                                        name="BF Steel (IEAGHG-Birat)",
-                                        scenario='ieaghg-reference'),
-                'Simplified Steel-IEAGHG': dict(chain_list_file="data/steel/steel_simplified_factory-ieaghg.xlsx",
-                                        chain_list_sheet='chains', 
-                                        connections_sheet='connections', 
-                                        name="BF-BOF Steel Mill",
-                                        scenario='ieaghg-reference'),
-                'Simplified Steel': dict(chain_list_file="data/steel/steel_simplified_factory.xlsx",
-                                        chain_list_sheet='chains', 
-                                        connections_sheet='connections', 
-                                        name="BF-BOF Steel Mill",
-                                        scenario='EU-BF-base'),
-                'Simplified Steel-CCS': dict(chain_list_file="data/steel/steel_simplified_factory-ccs.xlsx",
-                                        chain_list_sheet='chains', 
-                                        connections_sheet='connections', 
-                                        name="BF-Steel Mill-CCS",
-                                        scenario='test'),
-                'Simplified Steel-CCS-BF': dict(chain_list_file="data/steel/steel_simplified_factory-ccs-bfonly.xlsx",
-                                        chain_list_sheet='chains', 
-                                        connections_sheet='connections', 
-                                        name="BF-Steel Mill-CCS_BF",
-                                        scenario='test'),
-                'Simplified Steel-CCS-BFC': dict(chain_list_file="data/steel/steel_simplified_factory-ccs-bfcoke.xlsx",
-                                        chain_list_sheet='chains', 
-                                        connections_sheet='connections', 
-                                        name="BF-Steel Mill-CCS_BF-CO",
-                                        scenario='test'),
-                # 'fuel test': dict(chain_list_file="data/steel/fuel_test_factory.xlsx",
-                #                         chain_list_sheet='chains', 
-                #                         connections_sheet='connections', 
-                #                         name="upstream fuel test",
-                #                         scenario='test'),
-                }
-
-
-# SCENARIOS TO BE TESTED - comment out unwanted entries
-scenario_factories = [
-                      'Simplified Steel',
-                      'Simplified Steel-CCS',
-                      'Simplified Steel-CCS-BF',
-                      'Simplified Steel-CCS-BFC',
-                    #   'fuel test'
-                      ]
-
-scenario_list = [
-                # 'test',
-                # 'test-charcoal primary',
-                # 'test-woodchip primary',
-                # 'test-charcoal both',
-                # 'test-woodchip both',
-                # 'test-charcoal woodchip',
-                # 'test-woodchip charcoal',
-                # 'China-BF-base',
-                'EU-BF-base',
-                # 'Japan-BF-base',
-                # 'Russia-BF-base',
-                # 'USA-BF-base',
-                # 'India-BF-base',
-                'EU-BF-I',
-                'EU-BF-C',
-                'EU-BF-M',
-                'EU-BF-F',
-                #  'birat-base', 
-                #  'birat-tgr-63vpsa',
-                #  'birat-tgr-63vpsa-50bio',
-                #  'birat-tgr-63vpsa-100bio',
-                #  'birat-tgr-100vpsa-100bio',
-                ]
-
-# PRODUCT TO BE TESTED - in run scenarios
-scenario_product = False
-scenario_unit = False
-scenario_io = False
-
-#-------------------------------------------------------------------------------
-# INDUSTRIES
-#-------------------------------------------------------------------------------
-
-industry_dict = {
-                #  'steel-EUROFER': dict(factory_list_file='data/steel/steel_Eurofer_industry.xlsx',
-                #                        factory_list_sheet='Factory List', 
-                #                        name='EUROFER Steel',
-                #                        steps=[1990, 2010, 2030, 2050],
-                #                        step_sheets=['1990', '2010', '2030', '2050'], 
-                #                        write_to_xls=write_to_xls, 
-                #                        graph_outflows=['CO2__emitted', 'steel'],
-                #                        graph_inflows=False),
-                #  'steel-EUROFER-CCS': dict(factory_list_file='data/steel/steel_Eurofer_industry-CCS.xlsx',
-                #                        factory_list_sheet='Factory List', 
-                #                        name='EUROFER Steel CCS',
-                #                        steps=[1990, 2010, 2030, 2050],
-                #                        step_sheets=['1990', '2010', '2030', '2050'], 
-                #                        write_to_xls=write_to_xls, 
-                #                        graph_outflows=['CO2__emitted', 'steel'],
-                #                        graph_inflows=False),
-                #  'steel-EUROFER-noCCS': dict(factory_list_file='data/steel/steel_Eurofer_industry-noCCS.xlsx',
-                #                        factory_list_sheet='Factory List', 
-                #                        name='EUROFER Steel no CCS',
-                #                        steps=[1990, 2010, 2030, 2050],
-                #                        step_sheets=['1990', '2010', '2030', '2050'], 
-                #                        write_to_xls=write_to_xls, 
-                #                        graph_outflows=['CO2__emitted', 'steel'],
-                #                        graph_inflows=False),
-                 'steel-EU28-PBC': dict(factory_list_file='data/steel/steel_industry_EU28.xlsx',
-                                       factory_list_sheet='Factory List', 
-                                       name='EUROFER Steel no CCS',
-                                       steps=[1990, 2010, 2015, 2030, 2050],
-                                       step_sheets=['1990', '2010', '2015', '2030', '2050'], 
-                                       write_to_xls=com.write_to_xls, 
-                                       graph_outflows=['CO2__emitted', 'steel'],
-                                       graph_inflows=False),
-}
-
-compare_industry_name = 'EUROFER'
-compare_steps = [1990, 2010, 2030, 2050]
-compare_step_sheets = ['1990', '2010', '2030', '2050']
-compare_outflows = ['CO2__emitted', 'steel']
-compare_inflows = False
-
-#  END OF USER INPUT SECTION  ==================================================
-# ==============================================================================

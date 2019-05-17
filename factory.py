@@ -784,9 +784,9 @@ class Factory:
 
         """
 
-        outdir = iof.build_filedir(outdir, subfolder=self.name,
-                                    file_id_list=['multiScenario', file_id],
-                                    time=True)
+        # outdir = iof.build_filedir(outdir, subfolder=self.name,
+        #                             file_id_list=['multiScenario', file_id],
+        #                             time=True)
 
         scenario_dict = iof.nested_dicts(3)
         

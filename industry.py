@@ -140,9 +140,9 @@ class Industry:
         if subfolder is True:
             subfolder = self.name
 
-        outdir = iof.build_filedir(outdir, subfolder=subfolder,
-                                        file_id_list=[file_id],
-                                        time=foldertime)
+        # outdir = iof.build_filedir(outdir, subfolder=subfolder,
+        #                                 file_id_list=[file_id],
+        #                                 time=foldertime)
             
         # get information about production at each factory in the industry
         if production_data_file is None and production_data_sheet is None:
@@ -263,9 +263,9 @@ class Industry:
 
         """
 
-        outdir = iof.build_filedir(outdir, subfolder=self.name,
-                                    file_id_list=['multiscenario', file_id],
-                                    time=True)
+        # outdir = iof.build_filedir(outdir, subfolder=self.name,
+        #                             file_id_list=['multiscenario', file_id],
+        #                             time=True)
 
         scenario_dict = iof.nested_dicts(4)
         
@@ -330,9 +330,9 @@ class Industry:
                 change over time, with one line for each factory
         """
 
-        outdir = iof.build_filedir(outdir, subfolder=self.name,
-                                    file_id_list=['evolve', start_step, end_step, file_id],
-                                    time=True)
+        # outdir = iof.build_filedir(outdir, subfolder=self.name,
+        #                             file_id_list=['evolve', start_step, end_step, file_id],
+        #                             time=True)
 
         kwargs = dict(write_to_xls=write_to_xls,
                       diagrams=diagrams,
@@ -460,9 +460,9 @@ class Industry:
         """
     
 
-        outdir = iof.build_filedir(outdir, subfolder=self.name,
-                                    file_id_list=['evolve_multistep', steps[0], steps[-1], file_id],
-                                    time=True)       
+        # outdir = iof.build_filedir(outdir, subfolder=self.name,
+        #                             file_id_list=['evolve_multistep', steps[0], steps[-1], file_id],
+        #                             time=True)       
 
         step_annual_flows = []
         step_cumulative_flows = [] 
@@ -494,7 +494,8 @@ class Industry:
                                 end_step=step, 
                                 mass_energy=True, 
                                 energy_flows=dat.energy_flows, 
-                                write_to_xls=two_step, 
+                                write_to_xls=write_to_xls, 
+                                outdir=f"{outdir}/{prev_step}_{step}",
                                 diagrams=False)
                 annual, cumulative = self.evolve(**s_kwargs)
                 if two_step is True:
