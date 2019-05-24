@@ -317,14 +317,14 @@ while stop == '':
 
     print(f"\n{cement_factory.name} factory")
     print(f"\nchains in this factory:")
-    print(cement_factory.chains_df)
-    print("\n connections in this factory:")
-    print(cement_factory.connections_df[['Product', 'Origin_Chain', 'Origin_Unit', 'Destination_Chain', 'Destination_Unit', 'Recycle_Replacing']])
+    # print(cement_factory.chains_df)
+    # print("\n connections in this factory:")
+    # print(cement_factory.connections_df[['o product', 'o chain', 'o unit', ' d chain', 'd unit', 'r replacing']])
     
-    stop = input("\n\n\nPress enter to see all connection data for waste heat recycling: ")
-    if stop != '':
-        break
-    print("\n",cement_factory.connections_df.iloc[3, :])
+    # stop = input("\n\n\nPress enter to see all connection data for waste heat recycling: ")
+    # if stop != '':
+    #     break
+    # print("\n",cement_factory.connections_df.iloc[3, :])
     
     stop = input("\n\n\nPress enter to generate a diagram of the cement factory: ")
     if stop != '':
