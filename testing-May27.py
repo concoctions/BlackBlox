@@ -12,6 +12,7 @@ from collections import defaultdict
 ################################################################################
 # SPECIFY METADATA
 ################################################################################
+
 dat.user_data = {"name": "S.E. Tanzer",
                  "affiliation": "TU Delft",
                  "project": f"Steel tests - {datetime.now().strftime('%d %B %Y')}",
