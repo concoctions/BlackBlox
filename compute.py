@@ -5,28 +5,6 @@ import dataconfig as dat
 from datetime import datetime
 from collections import defaultdict
 
-# ==============================================================================
-#  USER INPUT SECTION  =========================================================
-
-
-################################################################################
-# SPECIFY METADATA
-################################################################################
-
-# dat.user_data = {"name": "S.E. Tanzer",
-#                  "affiliation": "TU Delft",
-#                  "project": f"Steel tests - {datetime.now().strftime('%d %B %Y')}",
-# }
-
-# dat.default_units = {'mass': 't', 
-#                      'energy':'GJ',
-# }
-
-
-
-################################################################################
-# SPECIFY OUTPUT
-################################################################################
 
 # pause_between_tests = False
 
@@ -58,216 +36,20 @@ qty = 1.0
 
 scenario = 'default'
 
-# UNITS TO BE TESTED - comment out unwanted entries
-unit_list = [
-            # 'IEAGHGsteel_coke_oven',
-            # 'IEAGHGsteel_sinter_plant',
-            # 'IEAGHGsteel_blast_furnace', 
-            # 'IEAGHGsteel_BOF',
-            # 'IEAGHGsteel_ladle',
-            # 'IEAGHGsteel_forming',
-            # 'aux_lime kiln',
-            # 'aux_air separation',
-            # 'electricity_1step',
-            # 'heat_collector',
-            # 'birat_steel_plant',
-            # 'bb_steel_bf',
-            # 'bb_steel_eaf',
-            # 'bb_steel_bf-eaf',
-            # 'CO2_capture',
-            # 'CO2_compression',
-            # 'CO2_capture-compression',
-            # 'bb_fuel_upstream',
-            # 'bb_biofuel_upstream',
-            # 'bb_CO2_storage',
-            # 'simple_coke',
-            # 'simple_lime',
-            # 'simple_pellets',
-            # 'simple_sinter',
-            # 'simple_BF',
-            # 'simple_BOF',
-            # 'simple_oxygen',
-            # 'simple_power',
-            # 'simple_fuel',
-            # 'simple_CO2capture',
-            # 'simple_CO2storage',
-            # 'simple_EAF'
-             ]
-
-
-#-------------------------------------------------------------------------------
-# PROCESS CHAINS
-#-------------------------------------------------------------------------------
-
-# CHAINS TO BE TESTED - comment out unwanted entries
-# chain_dict = {
-#               'steel': dict(name='steel',
-#                             chain_data="data/steel/steel_factories.xlsx",
-#                             xls_sheet='steel chain'),
-#               }
-
-
-#-------------------------------------------------------------------------------
-# FACTORIES
-#-------------------------------------------------------------------------------
-
-# FACTORIES TO BE TESTED - comment out unwanted entries
-factory_dict = {
-                # 'IEAGHG Ref': dict(chain_list_file="data/steel/IEAGHG_factories.xlsx",
-                #                         chain_list_sheet='IEAGHG chains', 
-                #                         connections_sheet='IEAGHG connections', 
-                #                         name="BF Steel (IEAGHG)",
-                #                         scenario='ieaghg-reference'),
-                # 'Detailed Steel-Crude': dict(chain_list_file="data/steel/IEAGHG_factory-crudesteel.xlsx",
-                #                         chain_list_sheet='IEAGHG chains', 
-                #                         connections_sheet='IEAGHG connections', 
-                #                         name="BF Steel (IEAGHG)",
-                #                         scenario='ieaghg-reference'),
-                # # 'Birat steel base': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                # #                         chain_list_sheet='base chains', 
-                # #                         connections_sheet='base connections', 
-                # #                         name="BF Steel Plant",
-                # #                         scenario='birat-base'),
-                # # 'Birat CCS': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                # #                         chain_list_sheet='TGR-CCS chains', 
-                # #                         connections_sheet='TGR-CCS connect', 
-                # #                         name="BF-TGR-CCS Steel Plant",
-                # #                         scenario='birat-tgr-63vpsa'),
-                # # 'Birat CCS_LC': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                # #                         chain_list_sheet='CCS-LC chains', 
-                # #                         connections_sheet='CCS-LC connect', 
-                # #                         name="BF-TGR-CCS Steel with Upstream",
-                # #                         scenario='birat-tgr-63vpsa-100bio'),
-                # # 'BF-EAF BB': dict(chain_list_file="data/steel/bb_steel_factories.xlsx",
-                # #                         chain_list_sheet='bf-eaf chains', 
-                # #                         connections_sheet='bf-eaf connections', 
-                # #                         name="BF-EAF Steel Industry",
-                # # #                         scenario='EUROFER 2010'),
-                # 'Birat Steel': dict(chain_list_file="data/steel/birat_factories.xlsx",
-                #                         chain_list_sheet='base chains', 
-                #                         connections_sheet='base connections', 
-                #                         name="BF Steel (IEAGHG-Birat)",
-                #                         scenario='ieaghg-reference'),
-                # 'Simplified Steel-IEAGHG': dict(chain_list_file="data/steel/steel_simplified_factory-ieaghg.xlsx",
-                #                         chain_list_sheet='chains', 
-                #                         connections_sheet='connections', 
-                #                         name="BF-BOF Steel Mill",
-                #                         scenario='ieaghg-reference'),
-                # 'Simplified Steel': dict(chain_list_file="data/steel/steel_simplified_factory.xlsx",
-                #                         chain_list_sheet='chains', 
-                #                         connections_sheet='connections', 
-                #                         name="BF-BOF Steel Mill",
-                #                         scenario='EU-BF-base'),
-                # 'Simplified Steel-CCS': dict(chain_list_file="data/steel/steel_simplified_factory-ccs.xlsx",
-                #                         chain_list_sheet='chains', 
-                #                         connections_sheet='connections', 
-                #                         name="BF-Steel Mill-CCS",
-                #                         scenario='test'),
-                # 'Simplified Steel-CCS-BF': dict(chain_list_file="data/steel/steel_simplified_factory-ccs-bfonly.xlsx",
-                #                         chain_list_sheet='chains', 
-                #                         connections_sheet='connections', 
-                #                         name="BF-Steel Mill-CCS_BF",
-                #                         scenario='test'),
-                # 'Simplified Steel-CCS-BFC': dict(chain_list_file="data/steel/steel_simplified_factory-ccs-bfcoke.xlsx",
-                #                         chain_list_sheet='chains', 
-                #                         connections_sheet='connections', 
-                #                         name="BF-Steel Mill-CCS_BF-CO",
-                #                         scenario='test'),
-                # 'fuel test': dict(chain_list_file="data/steel/fuel_test_factory.xlsx",
-                #                         chain_list_sheet='chains', 
-                #                         connections_sheet='connections', 
-                #                         name="upstream fuel test",
-                #                         scenario='test'),
-                }
-
-
-# SCENARIOS TO BE TESTED - comment out unwanted entries
-scenario_factories = [
-                    #   'Simplified Steel',
-                    #   'Simplified Steel-CCS',
-                    #   'Simplified Steel-CCS-BF',
-                    #   'Simplified Steel-CCS-BFC',
-                    #   'fuel test'
-                      ]
-
-scenario_list = [
-                # 'test',
-                # 'test-charcoal primary',
-                # 'test-woodchip primary',
-                # 'test-charcoal both',
-                # 'test-woodchip both',
-                # 'test-charcoal woodchip',
-                # 'test-woodchip charcoal',
-                # 'China-BF-base',
-                # 'EU-BF-base',
-                # 'Japan-BF-base',
-                # 'Russia-BF-base',
-                # 'USA-BF-base',
-                # # 'India-BF-base',
-                # 'EU-BF-I',
-                # 'EU-BF-C',
-                # 'EU-BF-M',
-                # 'EU-BF-F',
-                #  'birat-base', 
-                #  'birat-tgr-63vpsa',
-                #  'birat-tgr-63vpsa-50bio',
-                #  'birat-tgr-63vpsa-100bio',
-                #  'birat-tgr-100vpsa-100bio',
-                ]
-
 # PRODUCT TO BE TESTED - in run scenarios
 scenario_product = False
 scenario_unit = False
 scenario_io = False
 
-#-------------------------------------------------------------------------------
-# INDUSTRIES
-#-------------------------------------------------------------------------------
 
-industry_dict = {
-                #  'steel-EUROFER': dict(factory_list_file='data/steel/steel_Eurofer_industry.xlsx',
-                #                        factory_list_sheet='Factory List', 
-                #                        name='EUROFER Steel',
-                #                        steps=[1990, 2010, 2030, 2050],
-                #                        step_sheets=['1990', '2010', '2030', '2050'], 
-                #                        write_to_xls=write_to_xls, 
-                #                        graph_outflows=['CO2__emitted', 'steel'],
-                #                        graph_inflows=False),
-                #  'steel-EUROFER-CCS': dict(factory_list_file='data/steel/steel_Eurofer_industry-CCS.xlsx',
-                #                        factory_list_sheet='Factory List', 
-                #                        name='EUROFER Steel CCS',
-                #                        steps=[1990, 2010, 2030, 2050],
-                #                        step_sheets=['1990', '2010', '2030', '2050'], 
-                #                        write_to_xls=write_to_xls, 
-                #                        graph_outflows=['CO2__emitted', 'steel'],
-                #                        graph_inflows=False),
-                #  'steel-EUROFER-noCCS': dict(factory_list_file='data/steel/steel_Eurofer_industry-noCCS.xlsx',
-                #                        factory_list_sheet='Factory List', 
-                #                        name='EUROFER Steel no CCS',
-                #                        steps=[1990, 2010, 2030, 2050],
-                #                        step_sheets=['1990', '2010', '2030', '2050'], 
-                #                        write_to_xls=write_to_xls, 
-                #                        graph_outflows=['CO2__emitted', 'steel'],
-                #                        graph_inflows=False),
-#                  'steel-EU28-PBC': dict(factory_list_file='data/steel/steel_industry_EU28.xlsx',
-#                                        factory_list_sheet='Factory List', 
-#                                        name='EUROFER Steel no CCS',
-#                                        steps=[1990, 2010, 2015, 2030, 2050],
-#                                        step_sheets=['1990', '2010', '2015', '2030', '2050'], 
-#                                        write_to_xls=write_to_xls, 
-#                                        graph_outflows=['CO2__emitted', 'steel'],
-#                                        graph_inflows=False),
- }
-
-compare_industry_name = 'EUROFER'
-compare_steps = [1990, 2010, 2030, 2050]
-compare_step_sheets = ['1990', '2010', '2030', '2050']
-compare_outflows = ['CO2__emitted', 'steel']
-compare_inflows = False
+# compare_industry_name = 'EUROFER'
+# compare_steps = [1990, 2010, 2030, 2050]
+# compare_step_sheets = ['1990', '2010', '2030', '2050']
+# compare_outflows = ['CO2__emitted', 'steel']
+# compare_inflows = False
 
 #  END OF USER INPUT SECTION  ==================================================
 # ==============================================================================
-
 
 import pandas as pan
 import io_functions as iof
@@ -282,15 +64,13 @@ import industry as ind
 
 def test_units(unit_list, 
                qty=qty, 
-               scenario=scenario, 
+               scenario=dat.default_scenario, 
                write_to_console=write_to_console):
 
     for unit_id in unit_list:
         unit = uni.UnitProcess(unit_id)
 
         print(str.upper(unit.name))
-        # print("\ninflows:", ', '.join(unit.inflows))
-        # print("outflows:", ', '.join(unit.outflows))
         print("\nmass inflows:", ', '.join(unit.mass_inflows))
         print("mass outflows:", ', '.join(unit.mass_outflows))
         print("\nenergy inflows:", ', '.join(unit.energy_inflows))
@@ -369,10 +149,14 @@ def test_factories(factory_dict,
                 write_to_xls=write_to_xls,
                 view_diagrams=view_diagrams,
                 save_diagrams=save_diagrams,
-                outdir=dat.outdir,):
+                outdir=dat.outdir,
+                prebuilt=False):
 
-    built_factories = build_factories(factory_dict)
-
+    if prebuilt is not False:
+        built_factories = prebuilt
+    else:
+        built_factories = build_factories(factory_dict)
+        
     print(f'\nbalancing factories on {qty} of main product... \n')
     for f in factory_dict:
         factory = built_factories[f]
@@ -403,7 +187,7 @@ def test_factory_scenarios(factory_dict,
                             scenario_unit=False,
                             scenario_io=False,
                             qty=qty, 
-                            scenario_list=[scenario], 
+                            scenario_list=[dat.default_scenario], 
                             write_to_console=write_to_console, 
                             write_to_xls=write_to_xls,
                             view_diagrams=view_diagrams,
@@ -433,7 +217,55 @@ def test_factory_scenarios(factory_dict,
             print(f"\n{factory.name} outflows")
             print(outflows)
 
-        print(f"\n FACTORY (multi-scenario): Full results available in {dat.outdir} directory.")
+        print(f"\n FACTORY (multi-scenario): Full results available in {outdir} directory.")
+
+
+def test_factory_sensitivity(factory_dict,
+                            scenario_factories, 
+                            scenario,
+                            chain_name, 
+                            unit_name, 
+                            variable, 
+                            variable_options,
+                            scenario_product=False,
+                            scenario_unit=False,
+                            scenario_io=False,
+                            qty=qty, 
+                            write_to_console=write_to_console, 
+                            write_to_xls=write_to_xls,
+                            view_diagrams=view_diagrams,
+                            save_diagrams=save_diagrams,
+                            outdir=dat.outdir):
+
+    print(f'\ncomparing factory outputs for {scenario} for {variable} in {unit_name}. for {qty} of product... \n')
+    
+    built_factories = build_factories(factory_dict)
+
+    for f in scenario_factories:
+        factory = built_factories[f]
+        print(f"\n{str.upper(factory.name)} factory - sensitivity")
+
+        inflows, outflows = factory.run_sensitivity(product_qty=qty, 
+                                                    base_scenario=scenario, 
+                                                    chain_name=chain_name, 
+                                                    unit_name=unit_name, 
+                                                    variable=variable, 
+                                                    variable_options=variable_options,
+                                                    product=scenario_product, 
+                                                    product_unit=scenario_unit, 
+                                                    product_io=scenario_io,
+                                                    write_to_xls=individual_xls,
+                                                    outdir=outdir)
+
+        if write_to_console is True:
+            print(f"\n{factory.name} inflows")
+            print(inflows)
+
+            print(f"\n{factory.name} outflows")
+            print(outflows)
+
+        print(f"\n FACTORY (sensitivity): Full results available in {outdir} directory.")
+
 
 #------------------------------------------------------------------------------
 # INDUSTRY TEST
@@ -459,11 +291,11 @@ def test_industries(industry_dict,
 
 def test_industry_evolve(
                 industry_dict,
-                qty=qty, 
+                qty, 
+                compare_steps,
+                compare_step_sheets,
+                compare_industry_name='Industry',
                 compare_evolved_industres=True,
-                compare_industry_name=compare_industry_name,
-                compare_steps=compare_steps,
-                compare_step_sheets=compare_step_sheets,
                 compare_outflows=False,
                 compare_inflows=False,
                 write_to_console=write_to_console, 

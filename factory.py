@@ -826,3 +826,98 @@ class Factory:
                             filename=f'{self.name}_multiscenario_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 
         return inflows_df, outflows_df
+
+
+    def run_sensitivity(self, product_qty, base_scenario, chain_name, unit_name, variable, variable_options=[],
+                      product=False, product_unit=False, product_io=False, 
+                      mass_energy=True, energy_flows=dat.energy_flows, 
+                      write_to_xls=True, outdir=dat.outdir, file_id=''):
+        """Balances the factory on the same quantity for a list of different scenarios.
+        Outputs a file with total inflows and outflows for the factory for each scenario.
+
+        Args:
+            scenario_list (list[str]): List of scenario variable values to use, 
+                each corresponding to a matching row index in each unit 
+                process's var_df. 
+            product_qty (float): the quantity of the product to balance on.
+            product (str/bool): the product name. If False, uses the default
+                product in the chain object attributes.
+                (Defaults to False)
+            product_unit (str/bool): The unit process in the main factory chain 
+                where the product is located. If False, checks for the product 
+                as an inflow or outflow of the main product chain.
+                (Defaults to False)
+            product_io (str/bool): Whether the product is an inflow or outflow
+                of the specified unit process. If False,checks for the product 
+                as an inflow or outflow of the main product chain.
+            mass_energy (bool): If true, seperates mass and energy flows within 
+                each excel sheet, adding rows for the respective totals.
+                (Defaults to True)
+            energy_flows (list): list of prefix/suffixes used to identify which 
+                substances are energy flows and seperates them.
+                (Defaults to dat.energy_flows)
+            write_to_xls (bool): If True, outputs the balances of each scenario 
+                to an excel workbook, with sheets for factory totals, inflows 
+                and outflows for all unit processes, and inflows and outflows 
+                by chain.
+                (Defaults to False)
+            outdir (str): Filepath where to create the balance spreadsheets.
+                (Defaults to the outdir specified in dataconfig)  
+            file_id (str): Additional text to add to filename.
+                (Defaults to an empty string)
+
+        Returns:
+            Dataframe of compared inflows
+            Dataframe of compared outflows
+
+        """
+
+        # outdir = iof.build_filedir(outdir, subfolder=self.name,
+        #                             file_id_list=['multiScenario', file_id],
+        #                             time=True)
+
+        scenario_dict = iof.nested_dicts(3)
+        
+        for var in variable_options:
+            unit = self.chain_dict[chain_name]['chain'].process_dict[unit_name]
+            original_var_df = unit.var_df.copy()
+
+            unit.var_df.loc[base_scenario, variable] = var
+
+            f_in, f_out = self.balance(product_qty=product_qty, 
+                                       product=product, 
+                                       product_unit=product_unit, 
+                                       product_io=product_io, 
+                                       scenario=base_scenario,
+                                       mass_energy=mass_energy, 
+                                       energy_flows=dat.energy_flows, 
+                                       write_to_xls=write_to_xls, 
+                                       outdir=dat.outdir)
+            
+            scenario_dict['i'][f'{base_scenario}_{unit_name}-{variable}_{var}'] = f_in
+            scenario_dict['o'][f'{base_scenario}_{unit_name}-{variable}_{var}'] = f_out
+
+        inflows_df = iof.make_df(scenario_dict['i'], drop_zero=True)
+        inflows_df = iof.mass_energy_df(inflows_df, aggregate_consumed=True)
+        outflows_df = iof.make_df(scenario_dict['o'], drop_zero=True)
+        outflows_df = iof.mass_energy_df(outflows_df, aggregate_consumed=True)
+
+        if product is False:
+            product= self.main_product
+
+        meta_df = iof.metadata_df(user=dat.user_data, 
+                                    name=self.name, 
+                                    level="Factory", 
+                                    scenario=f'{base_scenario}-{unit_name}-{variable}-sensitivity', 
+                                    product=product,
+                                    product_qty=product_qty, 
+                                    energy_flows=dat.energy_flows)
+
+        iof.write_to_excel(df_or_df_list=[meta_df, inflows_df, outflows_df],
+                            sheet_list=["meta", "inflows", "outflows"], 
+                            filedir=outdir, 
+                            filename=f'{self.name}_sensitivity_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+
+        unit.var_df = original_var_df
+        
+        return inflows_df, outflows_df
