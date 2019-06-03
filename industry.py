@@ -96,7 +96,7 @@ class Industry:
     def balance(self, production_data_file=None, production_data_sheet=None, mass_energy=True, 
                 energy_flows=dat.energy_flows, force_scenario=None, 
                 write_to_xls=True, outdir=dat.outdir, subfolder=True, 
-                foldertime=True, file_id='', diagrams=True):
+                foldertime=True, file_id='', diagrams=True, **kwargs):
         """Balances an industry using one scenario for each factory.
 
         Args:

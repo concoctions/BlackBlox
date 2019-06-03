@@ -505,6 +505,7 @@ def plot_annual_flows(df_dict, flow, outdir, file_id="", unit_dict=dat.default_u
     plt.ylabel(f"{flow_unit} {flow}")
 
     format_and_save_plot(f'{outdir}/{flow}{file_id}')
+    plt.close()
    
    
 # MISCELLANEOUS FUNCTIONS

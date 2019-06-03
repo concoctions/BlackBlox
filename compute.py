@@ -167,11 +167,16 @@ def test_factories(factory_dict,
                                             write_to_xls=write_to_xls, 
                                             outdir=outdir, 
                                             mass_energy=True, 
-                                            energy_flows=dat.energy_flows)
+                                            energy_flows=dat.energy_flows,)
+
+        if save_diagrams is True or view_diagrams is True:
+            factory.diagram(outdir=outdir, 
+                            view=view_diagrams, 
+                            save=save_diagrams)
 
         if write_to_console is True:
             print(f"\nusing {scenario} values and {qty} of {factory.main_product}:")
-            totals = {'factory inflows': inflows, 'factory outflows': outflows}
+            totals = {'factory inflows': inflows, 'facto    ry outflows': outflows}
             totals = pan.DataFrame(totals)
             totals = iof.mass_energy_df(totals)
             print(f"\n{factory.name} total inflows and outflows")
@@ -217,6 +222,11 @@ def test_factory_scenarios(factory_dict,
             print(f"\n{factory.name} outflows")
             print(outflows)
 
+        if save_diagrams is True or view_diagrams is True:
+            factory.diagram(outdir=outdir, 
+                            view=view_diagrams, 
+                            save=save_diagrams)
+                            
         print(f"\n FACTORY (multi-scenario): Full results available in {outdir} directory.")
 
 
@@ -280,14 +290,43 @@ def build_industries(industry_dict):
     return built_industries
 
 def test_industries(industry_dict,
-                qty=qty, 
-                scenario=scenario, 
+                industry_name='industry',
+                scenario_id=scenario, 
                 write_to_console=write_to_console, 
                 write_to_xls=write_to_xls,
                 view_diagrams=view_diagrams,
                 save_diagrams=save_diagrams,
                 outdir=dat.outdir):
-    pass
+
+    built_industries = build_industries(industry_dict)
+
+    ind_total = iof.nested_dicts(3) #[i_o][industry name][substance]
+    for i in industry_dict:
+        industry = built_industries[i]
+
+        ind_flows = industry.balance(outdir=outdir, **industry_dict[i])
+
+        ind_total['i'][i] = ind_flows['inflows']['industry totals']
+        ind_total['o'][i] = ind_flows['outflows']['industry totals']
+    
+        filename = f'i_{industry_name}_comparison_{scenario_id}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
+        
+        infows_df = iof.make_df(ind_total['i'], drop_zero=True, metaprefix=None)
+        infows_df = iof.mass_energy_df(infows_df, aggregate_consumed=True)
+        outflows_df = iof.make_df(ind_total['o'], drop_zero=True, metaprefix=None)
+        outflows_df = iof.mass_energy_df(outflows_df, aggregate_consumed=True)
+
+        meta_df = iof.metadata_df(user=dat.user_data, name=f'{industry_name}_comparison', 
+                        level="Industry", scenario="n/a", product="n/a",
+                        product_qty="n/a", energy_flows=dat.energy_flows)
+
+        df_list = [meta_df, infows_df, outflows_df]
+        sheet_list = ["meta", "inflows", "outflows"]
+        
+        iof.write_to_excel(df_list, sheet_list=sheet_list, filedir=dat.outdir, filename=filename)
+    
+        print(f"\n STATIC INDUSTRY COMPARISON - Full results available in {dat.outdir} directory.")
+
 
 def test_industry_evolve(
                 industry_dict,
