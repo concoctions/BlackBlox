@@ -429,6 +429,43 @@ dat.default_units = {'mass': 'Mt',
 
 importlib.reload(iof)
 
+
+###############################################################################
+# BECCS TO INDUSTRY
+
+dat.outdir = f'{outdir}/Global Industry 2015'
+
+BECCS_industry_dict = { 'Base': dict(factory_list_file='data/steel/industries/steel_industry_6countries.xlsx',
+                                factory_list_sheet='Factory List', 
+                                production_data_sheet='Base',
+                                name='Base',
+                                write_to_xls=write_to_xls),
+                        'Bioenergy': dict(factory_list_file='data/steel/industries/steel_industry_6countries.xlsx',
+                                factory_list_sheet='Factory List', 
+                                production_data_sheet='Bioenergy',
+                                name='Bioenergy',
+                                write_to_xls=write_to_xls),
+                        'CCS': dict(factory_list_file='data/steel/industries/steel_industry_6countries.xlsx',
+                                factory_list_sheet='Factory List', 
+                                production_data_sheet='CCS',
+                                name='CCS',
+                                write_to_xls=write_to_xls),
+                        'BECCS': dict(factory_list_file='data/steel/industries/steel_industry_6countries.xlsx',
+                                factory_list_sheet='Factory List', 
+                                production_data_sheet='BECCS',
+                                name='BECCS',
+                                write_to_xls=write_to_xls),
+                        }
+
+com.test_industries(BECCS_industry_dict,
+                industry_name='global',
+                scenario_id='2015', 
+                write_to_console=write_to_console, 
+                write_to_xls=write_to_xls,
+                view_diagrams=view_diagrams,
+                save_diagrams=save_diagrams,
+                outdir=f'{outdir}/Global Industry 2015')
+
 ###############################################################################
 # EVOLVE INDUSTRY - EUROFER
 dat.outdir = f'{outdir}/EUROFER Industry'
@@ -499,14 +536,14 @@ EU_industry_dict = {'steel-EU28-PBC': dict(factory_list_file='data/steel/industr
                     graph_outflows=['CO2__emitted', 'crude steel'],
                     graph_inflows=False),
 
-                    'steel-EU28-TBC': dict(factory_list_file='data/steel/industries/steel_industry_EU28-Theoretical.xlsx',
-                    factory_list_sheet='Factory List', 
-                    name='EU Theoretical BECCS',
-                    steps=[2015, 2030, 2050],
-                    step_sheets=['2015', '2030', '2050'], 
-                    write_to_xls=write_to_xls, 
-                    graph_outflows=['CO2__emitted', 'crude steel'],
-                    graph_inflows=False),
+                #     'steel-EU28-TBC': dict(factory_list_file='data/steel/industries/steel_industry_EU28-Theoretical.xlsx',
+                #     factory_list_sheet='Factory List', 
+                #     name='EU Theoretical BECCS',
+                #     steps=[2015, 2030, 2050],
+                #     step_sheets=['2015', '2030', '2050'], 
+                #     write_to_xls=write_to_xls, 
+                #     graph_outflows=['CO2__emitted', 'crude steel'],
+                #     graph_inflows=False),
 
                     'steel-EU28-CCS': dict(factory_list_file='data/steel/industries/steel_industry_EU28-CCSonly.xlsx',
                     factory_list_sheet='Factory List', 
@@ -567,14 +604,14 @@ CH_industry_dict = {'steel-CH-PBC': dict(factory_list_file='data/steel/industrie
                     graph_outflows=['CO2__emitted', 'crude steel'],
                     graph_inflows=False),
                     
-                    'steel-CH-TBC': dict(factory_list_file='data/steel/industries/steel_industry_CH-Theoretical.xlsx',
-                    factory_list_sheet='Factory List', 
-                    name='CH Theoretical BECCS',
-                    steps=[2015, 2030, 2050],
-                    step_sheets=['2015', '2030', '2050'], 
-                    write_to_xls=write_to_xls, 
-                    graph_outflows=['CO2__emitted', 'crude steel'],
-                    graph_inflows=False),
+                #     'steel-CH-TBC': dict(factory_list_file='data/steel/industries/steel_industry_CH-Theoretical.xlsx',
+                #     factory_list_sheet='Factory List', 
+                #     name='CH Theoretical BECCS',
+                #     steps=[2015, 2030, 2050],
+                #     step_sheets=['2015', '2030', '2050'], 
+                #     write_to_xls=write_to_xls, 
+                #     graph_outflows=['CO2__emitted', 'crude steel'],
+                #     graph_inflows=False),
 
                     'steel-CH-CCS': dict(factory_list_file='data/steel/industries/steel_industry_CH-CCSonly.xlsx',
                     factory_list_sheet='Factory List', 
