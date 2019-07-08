@@ -303,8 +303,8 @@ com.test_factory_scenarios(factory_dict=BECCS_factory_dict,
 
 
 
-###############################################################################
-# INDUSTRY - scale up units
+# ###############################################################################
+# # INDUSTRY - scale up units
 
 dat.default_units = {'mass': 'Mt', 
                      'energy':'PJ',
@@ -313,8 +313,8 @@ dat.default_units = {'mass': 'Mt',
 importlib.reload(iof)
 
 
-###############################################################################
-# BECCS TO INDUSTRY
+# ###############################################################################
+# # BECCS TO INDUSTRY
 
 dat.outdir = f'{outdir}/Global Industry'
 
@@ -367,7 +367,7 @@ com.test_factory_scenarios(factory_dict=BECCS_factory_dict,
                         save_diagrams=save_diagrams,
                         outdir=f'{outdir}/2050 Tech/BF-SOA/')
 
-
+dat.outdir = f'{outdir}/2050 Tech/BF-TGR/'
 
 com.test_factory_scenarios(factory_dict=BECCS_factory_dict,
                         scenario_factories=['Steel', 'Steel_CCS-max', 'Steel_CCS-BF', 'Steel_CCS-BF-COG'], 
