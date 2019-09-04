@@ -153,7 +153,8 @@ class Factory:
         self.chain_dict = chain_dict
 
     def balance(self, product_qty, product=False, product_unit=False, product_io=False, 
-                scenario=dat.default_scenario,write_to_xls=True, outdir=dat.outdir, 
+                scenario=dat.default_scenario, upstream_outflows=False, upstream_inflows=False, 
+                write_to_xls=True, outdir=dat.outdir, 
                 mass_energy=True, energy_flows=dat.energy_flows):
         """Calculates the mass balance of the factory
 
@@ -463,6 +464,74 @@ class Factory:
         for io_dict in factory_totals:
             for product, qty in intermediate_product_dict.items():
                 factory_totals[io_dict][product] -= qty # removes intermediate product quantities
+
+        if type(upstream_outflows) is list: #add upstream emissions to factory output
+            logger.debug("calculating upstream outflows")
+            balancers = defaultdict(float)
+
+            for i in factory_totals['i']:
+                logger.debug(f"checking for upstream data for {i}")
+                inflow = i
+                inflow_qty = factory_totals['i'][i]
+                if dat.ignore_sep in inflow:
+                    inflow = inflow.split(dat.ignore_sep)[0]
+                
+                logger.debug(f"using name {inflow}")
+                
+                for e in upstream_outflows:
+                    emission = iof.clean_str(e)
+                    total_e_qty = 0
+                    logger.debug(f"checking for upstream {emission} for {inflow}")
+                    if inflow in calc.df_upstream_outflows.index:
+                        logger.debug(f"{inflow} found")
+                        emission_flow = f'{e}{dat.ignore_sep}emitted upstream, {inflow}'
+                        emission_qty = inflow_qty * calc.df_upstream_outflows.at[inflow, emission]
+                        logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(inflow_qty,4)} of {i} using factor of {round(calc.df_upstream_outflows.at[inflow, emission],4)}")
+                        total_e_qty += emission_qty
+
+                        if emission_qty < 0:
+                            raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
+                        else:
+                            factory_totals['o'][emission_flow] += emission_qty
+                        
+                    balancers[f"{e}{dat.ignore_sep} upstream balancer"] += total_e_qty
+
+            for e in balancers:
+                factory_totals["i"][e] = balancers[e]
+                
+        if type(upstream_inflows) is list: #add upstream emissions to factory output
+            logger.debug("calculating upstream inflows")
+            balancers = defaultdict(float)
+
+            for o in factory_totals['o']:
+                logger.debug(f"checking for upstream data for {o}")
+                outflow = o
+                outflow_qty = factory_totals['o'][i]
+                if dat.ignore_sep in outflow:
+                    outflow = outflow.split(dat.ignore_sep)[0]
+                
+                logger.debug(f"using name {outflow}")
+                
+                for e in upstream_inflows:
+                    emission = iof.clean_str(e)
+                    total_e_qty = 0
+                    logger.debug(f"checking for upstream {emission} for {outflow}")
+                    if outflow in calc.df_upstream_inflows.index:
+                        logger.debug(f"{outflow} found")
+                        emission_flow = f'{e}{dat.ignore_sep}emitted upstream, {outflow}'
+                        emission_qty = outflow_qty * calc.df_upstream_inflows.at[outflow, emission]
+                        logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(outflow_qty,4)} of {i} using factor of {round(calc.df_upstream_inflows.at[outflow, emission],4)}")
+                        total_e_qty += emission_qty
+
+                        if emission_qty < 0:
+                            raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
+                        else:
+                            factory_totals['i'][emission_flow] += emission_qty
+                        
+                    balancers[f"{e}{dat.ignore_sep} upstream balancer"] += total_e_qty
+
+            for e in balancers:
+                factory_totals["o"][e] = balancers[e]
 
         if write_to_xls is True:
             if outdir == dat.outdir:
