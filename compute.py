@@ -152,6 +152,7 @@ def test_factories(factory_dict,
                 outdir=dat.outdir,
                 upstream_outflows=False, 
                 upstream_inflows=False,
+                aggregate_flows=False,
                 prebuilt=False):
 
     if prebuilt is not False:
@@ -168,8 +169,9 @@ def test_factories(factory_dict,
                                             scenario=factory_dict[f]['scenario'], 
                                             write_to_xls=write_to_xls, 
                                             outdir=outdir, 
-                                            upstream_outflows=False, 
-                                            upstream_inflows=False,
+                                            upstream_outflows=upstream_outflows, 
+                                            upstream_inflows=upstream_inflows,
+                                            aggregate_flows=aggregate_flows,
                                             mass_energy=True, 
                                             energy_flows=dat.energy_flows,)
 
@@ -198,6 +200,7 @@ def test_factory_scenarios(factory_dict,
                             qty=qty, 
                             upstream_outflows=False, 
                             upstream_inflows=False,
+                            aggregate_flows=False,
                             scenario_list=[dat.default_scenario], 
                             write_to_console=write_to_console, 
                             write_to_xls=write_to_xls,
@@ -218,8 +221,9 @@ def test_factory_scenarios(factory_dict,
                                                   product=scenario_product, 
                                                   product_unit=scenario_unit, 
                                                   product_io=scenario_io,
-                                                  upstream_outflows=False, 
-                                                  upstream_inflows=False,
+                                                  upstream_outflows=upstream_outflows, 
+                                                  upstream_inflows=upstream_inflows,
+                                                  aggregate_flows=aggregate_flows,
                                                   write_to_xls=individual_xls,
                                                   outdir=outdir)
 
@@ -274,8 +278,8 @@ def test_factory_sensitivity(factory_dict,
                                                     product=scenario_product, 
                                                     product_unit=scenario_unit, 
                                                     product_io=scenario_io,
-                                                    upstream_outflows=False, 
-                                                    upstream_inflows=False,
+                                                    upstream_outflows=upstream_outflows, 
+                                                    upstream_inflows=upstream_inflows,
                                                     write_to_xls=individual_xls,
                                                     outdir=outdir)
 
@@ -319,7 +323,7 @@ def test_industries(industry_dict,
         industry = built_industries[i]
 
         ind_flows = industry.balance(outdir=outdir, **industry_dict[i], 
-                                    upstream_outflows=False, upstream_inflows=False,)
+                                    upstream_outflows=upstream_outflows, upstream_inflows=upstream_inflows,)
 
         ind_total['i'][i] = ind_flows['inflows']['industry totals']
         ind_total['o'][i] = ind_flows['outflows']['industry totals']

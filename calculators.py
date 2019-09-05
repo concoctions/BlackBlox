@@ -58,7 +58,7 @@ if 'upstream outflows' in dat.lookup_var_dict:
     df_upstream_outflows = iof.make_df(dat.lookup_var_dict['upstream outflows']['filepath'], sheet=dat.lookup_var_dict['upstream outflows']['sheet'])
 
 df_upstream_inflows = None
-if 'upstream_inflows' in dat.lookup_var_dict:
+if 'upstream inflows' in dat.lookup_var_dict:
     df_upstream_inflows = iof.make_df(dat.lookup_var_dict['upstream inflows']['filepath'], sheet=dat.lookup_var_dict['upstream inflows']['sheet'])
 
 

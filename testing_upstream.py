@@ -39,14 +39,17 @@ qty = 1.0
 import factory as fac
 import pandas as pan
 
-factory = fac.Factory(chain_list_file="data/steel/factories/steel_simplified_factory-noupstream.xlsx",
-            chain_list_sheet='chains', 
-            connections_sheet='connections', 
-            name="BF-BOF Steel Mill",)
+factory = fac.Factory(chain_list_file="data/steel/factories/IBF_factory.xlsx",
+                        chain_list_sheet='chains', 
+                        connections_sheet='connections', 
+                        name="BF-BOF wo CCS",
+                        scenario='BBF-0B')
 
 inflows, outflows = factory.balance(product_qty = qty, 
-                                    scenario='EU-0B', 
+                                    scenario='BBF-LB', 
                                     upstream_outflows=['CO2'],
+                                    upstream_inflows=['CO2 removed'],
+                                    aggregate_flows=['CO2', 'coal', 'O2'],
                                     write_to_xls=True,  
                                     mass_energy=True)
 

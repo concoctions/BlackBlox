@@ -94,7 +94,7 @@ lookup_var_dict = {
     'upstream outflows': dict(lookup_var='upstream outflows',
                      filepath='data/shared/upstream.xlsx',
                      sheet='emissions'),
-    'upstream inflows': dict(lookup_var='upstream outflows',
+    'upstream inflows': dict(lookup_var='upstream inflows',
                      filepath='data/shared/upstream.xlsx',
                      sheet='removals')
 } 
