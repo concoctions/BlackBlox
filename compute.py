@@ -255,6 +255,7 @@ def test_factory_sensitivity(factory_dict,
                             qty=qty, 
                             upstream_outflows=False, 
                             upstream_inflows=False,
+                            aggregate_flows=False,
                             write_to_console=write_to_console, 
                             write_to_xls=write_to_xls,
                             view_diagrams=view_diagrams,
@@ -280,6 +281,7 @@ def test_factory_sensitivity(factory_dict,
                                                     product_io=scenario_io,
                                                     upstream_outflows=upstream_outflows, 
                                                     upstream_inflows=upstream_inflows,
+                                                    aggregate_flows=aggregate_flows,
                                                     write_to_xls=individual_xls,
                                                     outdir=outdir)
 
@@ -311,6 +313,7 @@ def test_industries(industry_dict,
                 write_to_console=write_to_console, 
                 upstream_outflows=False, 
                 upstream_inflows=False,
+                aggregate_flows=False,
                 write_to_xls=write_to_xls,
                 view_diagrams=view_diagrams,
                 save_diagrams=save_diagrams,
@@ -323,7 +326,9 @@ def test_industries(industry_dict,
         industry = built_industries[i]
 
         ind_flows = industry.balance(outdir=outdir, **industry_dict[i], 
-                                    upstream_outflows=upstream_outflows, upstream_inflows=upstream_inflows,)
+                                    upstream_outflows=upstream_outflows, 
+                                    upstream_inflows=upstream_inflows, 
+                                    aggregate_flows=aggregate_flows)
 
         ind_total['i'][i] = ind_flows['inflows']['industry totals']
         ind_total['o'][i] = ind_flows['outflows']['industry totals']

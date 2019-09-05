@@ -94,7 +94,8 @@ class Industry:
             self.product_list = product_list
     
     def balance(self, production_data_file=None, production_data_sheet=None, 
-                upstream_outflows=False, upstream_inflows=False, mass_energy=True, 
+                upstream_outflows=False, upstream_inflows=False, 
+                aggregate_flows=False, mass_energy=True, 
                 energy_flows=dat.energy_flows, force_scenario=None, 
                 write_to_xls=True, outdir=dat.outdir, subfolder=True, 
                 foldertime=True, file_id='', diagrams=True, **kwargs):
@@ -187,8 +188,9 @@ class Industry:
                                     scenario=scenario,
                                     write_to_xls=write_to_xls,
                                     outdir=f'{outdir}/factories',
-                                    upstream_outflows=False, 
-                                    upstream_inflows=False,
+                                    upstream_outflows=upstream_outflows, 
+                                    upstream_inflows=upstream_inflows,
+                                    aggregate_flows=aggregate_flows,
                                     mass_energy=mass_energy, 
                                     energy_flows=dat.energy_flows)
 

@@ -1014,6 +1014,7 @@ class Factory:
                                        scenario=base_scenario,
                                        upstream_outflows=upstream_outflows,
                                        upstream_inflows=upstream_inflows,
+                                       aggregate_flows=aggregate_flows,
                                        mass_energy=mass_energy, 
                                        energy_flows=dat.energy_flows, 
                                        write_to_xls=write_to_xls, 
