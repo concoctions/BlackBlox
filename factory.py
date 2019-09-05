@@ -811,6 +811,7 @@ class Factory:
 
     def run_scenarios(self, scenario_list, 
                       product_qty, product=False, product_unit=False, product_io=False, 
+                      upstream_outflows=False, upstream_inflows=False,
                       mass_energy=True, energy_flows=dat.energy_flows, 
                       write_to_xls=True, outdir=dat.outdir, file_id=''):
         """Balances the factory on the same quantity for a list of different scenarios.
@@ -865,6 +866,8 @@ class Factory:
                                        product_unit=product_unit, 
                                        product_io=product_io, 
                                        scenario=scenario,
+                                       upstream_outflows=upstream_outflows, 
+                                       upstream_inflows=upstream_inflows,
                                        mass_energy=mass_energy, 
                                        energy_flows=dat.energy_flows, 
                                        write_to_xls=write_to_xls, 
@@ -898,7 +901,7 @@ class Factory:
 
 
     def run_sensitivity(self, product_qty, base_scenario, chain_name, unit_name, variable, variable_options=[],
-                      product=False, product_unit=False, product_io=False, 
+                      product=False, product_unit=False, product_io=False, upstream_outflows=False, upstream_inflows=False,
                       mass_energy=True, energy_flows=dat.energy_flows, 
                       write_to_xls=True, outdir=dat.outdir, file_id=''):
         """Balances the factory on the same quantity for a list of different scenarios.
@@ -958,6 +961,8 @@ class Factory:
                                        product_unit=product_unit, 
                                        product_io=product_io, 
                                        scenario=base_scenario,
+                                       upstream_outflows=upstream_outflows,
+                                       upstream_inflows=upstream_inflows,
                                        mass_energy=mass_energy, 
                                        energy_flows=dat.energy_flows, 
                                        write_to_xls=write_to_xls, 

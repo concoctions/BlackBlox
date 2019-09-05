@@ -56,18 +56,11 @@ Generated if 'fuel' is in dat.lookup_var_dict
 df_upstream_outflows = None
 if 'upstream outflows' in dat.lookup_var_dict:
     df_upstream_outflows = iof.make_df(dat.lookup_var_dict['upstream outflows']['filepath'], sheet=dat.lookup_var_dict['upstream outflows']['sheet'])
-"""Dataframe of data regarding different fuel types.
-This should include at minimum: the LHV and CO2 emissions of the fuel.
-Generated if 'fuel' is in dat.lookup_var_dict
-"""
 
 df_upstream_inflows = None
 if 'upstream_inflows' in dat.lookup_var_dict:
-    df_upstream_inflows = iof.make_df(dat.lookup_var_dict['upstream']['filepath'], sheet=dat.lookup_var_dict['upstream']['sheet'])
-"""Dataframe of data regarding different fuel types.
-This should include at minimum: the LHV and CO2 emissions of the fuel.
-Generated if 'fuel' is in dat.lookup_var_dict
-"""
+    df_upstream_inflows = iof.make_df(dat.lookup_var_dict['upstream inflows']['filepath'], sheet=dat.lookup_var_dict['upstream inflows']['sheet'])
+
 
 
 # DATA CHECKER FUNCTIONS

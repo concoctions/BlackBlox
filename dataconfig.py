@@ -93,7 +93,10 @@ lookup_var_dict = {
                  lookup_var='reducing agent'),
     'upstream outflows': dict(lookup_var='upstream outflows',
                      filepath='data/shared/upstream.xlsx',
-                     sheet='upstream')
+                     sheet='emissions'),
+    'upstream inflows': dict(lookup_var='upstream outflows',
+                     filepath='data/shared/upstream.xlsx',
+                     sheet='removals')
 } 
 """dictionary of special lookup substance names
 Lookup_var_dict is a dictionary with the names of substance, that when used

@@ -93,7 +93,8 @@ class Industry:
             self.factory_dict = factory_dict
             self.product_list = product_list
     
-    def balance(self, production_data_file=None, production_data_sheet=None, mass_energy=True, 
+    def balance(self, production_data_file=None, production_data_sheet=None, 
+                upstream_outflows=False, upstream_inflows=False, mass_energy=True, 
                 energy_flows=dat.energy_flows, force_scenario=None, 
                 write_to_xls=True, outdir=dat.outdir, subfolder=True, 
                 foldertime=True, file_id='', diagrams=True, **kwargs):
@@ -186,7 +187,9 @@ class Industry:
                                     scenario=scenario,
                                     write_to_xls=write_to_xls,
                                     outdir=f'{outdir}/factories',
-                                    mass_energy=True, 
+                                    upstream_outflows=False, 
+                                    upstream_inflows=False,
+                                    mass_energy=mass_energy, 
                                     energy_flows=dat.energy_flows)
 
         for f in f_production_dict:
