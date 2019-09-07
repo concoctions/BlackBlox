@@ -488,7 +488,7 @@ class Factory:
                         logger.debug(f"checking for upstream {emission} for {inflow}")
                         if inflow in calc.df_upstream_outflows.index:
                             logger.debug(f"{inflow} found")
-                            emission_flow = f'{e}{dat.ignore_sep} upstream ({inflow})'
+                            emission_flow = f'{e}{dat.ignore_sep}upstream ({inflow})'
                             emission_qty = inflow_qty * calc.df_upstream_outflows.at[inflow, emission]
                             logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(inflow_qty,4)} of {i} using factor of {round(calc.df_upstream_outflows.at[inflow, emission],4)}")
                             total_e_qty += emission_qty
@@ -498,7 +498,7 @@ class Factory:
                             else:
                                 additional_outflows[emission_flow] += emission_qty
                             
-                        balancers_in[f"CONSUMED {e}{dat.ignore_sep} upstream"] += total_e_qty
+                        balancers_in[f"CONSUMED {e}{dat.ignore_sep}upstream"] += total_e_qty
 
                 if type(upstream_inflows) is list: #add upstream emissions to factory output                 
                     for e in upstream_inflows:
@@ -507,7 +507,7 @@ class Factory:
                         logger.debug(f"checking for upstream {emission} for {inflow}")
                         if inflow in calc.df_upstream_inflows.index:
                             logger.debug(f"{inflow} found")
-                            emission_flow = f'{e}{dat.ignore_sep} upstream ({inflow})'
+                            emission_flow = f'{e}{dat.ignore_sep}upstream ({inflow})'
                             emission_qty = inflow_qty * calc.df_upstream_inflows.at[inflow, emission]
                             logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(inflow_qty,4)} of {i} using factor of {round(calc.df_upstream_inflows.at[inflow, emission],4)}")
                             total_e_qty += emission_qty
@@ -517,7 +517,7 @@ class Factory:
                             else:
                                 additional_inflows[emission_flow] += emission_qty
                 
-                        balancers_out[f"CONSUMED {e}{dat.ignore_sep} upstream"] += total_e_qty
+                        balancers_out[f"CONSUMED {e}{dat.ignore_sep}upstream"] += total_e_qty
 
 
             for flow in additional_inflows:
@@ -918,7 +918,7 @@ class Factory:
                 for scenario in scenario_dict['o']:
                     for outflow in scenario_dict['o'][scenario]:
                         if outflow.lower().startswith(flow.lower()):
-                            aggregated_dict['o'][scenario][flow] += scenario_dict['o'][scenario][inflow]
+                            aggregated_dict['o'][scenario][flow] += scenario_dict['o'][scenario][outflow]
 
 
         aggregated_inflows_df = iof.make_df(aggregated_dict['i'], drop_zero=True)
@@ -1040,7 +1040,7 @@ class Factory:
                 for scenario in scenario_dict['o']:
                     for outflow in scenario_dict['o'][scenario]:
                         if outflow.lower().startswith(flow.lower()):
-                            aggregated_dict['o'][scenario][flow] += scenario_dict['o'][scenario][inflow]
+                            aggregated_dict['o'][scenario][flow] += scenario_dict['o'][scenario][outflow]
 
 
         aggregated_inflows_df = iof.make_df(aggregated_dict['i'], drop_zero=True)

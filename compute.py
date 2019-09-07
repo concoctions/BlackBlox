@@ -1,4 +1,4 @@
-"""TESTING FILE
+"""TESTING FUNCTIONS
 """
 
 import dataconfig as dat

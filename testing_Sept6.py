@@ -51,9 +51,6 @@ individual_xls = True
 qty = 1.0
 
 
-
-
-
 ###############################################################################
 # COMPARE BF BECCS SCENARIOS, BY TECHNOLOGY
 
@@ -87,7 +84,7 @@ com.test_factory_scenarios(factory_dict=BF_factory_dict,
                         scenario_list=['BBF-0B', 'BBF-LB', 'BBF-HB'], 
                         upstream_outflows=['CO2'], 
                         upstream_inflows=['CO2 removed'],
-                        aggregate_flows=['CO2'],
+                        aggregate_flows=['CO2', 'CO2 removed'],
                         write_to_console=write_to_console, 
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
@@ -105,7 +102,7 @@ com.test_factory_scenarios(factory_dict=BF_factory_dict,
                         scenario_list=['TGR-0B', 'TGR-LB', 'TGR-HB'], 
                         upstream_outflows=['CO2'], 
                         upstream_inflows=['CO2 removed'],
-                        aggregate_flows=['CO2'],
+                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
                         write_to_console=write_to_console, 
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
@@ -122,17 +119,17 @@ com.test_factory_scenarios(factory_dict=BF_factory_dict,
                         scenario_list=['HIS-0B', 'HIS-LB', 'HIS-HB',], 
                         upstream_outflows=['CO2'], 
                         upstream_inflows=['CO2 removed'],
-                        aggregate_flows=['CO2'],
+                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
                         write_to_console=write_to_console, 
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
                         save_diagrams=save_diagrams,
                         outdir=f'{outdir}/HIS')
 
-###############################################################################
-# COMPARE BF TECHNOLOGIES, BY BECCS SCENARIO
+# ###############################################################################
+# # COMPARE BF TECHNOLOGIES, BY BECCS SCENARIO
 
-dat.outdir = f'{outdir}/BF-multitech/None'
+dat.outdir = f'{outdir}/BF-multitech/No Biomass'
 
 com.test_factory_scenarios(factory_dict=BF_factory_dict,
                         scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
@@ -143,12 +140,12 @@ com.test_factory_scenarios(factory_dict=BF_factory_dict,
                         scenario_list=['BBF-0B', 'TGR-0B', 'HIS-0B'], 
                         upstream_outflows=['CO2'], 
                         upstream_inflows=['CO2 removed'],
-                        aggregate_flows=['CO2'],
+                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
                         write_to_console=write_to_console, 
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
                         save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/BECCS-multiregion/None')
+                        outdir=f'{outdir}/BF-multitech/No Biomass')
 
 
 dat.outdir = f'{outdir}/BF-multitech/Low Biomass'
@@ -162,12 +159,12 @@ com.test_factory_scenarios(factory_dict=BF_factory_dict,
                         scenario_list=['BBF-LB', 'TGR-LB', 'HIS-HB'], 
                         upstream_outflows=['CO2'], 
                         upstream_inflows=['CO2 removed'],
-                        aggregate_flows=['CO2'],
+                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
                         write_to_console=write_to_console, 
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
                         save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/BECCS-multiregion/Injectant')
+                        outdir=f'{outdir}/BF-multitech/Low Biomass')
 
 
 dat.outdir = f'{outdir}/BF-multitech/High Biomass'
@@ -181,12 +178,12 @@ com.test_factory_scenarios(factory_dict=BF_factory_dict,
                         scenario_list=['BBF-HB', 'TGR-HB', 'HIS-HB',], 
                         upstream_outflows=['CO2'], 
                         upstream_inflows=['CO2 removed'],
-                        aggregate_flows=['CO2'],
+                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
                         write_to_console=write_to_console, 
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
                         save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/BECCS-multiregion/Plausible')
+                        outdir=f'{outdir}/BF-multitech/High Biomass')
 
 
 
@@ -200,41 +197,141 @@ DRI_factory_dict = {
                                         connections_sheet='connections', 
                                         name="DRI-EAF wo CCS",
                                         scenario='MID-0B'),
-                'DRI-LC': dict(chain_list_file="data/steel/factories/steel_simplified_factory-ccs-bfonly.xlsx",
-                                        chain_list_sheet='chains', 
-                                        connections_sheet='connections', 
-                                        name="DRI-EAF w DRI-only CCS",
-                                        scenario='MID-0B'),
-                'DRI-HC': dict(chain_list_file="data/steel/factories/steel_simplified_factory-ccs.xlsx",
+                'DRI-LC': dict(chain_list_file="data/steel/factories/DRI_factory-CCS.xlsx",
                                         chain_list_sheet='chains', 
                                         connections_sheet='connections', 
                                         name="DRI-EAF w CCS",
                                         scenario='MID-0B'),
+                'DRI-HC': dict(chain_list_file="data/steel/factories/DRI_factory-max CCS.xlsx",
+                                        chain_list_sheet='chains', 
+                                        connections_sheet='connections', 
+                                        name="DRI-EAF w total CCS",
+                                        scenario='MID-0B'),
 }
+
+dat.outdir = f'{outdir}/MID'
+com.test_factory_scenarios(factory_dict=DRI_factory_dict,
+                        scenario_factories=['DRI-0C','DRI-LC', 'DRI-HC'], 
+                        scenario_product=False,
+                        scenario_unit=False,
+                        scenario_io=False,
+                        qty=qty, 
+                        scenario_list=['MID-0B', 'MID-LB', 'MID-HB'], 
+                        upstream_outflows=['CO2'], 
+                        upstream_inflows=['CO2 removed'],
+                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
+                        write_to_console=write_to_console, 
+                        write_to_xls=write_to_xls,
+                        view_diagrams=view_diagrams,
+                        save_diagrams=save_diagrams,
+                        outdir=f'{outdir}/MID')
+
+
+dat.outdir = f'{outdir}/ULC/'
+com.test_factory_scenarios(factory_dict=DRI_factory_dict,
+                        scenario_factories=['DRI-0C','DRI-LC', 'DRI-HC'], 
+                        scenario_product=False,
+                        scenario_unit=False,
+                        scenario_io=False,
+                        qty=qty, 
+                        scenario_list=['ULC-0B', 'ULC-LB', 'ULC-HB'], 
+                        upstream_outflows=['CO2'], 
+                        upstream_inflows=['CO2 removed'],
+                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
+                        write_to_console=write_to_console, 
+                        write_to_xls=write_to_xls,
+                        view_diagrams=view_diagrams,
+                        save_diagrams=save_diagrams,
+                        outdir=f'{outdir}/ULC')
 
 ###############################################################################
 # COMPARE DRI TECHNOLOGIES, BY BECCS SCENARIOS
 
-###############################################################################
-# SENSITIVITY ANALYSES
+dat.outdir = f'{outdir}/DRI-multitech/No Biomass'
 
-# electricity mix
+com.test_factory_scenarios(factory_dict=DRI_factory_dict,
+                        scenario_factories=['DRI-0C','DRI-LC', 'DRI-HC'], 
+                        scenario_product=False,
+                        scenario_unit=False,
+                        scenario_io=False,
+                        qty=qty, 
+                        scenario_list=['MID-0B', 'ULC-0B'], 
+                        upstream_outflows=['CO2'], 
+                        upstream_inflows=['CO2 removed'],
+                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
+                        write_to_console=write_to_console, 
+                        write_to_xls=write_to_xls,
+                        view_diagrams=view_diagrams,
+                        save_diagrams=save_diagrams,
+                        outdir=f'{outdir}/DRI-multitech/No Biomass')
+
+
+dat.outdir = f'{outdir}/DRI-multitech/Low Biomass'
+
+com.test_factory_scenarios(factory_dict=DRI_factory_dict,
+                        scenario_factories=['DRI-0C','DRI-LC', 'DRI-HC'], 
+                        scenario_product=False,
+                        scenario_unit=False,
+                        scenario_io=False,
+                        qty=qty, 
+                        scenario_list=['MID-LB', 'ULC-LB'], 
+                        upstream_outflows=['CO2'], 
+                        upstream_inflows=['CO2 removed'],
+                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
+                        write_to_console=write_to_console, 
+                        write_to_xls=write_to_xls,
+                        view_diagrams=view_diagrams,
+                        save_diagrams=save_diagrams,
+                        outdir=f'{outdir}/DRI-multitech/Low Biomass')
+
+
+dat.outdir = f'{outdir}/DRI-multitech/High Biomass'
+
+com.test_factory_scenarios(factory_dict=DRI_factory_dict,
+                        scenario_factories=['DRI-0C','DRI-LC', 'DRI-HC'], 
+                        scenario_product=False,
+                        scenario_unit=False,
+                        scenario_io=False,
+                        qty=qty, 
+                        scenario_list=['MID-HB', 'ULC-HB'], 
+                        upstream_outflows=['CO2'], 
+                        upstream_inflows=['CO2 removed'],
+                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
+                        write_to_console=write_to_console, 
+                        write_to_xls=write_to_xls,
+                        view_diagrams=view_diagrams,
+                        save_diagrams=save_diagrams,
+                        outdir=f'{outdir}/DRI-multitech/High Biomass')
+
+# ###############################################################################
+# # SENSITIVITY ANALYSES
+
+# # electricity mix
 dat.outdir = f'{outdir}/Electricity'
 
 electricity_factory_dict= {
-            'Simplified Steel-GtG': dict(chain_list_file="data/steel/factories/steel_simplified_factory-noupstream.xlsx",
-                                chain_list_sheet='chains', 
-                                connections_sheet='connections', 
-                                name="BF-BOF Steel Mill",
-                                scenario='US-0B',
-                                outdir=f'{outdir}/Electricity'),
+                'IBC-0C': dict(chain_list_file="data/steel/factories/IBF_factory.xlsx",
+                                        chain_list_sheet='chains', 
+                                        connections_sheet='connections', 
+                                        name="BF-BOF wo CCS",
+                                        scenario='BBF-0B'),
+                'IBC-LC': dict(chain_list_file="data/steel/factories/IBF-factory-BFG CCS.xlsx",
+                                        chain_list_sheet='chains', 
+                                        connections_sheet='connections', 
+                                        name="BF-BOF w BFG-only CCS",
+                                        scenario='BBF-0B'),
+                'IBC-HC': dict(chain_list_file="data/steel/factories/IBF_factory-CCS.xlsx",
+                                        chain_list_sheet='chains', 
+                                        connections_sheet='connections', 
+                                        name="BF-BOF w CCS",
+                                        scenario='BBF-0B'),
 }
 
 com.test_factory_sensitivity(factory_dict=electricity_factory_dict,
-                            scenario_factories=['Simplified Steel-GtG'], 
+                            scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
                             scenario='BBF-0B',
-                            chain_name='steel', 
-                            unit_name='simple_electricity', 
+                            chain_name='power', 
+                            unit_name='simple_power', 
                             variable='fueltype', 
                             variable_options=['natural gas - IPCC', 'electricity PROXY - EU 2016', 'electricity PROXY - CN 2016', 'electricity PROXY - decarbonized'],
                             scenario_product=False,
@@ -243,7 +340,7 @@ com.test_factory_sensitivity(factory_dict=electricity_factory_dict,
                             qty=qty, 
                             upstream_outflows=['CO2'], 
                             upstream_inflows=['CO2 removed'],
-                            aggregate_flows=['CO2'],
+                            aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
                             write_to_console=write_to_console, 
                             write_to_xls=write_to_xls,
                             view_diagrams=view_diagrams,
