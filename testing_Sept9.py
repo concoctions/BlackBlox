@@ -52,9 +52,7 @@ qty = 1.0
 
 
 ###############################################################################
-# COMPARE BF BECCS SCENARIOS, BY TECHNOLOGY
-
-
+# BLAST FURNACE STEELMAKING
 
 BF_factory_dict = {
                 'IBC-0C': dict(chain_list_file="data/steel/factories/IBF_factory.xlsx",
@@ -74,62 +72,9 @@ BF_factory_dict = {
                                         scenario='BBF-0B'),
 }
 
-dat.outdir = f'{outdir}/BBF'
-com.test_factory_scenarios(factory_dict=BF_factory_dict,
-                        scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
-                        scenario_product=False,
-                        scenario_unit=False,
-                        scenario_io=False,
-                        qty=qty, 
-                        scenario_list=['BBF-0B', 'BBF-LB', 'BBF-HB'], 
-                        upstream_outflows=['CO2'], 
-                        upstream_inflows=['CO2 removed'],
-                        aggregate_flows=['CO2', 'CO2 removed'],
-                        write_to_console=write_to_console, 
-                        write_to_xls=write_to_xls,
-                        view_diagrams=view_diagrams,
-                        save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/BBF')
 
 
-dat.outdir = f'{outdir}/TGR/'
-com.test_factory_scenarios(factory_dict=BF_factory_dict,
-                        scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
-                        scenario_product=False,
-                        scenario_unit=False,
-                        scenario_io=False,
-                        qty=qty, 
-                        scenario_list=['TGR-0B', 'TGR-LB', 'TGR-HB'], 
-                        upstream_outflows=['CO2'], 
-                        upstream_inflows=['CO2 removed'],
-                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
-                        write_to_console=write_to_console, 
-                        write_to_xls=write_to_xls,
-                        view_diagrams=view_diagrams,
-                        save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/TGR')
-
-dat.outdir = f'{outdir}/HIS/'
-com.test_factory_scenarios(factory_dict=BF_factory_dict,
-                        scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
-                        scenario_product=False,
-                        scenario_unit=False,
-                        scenario_io=False,
-                        qty=qty, 
-                        scenario_list=['HIS-0B', 'HIS-LB', 'HIS-HB',], 
-                        upstream_outflows=['CO2'], 
-                        upstream_inflows=['CO2 removed'],
-                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
-                        write_to_console=write_to_console, 
-                        write_to_xls=write_to_xls,
-                        view_diagrams=view_diagrams,
-                        save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/HIS')
-
-# ###############################################################################
-# # COMPARE BF TECHNOLOGIES, BY BECCS SCENARIO
-
-dat.outdir = f'{outdir}/BF-multitech/No Biomass'
+dat.outdir = f'{outdir}/BF/No Biomass'
 
 com.test_factory_scenarios(factory_dict=BF_factory_dict,
                         scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
@@ -145,10 +90,10 @@ com.test_factory_scenarios(factory_dict=BF_factory_dict,
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
                         save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/BF-multitech/No Biomass')
+                        outdir=f'{outdir}/BF/No Biomass')
 
 
-dat.outdir = f'{outdir}/BF-multitech/Low Biomass'
+dat.outdir = f'{outdir}/BF/Low Biomass'
 
 com.test_factory_scenarios(factory_dict=BF_factory_dict,
                         scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
@@ -164,10 +109,10 @@ com.test_factory_scenarios(factory_dict=BF_factory_dict,
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
                         save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/BF-multitech/Low Biomass')
+                        outdir=f'{outdir}/BF/Low Biomass')
 
 
-dat.outdir = f'{outdir}/BF-multitech/High Biomass'
+dat.outdir = f'{outdir}/BF/High Biomass'
 
 com.test_factory_scenarios(factory_dict=BF_factory_dict,
                         scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
@@ -183,13 +128,13 @@ com.test_factory_scenarios(factory_dict=BF_factory_dict,
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
                         save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/BF-multitech/High Biomass')
+                        outdir=f'{outdir}/BF/High Biomass')
 
 
 
 
 ###############################################################################
-# COMPARE BECCS SCENARIOS, BY DRI TECHNOLOGY
+# DIRECT REDUCTION STEELMAKING
 
 DRI_factory_dict = {
                 'DRI-0C': dict(chain_list_file="data/steel/factories/DRI_factory.xlsx",
@@ -209,45 +154,7 @@ DRI_factory_dict = {
                                         scenario='MID-0B'),
 }
 
-dat.outdir = f'{outdir}/MID'
-com.test_factory_scenarios(factory_dict=DRI_factory_dict,
-                        scenario_factories=['DRI-0C','DRI-LC', 'DRI-HC'], 
-                        scenario_product=False,
-                        scenario_unit=False,
-                        scenario_io=False,
-                        qty=qty, 
-                        scenario_list=['MID-0B', 'MID-LB', 'MID-HB'], 
-                        upstream_outflows=['CO2'], 
-                        upstream_inflows=['CO2 removed'],
-                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
-                        write_to_console=write_to_console, 
-                        write_to_xls=write_to_xls,
-                        view_diagrams=view_diagrams,
-                        save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/MID')
-
-
-dat.outdir = f'{outdir}/ULC/'
-com.test_factory_scenarios(factory_dict=DRI_factory_dict,
-                        scenario_factories=['DRI-0C','DRI-LC', 'DRI-HC'], 
-                        scenario_product=False,
-                        scenario_unit=False,
-                        scenario_io=False,
-                        qty=qty, 
-                        scenario_list=['ULC-0B', 'ULC-LB', 'ULC-HB'], 
-                        upstream_outflows=['CO2'], 
-                        upstream_inflows=['CO2 removed'],
-                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
-                        write_to_console=write_to_console, 
-                        write_to_xls=write_to_xls,
-                        view_diagrams=view_diagrams,
-                        save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/ULC')
-
-###############################################################################
-# COMPARE DRI TECHNOLOGIES, BY BECCS SCENARIOS
-
-dat.outdir = f'{outdir}/DRI-multitech/No Biomass'
+dat.outdir = f'{outdir}/DRI/No Biomass'
 
 com.test_factory_scenarios(factory_dict=DRI_factory_dict,
                         scenario_factories=['DRI-0C','DRI-LC', 'DRI-HC'], 
@@ -263,10 +170,10 @@ com.test_factory_scenarios(factory_dict=DRI_factory_dict,
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
                         save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/DRI-multitech/No Biomass')
+                        outdir=f'{outdir}/DRI/No Biomass')
 
 
-dat.outdir = f'{outdir}/DRI-multitech/Low Biomass'
+dat.outdir = f'{outdir}/DRI/Low Biomass'
 
 com.test_factory_scenarios(factory_dict=DRI_factory_dict,
                         scenario_factories=['DRI-0C','DRI-LC', 'DRI-HC'], 
@@ -282,10 +189,10 @@ com.test_factory_scenarios(factory_dict=DRI_factory_dict,
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
                         save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/DRI-multitech/Low Biomass')
+                        outdir=f'{outdir}/DRI/Low Biomass')
 
 
-dat.outdir = f'{outdir}/DRI-multitech/High Biomass'
+dat.outdir = f'{outdir}/DRI/High Biomass'
 
 com.test_factory_scenarios(factory_dict=DRI_factory_dict,
                         scenario_factories=['DRI-0C','DRI-LC', 'DRI-HC'], 
@@ -301,10 +208,11 @@ com.test_factory_scenarios(factory_dict=DRI_factory_dict,
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
                         save_diagrams=save_diagrams,
-                        outdir=f'{outdir}/DRI-multitech/High Biomass')
+                        outdir=f'{outdir}/DRI/High Biomass')
 
 # ###############################################################################
 # SENSITIVITY ANALYSES
+
 
 # electricity mix
 ibf_subdirs = ['No Biomass/BBF', 'No Biomass/TGR', 'No Biomass/HIS', 'Low Biomass/BBF', 'Low Biomass/TGR', 'Low Biomass/HIS', 'High Biomass/BBF', 'High Biomass/TGR', 'High Biomass/HIS']
@@ -331,8 +239,6 @@ for i in range(len(ibf_elec_scenarios)):
                                 save_diagrams=save_diagrams,
                                 outdir=f'{outdir}/Electricity/{ibf_subdirs[i]}')
 
-
-
 dri_subdirs = ['No Biomass/MID', 'No Biomass/ULC', 'Low Biomass/MID', 'Low Biomass/ULC', 'High Biomass/MID', 'High Biomass/ULC',]
 dri_elec_scenarios = ['MID-0B', 'ULC-0B', 'MID-LB', 'ULC-LB', 'MID-HB', 'ULC-HB',]
 for i in range(len(dri_elec_scenarios)):
@@ -357,8 +263,8 @@ for i in range(len(dri_elec_scenarios)):
                                 save_diagrams=save_diagrams,
                                 outdir=f'{outdir}/Electricity/{dri_subdirs[i]}')
 
-# HIsarna energy use
 
+# HIsarna energy use
 his_subdirs = ['No Biomass', 'Low Biomass', 'High Biomass']
 his_fuel_scenarios = ['HIS-0B', 'HIS-LB','HIS-HB']
 for i in range(len(his_fuel_scenarios)):
