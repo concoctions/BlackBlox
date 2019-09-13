@@ -31,7 +31,7 @@ dat.default_units = {'mass': 't',
 # for all tests
 write_to_console = False
 today = f'{datetime.now().strftime("%b%d")}/{datetime.now().strftime("%H%M")}'
-outdir = f'output/steel_{today}'
+outdir = f'output/syngas_{today}'
 
 # for chain, factory, and industry tests
 view_diagrams = False
@@ -64,17 +64,21 @@ factory_dict = {
 
 
 
-dat.outdir = f'{outdir}/syngas'
+dat.outdir = f'{outdir}'
 
-com.test_factories(factory_dict=factory_dict,
+com.test_factory_scenarios(factory_dict=factory_dict,
+                scenario_factories=['syngas'],
+                scenario_list=['syngas_ecoinvent', 'syngas_only', 'syngas_PNNL'], 
+                scenario_product=False,
+                scenario_unit=False,
+                scenario_io=False,
                 qty=qty, 
                 write_to_console=write_to_console, 
                 write_to_xls=write_to_xls,
                 view_diagrams=view_diagrams,
                 save_diagrams=save_diagrams,
-                outdir=f'{outdir}/syngas',
+                outdir=outdir,
                 upstream_outflows=['CO2'], 
                 upstream_inflows=['CO2 removed'],
-                aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
-                prebuilt=False)
+                aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'])
 

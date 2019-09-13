@@ -84,6 +84,7 @@ lookup_var_dict = {
     'biofuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='biofuel type'),
+    'feedstock': dict(lookup_var='feedstock type'),
     'secondary biofuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='secondary biofuel type'),
