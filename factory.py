@@ -951,7 +951,7 @@ class Factory:
         return inflows_df, outflows_df
 
 
-    def run_sensitivity(self, product_qty, base_scenario, chain_name, unit_name, variable, variable_options=[],
+    def run_sensitivity(self, product_qty, base_scenario, chain_name, unit_name, variable, variable_options=[], fixed_vars=False,
                       product=False, product_unit=False, product_io=False, upstream_outflows=False, upstream_inflows=False,
                       aggregate_flows=False, mass_energy=True, energy_flows=dat.energy_flows, 
                       write_to_xls=True, outdir=dat.outdir, file_id=''):
@@ -1001,10 +1001,18 @@ class Factory:
 
         scenario_dict = iof.nested_dicts(3)
         
-        for var in variable_options:
-            unit = self.chain_dict[chain_name]['chain'].process_dict[unit_name]
-            original_var_df = unit.var_df.copy()
+        unit = self.chain_dict[chain_name]['chain'].process_dict[unit_name]
 
+        # change variables which will remain static between sensitivity runs
+
+        if type(fixed_vars) is list:
+            for var, value in fixed_vars:
+                unit.var_df.loc[base_scenario, var] = value
+        
+        original_var_df = unit.var_df.copy()
+
+        # evaluate over varying variables
+        for var in variable_options:
             unit.var_df.loc[base_scenario, variable] = var
 
             f_in, f_out = self.balance(product_qty=product_qty, 
