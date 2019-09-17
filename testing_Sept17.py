@@ -301,7 +301,7 @@ for i in range(len(dri_elec_scenarios)):
                                 chain_name='syngas', 
                                 unit_name='simple_syngas', 
                                 variable='feedstock type', 
-                                variable_options=['wood chips (EU no swiss, dry)', 'wood chips, RER emissions', 'wood chips, high emissions', 'wood chips, medium emissions']
+                                variable_options=['wood chips (EU no swiss, dry)', 'wood chips, RER emissions', 'wood chips, high emissions', 'wood chips, medium emissions'],
                                 scenario_product=False,
                                 scenario_unit=False,
                                 scenario_io=False,
@@ -313,4 +313,4 @@ for i in range(len(dri_elec_scenarios)):
                                 write_to_xls=write_to_xls,
                                 view_diagrams=view_diagrams,
                                 save_diagrams=save_diagrams,
-                                outdir=f'{outdir}/Electricity/{dri_subdirs[i]}')
+                                outdir=f'{outdir}/Wood Chips/{dri_subdirs[i]}')
