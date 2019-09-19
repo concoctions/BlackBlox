@@ -1006,8 +1006,8 @@ class Factory:
         # change variables which will remain static between sensitivity runs
 
         if type(fixed_vars) is list:
-            for var, value in fixed_vars:
-                unit.var_df.loc[base_scenario, var] = value
+            for fixedvar, value in fixed_vars:
+                unit.var_df.loc[base_scenario, fixedvar] = value
         
         original_var_df = unit.var_df.copy()
 
@@ -1078,6 +1078,7 @@ class Factory:
                             filedir=outdir, 
                             filename=f'{self.name}_sensitivity_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 
-        unit.var_df = original_var_df
+        original_var_df_copy=original_var_df.copy()
+        unit.var_df = original_var_df_copy
         
         return inflows_df, outflows_df

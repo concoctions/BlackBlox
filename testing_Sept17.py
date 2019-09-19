@@ -225,7 +225,7 @@ for i in range(len(ibf_elec_scenarios)):
                                 chain_name='power', 
                                 unit_name='simple_power', 
                                 variable='fueltype', 
-                                variable_options=['electricity PROXY - EU 2016', 'electricity PROXY - CN 2016', 'electricity PROXY - decarbonized'],
+                                variable_options=['natural gas - IPCC', 'electricity PROXY - EU 2016', 'electricity PROXY - CN 2016', 'electricity PROXY - decarbonized',],
                                 fixed_vars=[('combustion eff', 1.0)],
                                 scenario_product=False,
                                 scenario_unit=False,
@@ -264,6 +264,7 @@ for i in range(len(dri_elec_scenarios)):
                                 view_diagrams=view_diagrams,
                                 save_diagrams=save_diagrams,
                                 outdir=f'{outdir}/Electricity/{dri_subdirs[i]}')
+                                
 
 # HIsarna energy use
 his_subdirs = ['No Biomass', 'Low Biomass', 'High Biomass']
@@ -290,11 +291,39 @@ for i in range(len(his_fuel_scenarios)):
                                 save_diagrams=save_diagrams,
                                 outdir=f'{outdir}/HIsarna energy/{his_subdirs[i]}')
 
-#Wood chips
-dri_subdirs = ['No Biomass/MID', 'No Biomass/ULC', 'Low Biomass/MID', 'Low Biomass/ULC', 'High Biomass/MID', 'High Biomass/ULC',]
-dri_elec_scenarios = ['MID-0B', 'ULC-0B', 'MID-LB', 'ULC-LB', 'MID-HB', 'ULC-HB',]
+#BIOMASS Emissions
+ibf_subdirs = ['Low Biomass/BBF', 'Low Biomass/TGR', 'Low Biomass/HIS', 'High Biomass/BBF', 'High Biomass/TGR', 'High Biomass/HIS']
+ibf_elec_scenarios = ['BBF-LB', 'TGR-LB', 'HIS-LB', 'BBF-HB', 'TGR-HB', 'HIS-HB',]
+
+for i in range(len(ibf_elec_scenarios)):
+
+    dat.outdir = f'{outdir}/biomass/{ibf_subdirs[i]}'
+    com.test_factory_sensitivity(factory_dict=BF_factory_dict,
+                                scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC',], 
+                                scenario=ibf_elec_scenarios[i],
+                                chain_name='steel', 
+                                unit_name='simple_BF', 
+                                variable='secondary biofuel type', 
+                                variable_options=['charcoal - IPCC', 'charcoal-low upstream', 'charcoal-high upstream'],
+                                fixed_vars=[('combustion eff', 1.0)],
+                                scenario_product=False,
+                                scenario_unit=False,
+                                scenario_io=False,
+                                qty=qty, 
+                                upstream_outflows=['CO2'], 
+                                upstream_inflows=['CO2 removed'],
+                                aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
+                                write_to_console=write_to_console, 
+                                write_to_xls=write_to_xls,
+                                view_diagrams=view_diagrams,
+                                save_diagrams=save_diagrams,
+                                outdir=f'{outdir}/biomass/{ibf_subdirs[i]}')
+
+
+dri_subdirs = ['Low Biomass/MID', 'Low Biomass/ULC', 'High Biomass/MID', 'High Biomass/ULC',]
+dri_elec_scenarios = ['MID-LB', 'ULC-LB', 'MID-HB', 'ULC-HB',]
 for i in range(len(dri_elec_scenarios)):
-    dat.outdir = f'{outdir}/Wood Chips/{dri_subdirs[i]}'
+    dat.outdir = f'{outdir}/biomass/{dri_subdirs[i]}'
     com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
                                 scenario_factories=['DRI-0C', 'DRI-LC', 'DRI-HC'], 
                                 scenario=dri_elec_scenarios[i],
@@ -313,4 +342,29 @@ for i in range(len(dri_elec_scenarios)):
                                 write_to_xls=write_to_xls,
                                 view_diagrams=view_diagrams,
                                 save_diagrams=save_diagrams,
-                                outdir=f'{outdir}/Wood Chips/{dri_subdirs[i]}')
+                                outdir=f'{outdir}/biomass/{dri_subdirs[i]}')
+
+#Syngas type
+dri_subdirs = ['Low Biomass/MID', 'Low Biomass/ULC', 'High Biomass/MID', 'High Biomass/ULC',]
+dri_elec_scenarios = ['MID-LB', 'ULC-LB', 'MID-HB', 'ULC-HB',]
+for i in range(len(dri_elec_scenarios)):
+    dat.outdir = f'{outdir}/syngasLHV/{dri_subdirs[i]}'
+    com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
+                                scenario_factories=['DRI-0C', 'DRI-LC', 'DRI-HC'], 
+                                scenario=dri_elec_scenarios[i],
+                                chain_name='steel', 
+                                unit_name='simple_DRI', 
+                                variable='biofuel type', 
+                                variable_options=['syngas - wood', 'syngas - ecoinvent', 'syngas - PNNL'],
+                                scenario_product=False,
+                                scenario_unit=False,
+                                scenario_io=False,
+                                qty=qty, 
+                                upstream_outflows=['CO2'], 
+                                upstream_inflows=['CO2 removed'],
+                                aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream'],
+                                write_to_console=write_to_console, 
+                                write_to_xls=write_to_xls,
+                                view_diagrams=view_diagrams,
+                                save_diagrams=save_diagrams,
+                                outdir=f'{outdir}/syngasLHV/{dri_subdirs[i]}')
