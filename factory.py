@@ -938,7 +938,7 @@ class Factory:
 
         if type(aggregate_flows) is list:
             dfs = [meta_df, inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df]
-            sheets = ["meta", "inflows", "outflows", "aggregated inflows", "aggregated outflows"]
+            sheets = ["meta", "inflows", "outflows", "aggr inflows", "aggr outflows"]
         else:
             dfs = [meta_df, inflows_df, outflows_df]
             sheets = ["meta", "inflows", "outflows"]
@@ -946,7 +946,7 @@ class Factory:
         iof.write_to_excel(df_or_df_list=dfs,
                             sheet_list=sheets, 
                             filedir=outdir, 
-                            filename=f'{self.name}_multiscenario_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+                            filename=f'{self.name}_multi_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 
         return inflows_df, outflows_df
 
@@ -1068,7 +1068,7 @@ class Factory:
 
         if type(aggregate_flows) is list:
             dfs = [meta_df, inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df]
-            sheets = ["meta", "inflows", "outflows", "aggregated inflows", "aggregated outflows"]
+            sheets = ["meta", "inflows", "outflows", "aggr inflows", "aggr outflows"]
         else:
             dfs = [meta_df, inflows_df, outflows_df]
             sheets = ["meta", "inflows", "outflows"]
@@ -1076,7 +1076,7 @@ class Factory:
         iof.write_to_excel(df_or_df_list=dfs,
                             sheet_list=sheets, 
                             filedir=outdir, 
-                            filename=f'{self.name}_sensitivity_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+                            filename=f'{self.name}_sens_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 
         original_var_df_copy=original_var_df.copy()
         unit.var_df = original_var_df_copy
