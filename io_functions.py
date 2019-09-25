@@ -214,14 +214,15 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
 
     if isinstance(data, pan.DataFrame):
         df = data
-    elif not isinstance(data, str): 
-        df = pan.DataFrame(data)
-    elif data.endswith(('.xls', 'xlsx')):
-        df = pan.read_excel(data, sheet_name=sheet, index_col=index)
-    elif data.endswith('.csv'):
-        df = pan.read_csv(data, sep=',', index_col=index)
+    elif bool(data) is True:
+        if isinstance(data, dict): 
+            df = pan.DataFrame(data)
+        elif data.endswith(('.xls', 'xlsx')):
+            df = pan.read_excel(data, sheet_name=sheet, index_col=index)
+        elif data.endswith('.csv', '.tsv', '.txt', 'dat'):
+            df = pan.read_csv(data, sep=',', index_col=index)
     else:
-        df = pan.read_csv(data, sep=sep, index_col=index) 
+        return pan.DataFrame()
                  
     if metaprefix is not None:
         if index is not None:
@@ -329,8 +330,6 @@ def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True, aggregate_c
             mass_df = mass_df.append(mass_df.sum().rename(f'TOTAL MASS, in {units["mass"]}'))
         if not energy_df.empty:
             energy_df = energy_df.append(energy_df.sum().rename(f'TOTAL ENERGY, in {units["energy"]}'))
-
-
     combined_df = pan.concat([mass_df, energy_df], keys=['Mass', 'Energy'])
 
     return combined_df

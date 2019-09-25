@@ -229,6 +229,7 @@ class Factory:
 
         internal_flows.extend(main_chain_internal_flows) #keeps track of flows betwen units
 
+
         # balances auxillary chains and recycle flows based on connections dataframe
         if self.connections_df is not None:
             for dummy_index, aux in self.connections_df.iterrows(): 
@@ -451,6 +452,7 @@ class Factory:
                     internal_flows.append([orig_chain_name, orig_unit_name, f'{origin_product} AS {destination_product}', (qty-qty_remaining), dest_chain_name, dest_unit_name])
 
         # after processing all connections, generate total data
+
         factory_totals = {
             'i': defaultdict(float),
             'o': defaultdict(float)
@@ -461,9 +463,11 @@ class Factory:
         for chain in io_dicts['o']:
             for outflow, qty in io_dicts['o'][chain]['chain totals'].items():
                 factory_totals['o'][outflow] += qty
+        logger.debug(f"factory totals, pre intermediate products\n {iof.make_df(factory_totals)}")
         for io_dict in factory_totals:
             for product, qty in intermediate_product_dict.items():
                 factory_totals[io_dict][product] -= qty # removes intermediate product quantities
+        logger.debug(f"factory totals, post intermediate products\n {iof.make_df(factory_totals)}")
 
         if type(upstream_outflows) is list or type(upstream_inflows) is list: #add upstream emissions to factory output
             logger.debug("calculating upstream flows")
