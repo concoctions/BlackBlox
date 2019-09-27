@@ -217,7 +217,6 @@ ibf_subdirs = ['No Biomass/BBF', 'No Biomass/TGR', 'No Biomass/HIS', 'Low Biomas
 ibf_elec_scenarios = ['BBF-0B', 'TGR-0B', 'HIS-0B', 'BBF-LB', 'TGR-LB', 'HIS-LB', 'BBF-HB', 'TGR-HB', 'HIS-HB']
 
 for i in range(len(ibf_elec_scenarios)):
-
     dat.outdir = f'{outdir}/Electricity/{ibf_subdirs[i]}'
     com.test_factory_sensitivity(factory_dict=BF_factory_dict,
                                 scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
@@ -368,3 +367,54 @@ for i in range(len(dri_elec_scenarios)):
                                 view_diagrams=view_diagrams,
                                 save_diagrams=save_diagrams,
                                 outdir=f'{outdir}/syngasLHV/{dri_subdirs[i]}')
+
+
+# alloy type
+ibf_subdirs = ['No Biomass/BBF', 'Low Biomass/BBF', 'High Biomass/BBF',]
+ibf_alloy_scenarios = ['BBF-0B', 'BBF-LB', 'BBF-HB',]
+
+for i in range(len(ibf_alloy_scenarios)):
+    dat.outdir = f'{outdir}/alloy/{ibf_subdirs[i]}'
+    com.test_factory_sensitivity(factory_dict=BF_factory_dict,
+                                scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
+                                scenario=ibf_alloy_scenarios[i],
+                                chain_name='steel', 
+                                unit_name='simple_casting', 
+                                variable='alloy type', 
+                                variable_options=['no alloy', 'low alloy', 'chromium alloy',],
+                                scenario_product=False,
+                                scenario_unit=False,
+                                scenario_io=False,
+                                qty=qty, 
+                                upstream_outflows=['CO2', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4'],
+                                upstream_inflows=['CO2 removed', 'factory CO2 removed'],
+                                aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4''factory CO2 removed', 'stored CO2'],
+                                write_to_console=write_to_console, 
+                                write_to_xls=write_to_xls,
+                                view_diagrams=view_diagrams,
+                                save_diagrams=save_diagrams,
+                                outdir=f'{outdir}/alloy/{ibf_subdirs[i]}')
+
+dri_subdirs = ['No Biomass/MID','Low Biomass/MID', 'High Biomass/MID',]
+dri_alloy_scenarios = ['MID-0B', 'MID-LB', 'MID-HB',]
+for i in range(len(dri_alloy_scenarios)):
+    dat.outdir = f'{outdir}/alloy/{dri_subdirs[i]}'
+    com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
+                                scenario_factories=['DRI-0C', 'DRI-LC', 'DRI-HC'], 
+                                scenario=dri_alloy_scenarios[i],
+                                chain_name='steel', 
+                                unit_name='simple_casting', 
+                                variable='alloy type', 
+                                variable_options=['no alloy', 'low alloy', 'chromium alloy',],
+                                scenario_product=False,
+                                scenario_unit=False,
+                                scenario_io=False,
+                                qty=qty, 
+                                upstream_outflows=['CO2', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4'],
+                                upstream_inflows=['CO2 removed', 'factory CO2 removed'],
+                                aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4''factory CO2 removed', 'stored CO2'],
+                                write_to_console=write_to_console, 
+                                write_to_xls=write_to_xls,
+                                view_diagrams=view_diagrams,
+                                save_diagrams=save_diagrams,
+                                outdir=f'{outdir}/alloy/{dri_subdirs[i]}')

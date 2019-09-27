@@ -66,6 +66,7 @@ be specified.
 
 # LOOKUP VARIABLES
 lookup_var_dict = { 
+    #FUELS
     'fuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='fueltype'),
@@ -84,20 +85,23 @@ lookup_var_dict = {
     'biofuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='biofuel type'),
-    'feedstock': dict(lookup_var='feedstock type'),
     'secondary biofuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='secondary biofuel type'),
-    'biomass': dict(lookup_var='biomass type'),
     'reducing agent': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
                  lookup_var='reducing agent'),
+    #UPSTREAM
     'upstream outflows': dict(lookup_var='upstream outflows',
                      filepath='data/shared/upstream.xlsx',
                      sheet='emissions'),
     'upstream inflows': dict(lookup_var='upstream inflows',
                      filepath='data/shared/upstream.xlsx',
                      sheet='removals')
+    #NO FURTHER DATA
+    'biomass': dict(lookup_var='biomass type'),
+    'feedstock': dict(lookup_var='feedstock type'),
+    'alloy': dict(lookup_var='alloy type')
 } 
 """dictionary of special lookup substance names
 Lookup_var_dict is a dictionary with the names of substance, that when used
