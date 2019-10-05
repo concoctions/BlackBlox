@@ -97,7 +97,7 @@ lookup_var_dict = {
                      sheet='emissions'),
     'upstream inflows': dict(lookup_var='upstream inflows',
                      filepath='data/shared/upstream.xlsx',
-                     sheet='removals')
+                     sheet='removals'),
     #NO FURTHER DATA
     'biomass': dict(lookup_var='biomass type'),
     'feedstock': dict(lookup_var='feedstock type'),
