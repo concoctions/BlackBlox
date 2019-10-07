@@ -1085,4 +1085,4 @@ class Factory:
         original_var_df_copy=original_var_df.copy()
         unit.var_df = original_var_df_copy
         
-        return inflows_df, outflows_df
+        return inflows_df, outflows_df, aggregated_dict

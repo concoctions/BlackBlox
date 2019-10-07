@@ -214,13 +214,16 @@ com.test_factory_scenarios(factory_dict=DRI_factory_dict,
 
 
 # electricity mix
-ibf_subdirs = ['No Biomass/BBF', 'No Biomass/TGR', 'No Biomass/HIS', 'Low Biomass/BBF', 'Low Biomass/TGR', 'Low Biomass/HIS', 'High Biomass/BBF', 'High Biomass/TGR', 'High Biomass/HIS']
-ibf_elec_scenarios = ['BBF-0B', 'TGR-0B', 'HIS-0B', 'BBF-LB', 'TGR-LB', 'HIS-LB', 'BBF-HB', 'TGR-HB', 'HIS-HB']
+ibf_subdirs = ['No Biomass/BBF', 'No Biomass/TGR', 'No Biomass/HIS', 'High Biomass/BBF', 'High Biomass/TGR', 'High Biomass/HIS']
+ibf_elec_scenarios = ['BBF-0B', 'TGR-0B', 'HIS-0B', 'BBF-HB', 'TGR-HB', 'HIS-HB']
+
+elec_inflow_dict = iof.nested_dicts(3)
+elec_outflow_dict = iof.nested_dicts(3)
 
 for i in range(len(ibf_elec_scenarios)):
     dat.outdir = f'{outdir}/Electricity/{ibf_subdirs[i]}'
-    com.test_factory_sensitivity(factory_dict=BF_factory_dict,
-                                scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
+    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=BF_factory_dict,
+                                scenario_factories=['IBC-0C', 'IBC-HC'], 
                                 scenario=ibf_elec_scenarios[i],
                                 chain_name='power', 
                                 unit_name='simple_power', 
@@ -240,12 +243,24 @@ for i in range(len(ibf_elec_scenarios)):
                                 save_diagrams=save_diagrams,
                                 outdir=f'{outdir}/Electricity/{ibf_subdirs[i]}')
 
-dri_subdirs = ['No Biomass/MID', 'No Biomass/ULC', 'Low Biomass/MID', 'Low Biomass/ULC', 'High Biomass/MID', 'High Biomass/ULC',]
-dri_elec_scenarios = ['MID-0B', 'ULC-0B', 'MID-LB', 'ULC-LB', 'MID-HB', 'ULC-HB',]
+    for flow in inflow_dict:
+        for scen in inflow_dict[flow]:
+            for fact in inflow_dict[flow][scen]:
+                elec_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+
+    for flow in outflow_dict:
+        for scen in outflow_dict[flow]:
+            for fact in outflow_dict[flow][scen]:
+                elec_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]
+
+
+
+dri_subdirs = ['No Biomass/MID', 'No Biomass/ULC','High Biomass/MID', 'High Biomass/ULC',]
+dri_elec_scenarios = ['MID-0B', 'ULC-0B', 'MID-HB', 'ULC-HB',]
 for i in range(len(dri_elec_scenarios)):
     dat.outdir = f'{outdir}/Electricity/{dri_subdirs[i]}'
-    com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
-                                scenario_factories=['DRI-0C', 'DRI-LC', 'DRI-HC'], 
+    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
+                                scenario_factories=['DRI-0C', 'DRI-HC'], 
                                 scenario=dri_elec_scenarios[i],
                                 chain_name='power', 
                                 unit_name='simple_power', 
@@ -264,15 +279,55 @@ for i in range(len(dri_elec_scenarios)):
                                 view_diagrams=view_diagrams,
                                 save_diagrams=save_diagrams,
                                 outdir=f'{outdir}/Electricity/{dri_subdirs[i]}')
-                                
 
-# HIsarna energy use
-his_subdirs = ['No Biomass', 'Low Biomass', 'High Biomass']
-his_fuel_scenarios = ['HIS-0B', 'HIS-LB','HIS-HB']
+    for flow in inflow_dict:
+                for scen in inflow_dict[flow]:
+                    for fact in inflow_dict[flow][scen]:
+                        elec_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+
+    for flow in outflow_dict:
+        for scen in outflow_dict[flow]:
+            for fact in outflow_dict[flow][scen]:
+                elec_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]              
+
+
+meta_df = iof.metadata_df(user=dat.user_data, 
+                            name=f"simple_power fueltype sens", 
+                            level="Factory", 
+                            scenario='multi', 
+                            product='default',
+                            product_qty=qty, 
+                            energy_flows=dat.energy_flows)
+elec_dfs = [meta_df]
+elec_sheets = ["meta"]
+
+for flow in elec_inflow_dict:
+    df = iof.make_df(elec_inflow_dict[flow])
+    elec_dfs.append(df)
+    elec_sheets.append(f"IN {flow}")
+
+for flow in elec_outflow_dict:
+    df = iof.make_df(elec_outflow_dict[flow])
+    elec_dfs.append(df)
+    elec_sheets.append(f"OUT {flow}")
+
+iof.write_to_excel(df_or_df_list=elec_dfs,
+                    sheet_list=elec_sheets, 
+                    filedir=f"{outdir}/Electricity", 
+                    filename=f'Electricity_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+
+
+# # HIsarna energy use
+his_subdirs = ['No Biomass', 'High Biomass']
+his_fuel_scenarios = ['HIS-0B','HIS-HB']
+
+his_inflow_dict = iof.nested_dicts(3)
+his_outflow_dict = iof.nested_dicts(3)
+
 for i in range(len(his_fuel_scenarios)):
     dat.outdir = f'{outdir}/HIsarna energy/{his_subdirs[i]}'
-    com.test_factory_sensitivity(factory_dict=BF_factory_dict,
-                                scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
+    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=BF_factory_dict,
+                                scenario_factories=['IBC-0C', 'IBC-HC'], 
                                 scenario=his_fuel_scenarios[i],
                                 chain_name='steel', 
                                 unit_name='simple_BF', 
@@ -291,15 +346,53 @@ for i in range(len(his_fuel_scenarios)):
                                 save_diagrams=save_diagrams,
                                 outdir=f'{outdir}/HIsarna energy/{his_subdirs[i]}')
 
+    for flow in inflow_dict:
+                for scen in inflow_dict[flow]:
+                    for fact in inflow_dict[flow][scen]:
+                        his_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+
+    for flow in outflow_dict:
+        for scen in outflow_dict[flow]:
+            for fact in outflow_dict[flow][scen]:
+                his_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]              
+
+meta_df = iof.metadata_df(user=dat.user_data, 
+                            name=f"simple_BF fueld demand sens", 
+                            level="Factory", 
+                            scenario='multi', 
+                            product='default',
+                            product_qty=qty, 
+                            energy_flows=dat.energy_flows)
+his_dfs = [meta_df]
+his_sheets = ["meta"]
+
+for flow in his_inflow_dict:
+    df = iof.make_df(his_inflow_dict[flow])
+    his_dfs.append(df)
+    his_sheets.append(f"IN {flow}")
+
+for flow in his_outflow_dict:
+    df = iof.make_df(his_outflow_dict[flow])
+    his_dfs.append(df)
+    his_sheets.append(f"OUT {flow}")
+
+iof.write_to_excel(df_or_df_list=his_dfs,
+                    sheet_list=his_sheets, 
+                    filedir=f"{outdir}/HIsarna energy", 
+                    filename=f'HIsarna_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+
 #BIOMASS Emissions
-ibf_subdirs = ['Low Biomass/BBF', 'Low Biomass/TGR', 'Low Biomass/HIS', 'High Biomass/BBF', 'High Biomass/TGR', 'High Biomass/HIS']
-ibf_bio_scenarios = ['BBF-LB', 'TGR-LB', 'HIS-LB', 'BBF-HB', 'TGR-HB', 'HIS-HB',]
+bio_inflow_dict = iof.nested_dicts(3)
+bio_outflow_dict = iof.nested_dicts(3)
+
+ibf_bio_subdirs = ['High Biomass/BBF', 'High Biomass/TGR', 'High Biomass/HIS']
+ibf_bio_scenarios = [ 'BBF-HB', 'TGR-HB', 'HIS-HB',]
 
 for i in range(len(ibf_bio_scenarios)):
 
-    dat.outdir = f'{outdir}/biomass/{ibf_subdirs[i]}'
-    com.test_factory_sensitivity(factory_dict=BF_factory_dict,
-                                scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC',], 
+    dat.outdir = f'{outdir}/biomass/{ibf_bio_subdirs[i]}'
+    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=BF_factory_dict,
+                                scenario_factories=['IBC-0C', 'IBC-HC',], 
                                 scenario=ibf_bio_scenarios[i],
                                 chain_name='charcoal', 
                                 unit_name='simple_charcoal', 
@@ -317,15 +410,24 @@ for i in range(len(ibf_bio_scenarios)):
                                 write_to_xls=write_to_xls,
                                 view_diagrams=view_diagrams,
                                 save_diagrams=save_diagrams,
-                                outdir=f'{outdir}/biomass/{ibf_subdirs[i]}')
+                                outdir=f'{outdir}/biomass/{ibf_bio_subdirs[i]}')
 
+    for flow in inflow_dict:
+                for scen in inflow_dict[flow]:
+                    for fact in inflow_dict[flow][scen]:
+                        bio_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
 
-dri_subdirs = ['Low Biomass/MID', 'Low Biomass/ULC', 'High Biomass/MID', 'High Biomass/ULC',]
-dri_bio_scenarios = ['MID-LB', 'ULC-LB', 'MID-HB', 'ULC-HB',]
+    for flow in outflow_dict:
+        for scen in outflow_dict[flow]:
+            for fact in outflow_dict[flow][scen]:
+                bio_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]      
+
+dri_bio_subdirs = ['High Biomass/MID', 'High Biomass/ULC',]
+dri_bio_scenarios = ['MID-HB', 'ULC-HB',]
 for i in range(len(dri_bio_scenarios)):
-    dat.outdir = f'{outdir}/biomass/{dri_subdirs[i]}'
-    com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
-                                scenario_factories=['DRI-0C', 'DRI-LC', 'DRI-HC'], 
+    dat.outdir = f'{outdir}/biomass/{dri_bio_subdirs[i]}'
+    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
+                                scenario_factories=['DRI-0C', 'DRI-HC'], 
                                 scenario=dri_bio_scenarios[i],
                                 chain_name='syngas', 
                                 unit_name='simple_syngas', 
@@ -342,15 +444,53 @@ for i in range(len(dri_bio_scenarios)):
                                 write_to_xls=write_to_xls,
                                 view_diagrams=view_diagrams,
                                 save_diagrams=save_diagrams,
-                                outdir=f'{outdir}/biomass/{dri_subdirs[i]}')
+                                outdir=f'{outdir}/biomass/{dri_bio_subdirs[i]}')
+
+    for flow in inflow_dict:
+                for scen in inflow_dict[flow]:
+                    for fact in inflow_dict[flow][scen]:
+                        bio_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+
+    for flow in outflow_dict:
+        for scen in outflow_dict[flow]:
+            for fact in outflow_dict[flow][scen]:
+                bio_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]      
+
+meta_df = iof.metadata_df(user=dat.user_data, 
+                            name=f"biofuel_prod biomass emissions", 
+                            level="Factory", 
+                            scenario='multi', 
+                            product='default',
+                            product_qty=qty, 
+                            energy_flows=dat.energy_flows)
+bio_dfs = [meta_df]
+bio_sheets = ["meta"]
+
+for flow in bio_inflow_dict:
+    df = iof.make_df(bio_inflow_dict[flow])
+    bio_dfs.append(df)
+    bio_sheets.append(f"IN {flow}")
+
+for flow in bio_outflow_dict:
+    df = iof.make_df(bio_outflow_dict[flow])
+    bio_dfs.append(df)
+    bio_sheets.append(f"OUT {flow}")
+
+iof.write_to_excel(df_or_df_list=bio_dfs,
+                    sheet_list=bio_sheets, 
+                    filedir=f"{outdir}/biomass", 
+                    filename=f'biomass_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 
 #Syngas type
-dri_subdirs = ['Low Biomass/MID', 'Low Biomass/ULC', 'High Biomass/MID', 'High Biomass/ULC',]
-dri_gas_scenarios = ['MID-LB', 'ULC-LB', 'MID-HB', 'ULC-HB',]
+gas_inflow_dict = iof.nested_dicts(3)
+gas_outflow_dict = iof.nested_dicts(3)
+
+dri_subdirs = ['High Biomass/MID', 'High Biomass/ULC',]
+dri_gas_scenarios = ['MID-HB', 'ULC-HB',]
 for i in range(len(dri_gas_scenarios)):
     dat.outdir = f'{outdir}/syngasLHV/{dri_subdirs[i]}'
-    com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
-                                scenario_factories=['DRI-0C', 'DRI-LC', 'DRI-HC'], 
+    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
+                                scenario_factories=['DRI-0C', 'DRI-HC'], 
                                 scenario=dri_gas_scenarios[i],
                                 chain_name='steel', 
                                 unit_name='simple_DRI', 
@@ -369,20 +509,58 @@ for i in range(len(dri_gas_scenarios)):
                                 save_diagrams=save_diagrams,
                                 outdir=f'{outdir}/syngasLHV/{dri_subdirs[i]}')
 
+    for flow in inflow_dict:
+                for scen in inflow_dict[flow]:
+                    for fact in inflow_dict[flow][scen]:
+                        gas_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+
+    for flow in outflow_dict:
+        for scen in outflow_dict[flow]:
+            for fact in outflow_dict[flow][scen]:
+                gas_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]      
+
+meta_df = iof.metadata_df(user=dat.user_data, 
+                            name=f"syngas type", 
+                            level="Factory", 
+                            scenario='multi', 
+                            product='default',
+                            product_qty=qty, 
+                            energy_flows=dat.energy_flows)
+gas_dfs = [meta_df]
+gas_sheets = ["meta"]
+
+for flow in gas_inflow_dict:
+    df = iof.make_df(gas_inflow_dict[flow])
+    gas_dfs.append(df)
+    gas_sheets.append(f"IN {flow}")
+
+for flow in gas_outflow_dict:
+    df = iof.make_df(gas_outflow_dict[flow])
+    gas_dfs.append(df)
+    gas_sheets.append(f"OUT {flow}")
+
+iof.write_to_excel(df_or_df_list=gas_dfs,
+                    sheet_list=gas_sheets, 
+                    filedir=f"{outdir}/syngasLHV", 
+                    filename=f'syngas_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+
 
 # alloy type
-ibf_subdirs = ['No Biomass/BBF', 'Low Biomass/BBF', 'High Biomass/BBF',]
-ibf_alloy_scenarios = ['BBF-0B', 'BBF-LB', 'BBF-HB',]
+loy_inflow_dict = iof.nested_dicts(3)
+loy_outflow_dict = iof.nested_dicts(3)
+
+ibf_subdirs = ['No Biomass/BBF', 'High Biomass/BBF',]
+ibf_alloy_scenarios = ['BBF-0B', 'BBF-HB',]
 
 for i in range(len(ibf_alloy_scenarios)):
     dat.outdir = f'{outdir}/alloy/{ibf_subdirs[i]}'
-    com.test_factory_sensitivity(factory_dict=BF_factory_dict,
+    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=BF_factory_dict,
                                 scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
                                 scenario=ibf_alloy_scenarios[i],
                                 chain_name='steel', 
                                 unit_name='simple_casting', 
                                 variable='alloy type', 
-                                variable_options=['no alloy', 'low alloy', 'chromium alloy',],
+                                variable_options=['none', 'no alloy', 'low alloy', 'chromium alloy',],
                                 scenario_product=False,
                                 scenario_unit=False,
                                 scenario_io=False,
@@ -396,11 +574,22 @@ for i in range(len(ibf_alloy_scenarios)):
                                 save_diagrams=save_diagrams,
                                 outdir=f'{outdir}/alloy/{ibf_subdirs[i]}')
 
-dri_subdirs = ['No Biomass/MID','Low Biomass/MID', 'High Biomass/MID',]
-dri_alloy_scenarios = ['MID-0B', 'MID-LB', 'MID-HB',]
+    for flow in inflow_dict:
+                for scen in inflow_dict[flow]:
+                    for fact in inflow_dict[flow][scen]:
+                        loy_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+
+    for flow in outflow_dict:
+        for scen in outflow_dict[flow]:
+            for fact in outflow_dict[flow][scen]:
+                loy_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]      
+
+
+dri_subdirs = ['No Biomass/MID', 'High Biomass/MID',]
+dri_alloy_scenarios = ['MID-0B', 'MID-HB',]
 for i in range(len(dri_alloy_scenarios)):
     dat.outdir = f'{outdir}/alloy/{dri_subdirs[i]}'
-    com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
+    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
                                 scenario_factories=['DRI-0C', 'DRI-LC', 'DRI-HC'], 
                                 scenario=dri_alloy_scenarios[i],
                                 chain_name='steel', 
@@ -419,3 +608,38 @@ for i in range(len(dri_alloy_scenarios)):
                                 view_diagrams=view_diagrams,
                                 save_diagrams=save_diagrams,
                                 outdir=f'{outdir}/alloy/{dri_subdirs[i]}')
+
+    for flow in inflow_dict:
+                for scen in inflow_dict[flow]:
+                    for fact in inflow_dict[flow][scen]:
+                        loy_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+
+    for flow in outflow_dict:
+        for scen in outflow_dict[flow]:
+            for fact in outflow_dict[flow][scen]:
+                loy_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]      
+
+meta_df = iof.metadata_df(user=dat.user_data, 
+                            name=f"alloy type", 
+                            level="Factory", 
+                            scenario='multi', 
+                            product='default',
+                            product_qty=qty, 
+                            energy_flows=dat.energy_flows)
+loy_dfs = [meta_df]
+loy_sheets = ["meta"]
+
+for flow in loy_inflow_dict:
+    df = iof.make_df(loy_inflow_dict[flow])
+    loy_dfs.append(df)
+    loy_sheets.append(f"IN {flow}")
+
+for flow in loy_outflow_dict:
+    df = iof.make_df(loy_outflow_dict[flow])
+    loy_dfs.append(df)
+    loy_sheets.append(f"OUT {flow}")
+
+iof.write_to_excel(df_or_df_list=loy_dfs,
+                    sheet_list=loy_sheets, 
+                    filedir=f"{outdir}/alloy", 
+                    filename=f'alloy_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')

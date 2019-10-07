@@ -266,12 +266,13 @@ def test_factory_sensitivity(factory_dict,
     print(f'\ncomparing factory outputs for {scenario} for {variable} in {unit_name}. for {qty} of product... \n')
     
     built_factories = build_factories(factory_dict)
+    sensitivity_dict = iof.nested_dicts(4) #dict[factory][io][scenario][flow] = qty
 
     for f in scenario_factories:
         factory = built_factories[f]
         print(f"\n{str.upper(factory.name)} factory - sensitivity")
 
-        inflows, outflows = factory.run_sensitivity(product_qty=qty, 
+        inflows, outflows, aggregate_dict = factory.run_sensitivity(product_qty=qty, 
                                                     base_scenario=scenario, 
                                                     chain_name=chain_name, 
                                                     unit_name=unit_name, 
@@ -287,6 +288,8 @@ def test_factory_sensitivity(factory_dict,
                                                     write_to_xls=individual_xls,
                                                     outdir=outdir)
 
+        sensitivity_dict[f"{f}_{scenario}"] = aggregate_dict
+
         if write_to_console is True:
             print(f"\n{factory.name} inflows")
             print(inflows)
@@ -295,6 +298,52 @@ def test_factory_sensitivity(factory_dict,
             print(outflows)
 
         print(f"\n FACTORY (sensitivity): Full results available in {outdir} directory.")
+    
+    inflow_dict = iof.nested_dicts(3)
+    outflow_dict = iof.nested_dicts(3)
+    for f in sensitivity_dict:
+        for scen in sensitivity_dict[f]['i']:
+            scen_short = scen.strip(f"{scenario}_")
+            scen_short = scen_short.strip(f"{unit_name}-")
+            scen_short = scen_short.strip(f"{variable}_")
+            for flow in sensitivity_dict[f]['i'][scen]:
+                inflow_dict[flow][scen_short][f] = sensitivity_dict[f]['i'][scen][flow]
+
+        for scen in sensitivity_dict[f]['o']:
+            scen_short = scen.strip(f"{scenario}_")
+            scen_short = scen_short.strip(f"{unit_name}-")
+            scen_short = scen_short.strip(f"{variable}_")
+            for flow in sensitivity_dict[f]['o'][scen]:
+                outflow_dict[flow][scen_short][f] = sensitivity_dict[f]['o'][scen][flow]
+
+
+    meta_df = iof.metadata_df(user=dat.user_data, 
+                                name=f"{unit_name} {variable} sens", 
+                                level="Factory", 
+                                scenario=scenario, 
+                                product='default',
+                                product_qty=qty, 
+                                energy_flows=dat.energy_flows)
+
+    dfs = [meta_df]
+    sheets = ["meta"]
+
+    for flow in inflow_dict:
+        df = iof.make_df(inflow_dict[flow])
+        dfs.append(df)
+        sheets.append(f"IN {flow}")
+
+    for flow in outflow_dict:
+        df = iof.make_df(outflow_dict[flow])
+        dfs.append(df)
+        sheets.append(f"OUT {flow}")
+
+    iof.write_to_excel(df_or_df_list=dfs,
+                        sheet_list=sheets, 
+                        filedir=outdir, 
+                        filename=f'{unit_name}_{variable}_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+
+    return inflow_dict, outflow_dict
 
 
 #------------------------------------------------------------------------------
