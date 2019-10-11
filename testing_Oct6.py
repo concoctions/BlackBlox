@@ -555,7 +555,7 @@ ibf_alloy_scenarios = ['BBF-0B', 'BBF-HB',]
 for i in range(len(ibf_alloy_scenarios)):
     dat.outdir = f'{outdir}/alloy/{ibf_subdirs[i]}'
     inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=BF_factory_dict,
-                                scenario_factories=['IBC-0C', 'IBC-LC', 'IBC-HC'], 
+                                scenario_factories=['IBC-0C', 'IBC-HC'], 
                                 scenario=ibf_alloy_scenarios[i],
                                 chain_name='steel', 
                                 unit_name='simple_casting', 
@@ -590,7 +590,7 @@ dri_alloy_scenarios = ['MID-0B', 'MID-HB',]
 for i in range(len(dri_alloy_scenarios)):
     dat.outdir = f'{outdir}/alloy/{dri_subdirs[i]}'
     inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
-                                scenario_factories=['DRI-0C', 'DRI-LC', 'DRI-HC'], 
+                                scenario_factories=['DRI-0C', 'DRI-HC'], 
                                 scenario=dri_alloy_scenarios[i],
                                 chain_name='steel', 
                                 unit_name='simple_casting', 
