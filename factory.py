@@ -31,6 +31,9 @@ import unitprocess as unit
 import processchain as cha
 import calculators as calc
 
+import os
+os.environ["PATH"] += os.pathsep + 'C:/ProgramData/Anaconda3/Library/bin/graphviz/'
+
 logger = get_logger("Factory")
 
 class Factory:
