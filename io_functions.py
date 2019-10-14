@@ -223,11 +223,13 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
             df = pan.read_csv(data, sep=',', index_col=index)
     else:
         return pan.DataFrame()
-                 
+
     if metaprefix is not None:
         if index is not None:
             df = df[~df.index.str.startswith(metaprefix)]
         cols = [col for col in list(df) if not col.startswith(metaprefix)]
+        logger.debug(f"IOF make dataframe - cols: {cols}")
+        logger.debug(f"if you get an error here, check that the unit name is correct and exists in the unit library")
         df = df[cols]
 
     if type(col_order) is list:

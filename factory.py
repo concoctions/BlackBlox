@@ -147,9 +147,9 @@ class Factory:
                     chain_file = self.chains_file
                 else:
                     chain_file = c[dat.chain_filepath]
-                
-            chain_dict[name] = dict(chain=cha.ProductChain(chain_file, 
-                                    name=name, xls_sheet=chain_sheet), 
+
+            logger.debug(f"{name} chain file: {chain_file} chain sheet: {chain_sheet}")   
+            chain_dict[name] = dict(chain=cha.ProductChain(chain_file, name=name, xls_sheet=chain_sheet), 
                                     name=name, 
                                     product=c[dat.chain_product], 
                                     i_o=iof.clean_str(c[dat.chain_io][0]))

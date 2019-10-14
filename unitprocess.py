@@ -343,6 +343,7 @@ class UnitProcess:
                 unknown_substance = self.var_df.at[scenario, lookup_var_dict[unknown_substance]['lookup_var']]
 
             #allows for the use of multiple flows that are the same substance by using an "ignore after" seperator
+            logger.debug("if you get an error here, check in the var file that you don't have a number where you should have a string")
             if dat.ignore_sep in known_substance:
                 if known_substance.split(dat.ignore_sep)[0] in lookup_var_dict:
                     lookup_df = lookup_var_dict[known_substance.split(dat.ignore_sep)[0]]['data_frame']

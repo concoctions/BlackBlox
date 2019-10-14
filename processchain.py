@@ -69,9 +69,10 @@ class ProductChain:
 
     def __init__(self, chain_data, name="Product Chain", xls_sheet=None):
         self.name = name
-        self.process_chain_df = iof.make_df(chain_data, 
-                                            sheet=xls_sheet, 
-                                            index=None)
+        logger.debug(f"PROCESS CHAIN INIT - chain name: {name}")
+        logger.debug(f"PROCESS CHAIN INIT - chain data: {chain_data}")
+        logger.debug(f"PROCESS CHAIN INIT -xls sheet: {xls_sheet}")
+        self.process_chain_df = iof.make_df(chain_data, sheet=xls_sheet, index=None)
         self.default_product = False
         self.process_list = False
         self.process_names = False
