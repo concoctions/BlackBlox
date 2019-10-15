@@ -281,9 +281,9 @@ for i in range(len(dri_elec_scenarios)):
                                 outdir=f'{outdir}/Electricity/{dri_subdirs[i]}')
 
     for flow in inflow_dict:
-                for scen in inflow_dict[flow]:
-                    for fact in inflow_dict[flow][scen]:
-                        elec_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+            for scen in inflow_dict[flow]:
+                for fact in inflow_dict[flow][scen]:
+                    elec_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
 
     for flow in outflow_dict:
         for scen in outflow_dict[flow]:
@@ -332,7 +332,7 @@ for i in range(len(his_fuel_scenarios)):
                                 chain_name='steel', 
                                 unit_name='simple_BF', 
                                 variable='secondary fuel demand', 
-                                variable_options=[0.75, 0.61, 0.56],
+                                variable_options=[0.75, 0.54],
                                 scenario_product=False,
                                 scenario_unit=False,
                                 scenario_io=False,
@@ -347,9 +347,9 @@ for i in range(len(his_fuel_scenarios)):
                                 outdir=f'{outdir}/HIsarna energy/{his_subdirs[i]}')
 
     for flow in inflow_dict:
-                for scen in inflow_dict[flow]:
-                    for fact in inflow_dict[flow][scen]:
-                        his_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+            for scen in inflow_dict[flow]:
+                for fact in inflow_dict[flow][scen]:
+                    his_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
 
     for flow in outflow_dict:
         for scen in outflow_dict[flow]:
@@ -413,9 +413,9 @@ for i in range(len(ibf_bio_scenarios)):
                                 outdir=f'{outdir}/biomass/{ibf_bio_subdirs[i]}')
 
     for flow in inflow_dict:
-                for scen in inflow_dict[flow]:
-                    for fact in inflow_dict[flow][scen]:
-                        bio_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+            for scen in inflow_dict[flow]:
+                for fact in inflow_dict[flow][scen]:
+                    bio_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
 
     for flow in outflow_dict:
         for scen in outflow_dict[flow]:
@@ -447,9 +447,9 @@ for i in range(len(dri_bio_scenarios)):
                                 outdir=f'{outdir}/biomass/{dri_bio_subdirs[i]}')
 
     for flow in inflow_dict:
-                for scen in inflow_dict[flow]:
-                    for fact in inflow_dict[flow][scen]:
-                        bio_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+            for scen in inflow_dict[flow]:
+                for fact in inflow_dict[flow][scen]:
+                    bio_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
 
     for flow in outflow_dict:
         for scen in outflow_dict[flow]:
@@ -510,9 +510,9 @@ for i in range(len(dri_gas_scenarios)):
                                 outdir=f'{outdir}/syngasLHV/{dri_subdirs[i]}')
 
     for flow in inflow_dict:
-                for scen in inflow_dict[flow]:
-                    for fact in inflow_dict[flow][scen]:
-                        gas_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+            for scen in inflow_dict[flow]:
+                for fact in inflow_dict[flow][scen]:
+                    gas_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
 
     for flow in outflow_dict:
         for scen in outflow_dict[flow]:
@@ -643,3 +643,104 @@ iof.write_to_excel(df_or_df_list=loy_dfs,
                     sheet_list=loy_sheets, 
                     filedir=f"{outdir}/alloy", 
                     filename=f'alloy_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+
+
+#BioGHG Factors
+ghg_inflow_dict = iof.nested_dicts(3)
+ghg_outflow_dict = iof.nested_dicts(3)
+
+ibf_subdirs = ['BBF', 'TGR', 'HIS']
+ibf_bioghg_scenarios = ['BBF-HB', 'TGR-HB', 'HIS-HB']
+
+for i in range(len(ibf_bioghg_scenarios)):
+    dat.outdir = f'{outdir}/bioghg/{ibf_subdirs[i]}'
+    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=BF_factory_dict,
+                                scenario_factories=['IBC-0C', 'IBC-HC'], 
+                                scenario=ibf_bioghg_scenarios[i],
+                                chain_name='charcoal', 
+                                unit_name='simple_charcoal', 
+                                variable='carbon debt factor', 
+                                variable_options=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+                                scenario_product=False,
+                                scenario_unit=False,
+                                scenario_io=False,
+                                qty=qty, 
+                                upstream_outflows=['CO2', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4'],
+                                upstream_inflows=['CO2 removed', 'factory CO2 removed'],
+                                aggregate_flows=['CO2', 'CO2__upstream', 'CO2 removed', 'stored CO2', 'debt CO2', 'factory CO2', 'CH4 (CO2eq)', 'factory CH4', 'factory CO2 removed'],
+                                write_to_console=write_to_console, 
+                                write_to_xls=write_to_xls,
+                                view_diagrams=view_diagrams,
+                                save_diagrams=save_diagrams,
+                                outdir=f'{outdir}/bioghg/{ibf_subdirs[i]}')
+
+    for flow in inflow_dict:
+            for scen in inflow_dict[flow]:
+                for fact in inflow_dict[flow][scen]:
+                    ghg_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+
+    for flow in outflow_dict:
+        for scen in outflow_dict[flow]:
+            for fact in outflow_dict[flow][scen]:
+                ghg_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]      
+
+
+dri_subdirs = ['MID', 'ULC']
+dri_bioghg_scenarios = ['MID-HB', 'ULC-HB']
+for i in range(len(dri_bioghg_scenarios)):
+    dat.outdir = f'{outdir}/bioghg/{dri_subdirs[i]}'
+    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
+                                scenario_factories=['DRI-0C', 'DRI-HC'], 
+                                scenario=dri_bioghg_scenarios[i],
+                                chain_name='syngas', 
+                                unit_name='simple_syngas', 
+                                variable='carbon debt factor', 
+                                variable_options=[0.2, 0.4, 0.6],
+                                scenario_product=False,
+                                scenario_unit=False,
+                                scenario_io=False,
+                                qty=qty, 
+                                upstream_outflows=['CO2', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4'],
+                                upstream_inflows=['CO2 removed', 'factory CO2 removed'],
+                                aggregate_flows=['CO2', 'CO2__upstream', 'CO2 removed', 'stored CO2', 'debt CO2', 'factory CO2', 'CH4 (CO2eq)', 'factory CH4', 'factory CO2 removed'],
+                                write_to_console=write_to_console, 
+                                write_to_xls=write_to_xls,
+                                view_diagrams=view_diagrams,
+                                save_diagrams=save_diagrams,
+                                outdir=f'{outdir}/bioghg/{dri_subdirs[i]}')
+
+    for flow in inflow_dict:
+            for scen in inflow_dict[flow]:
+                for fact in inflow_dict[flow][scen]:
+                    ghg_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+
+    for flow in outflow_dict:
+        for scen in outflow_dict[flow]:
+            for fact in outflow_dict[flow][scen]:
+                ghg_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]      
+
+meta_df = iof.metadata_df(user=dat.user_data, 
+                            name=f"bioghg factor", 
+                            level="Factory", 
+                            scenario='multi', 
+                            product='default',
+                            product_qty=qty, 
+                            energy_flows=dat.energy_flows)
+ghg_dfs = [meta_df]
+ghg_sheets = ["meta"]
+
+for flow in ghg_inflow_dict:
+    df = iof.make_df(ghg_inflow_dict[flow])
+    ghg_dfs.append(df)
+    ghg_sheets.append(f"IN {flow}")
+
+for flow in ghg_outflow_dict:
+    df = iof.make_df(ghg_outflow_dict[flow])
+    ghg_dfs.append(df)
+    ghg_sheets.append(f"OUT {flow}")
+
+iof.write_to_excel(df_or_df_list=ghg_dfs,
+                    sheet_list=ghg_sheets, 
+                    filedir=f"{outdir}/bioghg", 
+                    filename=f'bioghg_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+

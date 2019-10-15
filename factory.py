@@ -1038,8 +1038,8 @@ class Factory:
                                        write_to_xls=write_to_xls, 
                                        outdir=dat.outdir)
             
-            scenario_dict['i'][f'{base_scenario}_{unit_name}-{variable}_{var}'] = f_in
-            scenario_dict['o'][f'{base_scenario}_{unit_name}-{variable}_{var}'] = f_out
+            scenario_dict['i'][f'{base_scenario}_{unit_name}-{variable}_{str(var)}'] = f_in
+            scenario_dict['o'][f'{base_scenario}_{unit_name}-{variable}_{str(var)}'] = f_out
 
         inflows_df = iof.make_df(scenario_dict['i'], drop_zero=True)
         inflows_df = iof.mass_energy_df(inflows_df, aggregate_consumed=True)
