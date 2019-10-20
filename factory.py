@@ -1017,13 +1017,15 @@ class Factory:
 
         if type(fixed_vars) is list:
             for fixedvar, value in fixed_vars:
-                unit.var_df.loc[base_scenario, fixedvar] = value
-        
+                unit.var_df.loc[base_scenario, fixedvar.lower()] = value
+                logger.debug(f"{variable} for {unit} ({base_scenario} set to {value}) (fixed over all sensitivity analyses)")
+
         original_var_df = unit.var_df.copy()
 
         # evaluate over varying variables
-        for var in variable_options:
-            unit.var_df.loc[base_scenario, variable] = var
+        for value in variable_options:
+            unit.var_df.loc[base_scenario, variable.lower()] = value
+            logger.debug(f"{variable} for {unit.name} ({base_scenario}) set to {value})")
 
             f_in, f_out = self.balance(product_qty=product_qty, 
                                        product=product, 
@@ -1038,8 +1040,8 @@ class Factory:
                                        write_to_xls=write_to_xls, 
                                        outdir=dat.outdir)
             
-            scenario_dict['i'][f'{base_scenario}_{unit_name}-{variable}_{str(var)}'] = f_in
-            scenario_dict['o'][f'{base_scenario}_{unit_name}-{variable}_{str(var)}'] = f_out
+            scenario_dict['i'][f'{base_scenario}_{unit_name}-{variable}_{value}'] = f_in
+            scenario_dict['o'][f'{base_scenario}_{unit_name}-{variable}_{value}'] = f_out
 
         inflows_df = iof.make_df(scenario_dict['i'], drop_zero=True)
         inflows_df = iof.mass_energy_df(inflows_df, aggregate_consumed=True)
