@@ -58,18 +58,12 @@ BF = True
 DRI = True
 
 # sensitivity
-electricity = False
-hisarna_eff = False
-biomass_co2 = False
-syngas = False
-alloy = False
-carbon_debt = False
-
-# run all tests, regardless of above settings
-all_tests_override = False
-if all_tests_override is True:
-    for test in [BF, DRI, electricity, hisarna_eff, biomass_co2, syngas, alloy, carbon_debt]:
-        test = True
+electricity = True
+hisarna_eff = True
+biomass_co2 = True
+syngas = True
+alloy = True
+carbon_debt = True
 
 
 ###############################################################################
