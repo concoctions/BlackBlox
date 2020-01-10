@@ -543,8 +543,6 @@ class Factory:
 
          # DOWNSTREAM INFLOWS/OUTFLOWS
         logger.debug("Looking for downstream flows")
-        print("downstream outflows: ",downstream_outflows)
-        print("downstream inflows: ",downstream_inflows)
         if type(downstream_outflows) is list or type(downstream_inflows) is list: #add downstream emissions to factory output
             logger.debug("calculating downstream flows")
             balancers_in = defaultdict(float)
