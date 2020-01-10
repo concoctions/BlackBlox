@@ -61,6 +61,15 @@ df_upstream_inflows = None
 if 'upstream inflows' in dat.lookup_var_dict:
     df_upstream_inflows = iof.make_df(dat.lookup_var_dict['upstream inflows']['filepath'], sheet=dat.lookup_var_dict['upstream inflows']['sheet'])
 
+df_downstream_outflows = None
+if 'downstream outflows' in dat.lookup_var_dict:
+    df_downstream_outflows = iof.make_df(dat.lookup_var_dict['downstream outflows']['filepath'], sheet=dat.lookup_var_dict['downstream outflows']['sheet'])
+
+df_downstream_inflows = None
+if 'downstream inflows' in dat.lookup_var_dict:
+    df_downstream_inflows = iof.make_df(dat.lookup_var_dict['downstream inflows']['filepath'], sheet=dat.lookup_var_dict['downstream inflows']['sheet'])
+
+
 
 
 # DATA CHECKER FUNCTIONS

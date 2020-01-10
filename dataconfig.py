@@ -94,10 +94,17 @@ lookup_var_dict = {
     #UPSTREAM
     'upstream outflows': dict(lookup_var='upstream outflows',
                      filepath='data/shared/upstream.xlsx',
-                     sheet='emissions'),
+                     sheet='up-emissions'),
     'upstream inflows': dict(lookup_var='upstream inflows',
                      filepath='data/shared/upstream.xlsx',
-                     sheet='removals'),
+                     sheet='up-removals'),
+    #DOWNSTREAM
+    'downstream outflows': dict(lookup_var='downstream outflows',
+                     filepath='data/shared/upstream.xlsx',
+                     sheet='down-emissions'),
+    'downstream inflows': dict(lookup_var='downstream inflows',
+                     filepath='data/shared/upstream.xlsx',
+                     sheet='down-removals'),
     #NO FURTHER DATA
     'biomass': dict(lookup_var='biomass type'),
     'feedstock': dict(lookup_var='feedstock type'),

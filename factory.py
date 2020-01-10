@@ -160,6 +160,7 @@ class Factory:
 
     def balance(self, product_qty, product=False, product_unit=False, product_io=False, 
                 scenario=dat.default_scenario, upstream_outflows=False, upstream_inflows=False, 
+                downstream_outflows=False, downstream_inflows=False,
                 aggregate_flows=False, write_to_xls=True, outdir=dat.outdir, 
                 mass_energy=True, energy_flows=dat.energy_flows):
         """Calculates the mass balance of the factory
@@ -475,6 +476,7 @@ class Factory:
                 factory_totals[io_dict][product] -= qty # removes intermediate product quantities
         logger.debug(f"factory totals, post intermediate products\n {iof.make_df(factory_totals)}")
 
+        # UPSTREAM INFLOWS/OUTFLOWS
         if type(upstream_outflows) is list or type(upstream_inflows) is list: #add upstream emissions to factory output
             logger.debug("calculating upstream flows")
             balancers_in = defaultdict(float)
@@ -510,7 +512,7 @@ class Factory:
                             
                         balancers_in[f"CONSUMED {e}{dat.ignore_sep}upstream"] += total_e_qty
 
-                if type(upstream_inflows) is list: #add upstream emissions to factory output                 
+                if type(upstream_inflows) is list: #add upstream removals to factory inflows                 
                     for e in upstream_inflows:
                         emission = iof.clean_str(e)
                         total_e_qty = 0
@@ -529,6 +531,73 @@ class Factory:
                 
                         balancers_out[f"CONSUMED {e}{dat.ignore_sep}upstream"] += total_e_qty
 
+            for flow in additional_inflows:
+                factory_totals["i"][flow] = additional_inflows[flow]
+            for flow in additional_outflows:
+                factory_totals["o"][flow] = additional_outflows[flow]
+
+            for e in balancers_in:
+                factory_totals["i"][e] = balancers_in[e]
+            for e in balancers_out:
+                factory_totals["o"][e] = balancers_out[e]
+
+         # DOWNSTREAM INFLOWS/OUTFLOWS
+        logger.debug("Looking for downstream flows")
+        print("downstream outflows: ",downstream_outflows)
+        print("downstream inflows: ",downstream_inflows)
+        if type(downstream_outflows) is list or type(downstream_inflows) is list: #add downstream emissions to factory output
+            logger.debug("calculating downstream flows")
+            balancers_in = defaultdict(float)
+            balancers_out = defaultdict(float)
+            additional_inflows = defaultdict(float)   
+            additional_outflows = defaultdict(float)
+
+            for o in factory_totals['o']:
+                logger.debug(f"checking for downstream data for {o}")
+                outflow = o
+                outflow_qty = factory_totals['o'][o]
+                # if dat.ignore_sep in outflow:
+                #     outflow = outflow.split(dat.ignore_sep)[0]
+                
+                logger.debug(f"using name {outflow}")
+
+                if type(downstream_outflows) is list:
+                    for e in downstream_outflows:
+                        emission = iof.clean_str(e)
+                        total_e_qty = 0
+                        logger.debug(f"checking for downstream {emission} for {outflow}")
+                        if outflow in calc.df_downstream_outflows.index:
+                            logger.debug(f"{outflow} found")
+                            emission_flow = f'{e}{dat.ignore_sep}downstream ({outflow})'
+                            emission_qty = outflow_qty * calc.df_downstream_outflows.at[outflow, emission]
+                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(outflow_qty,4)} of {i} using factor of {round(calc.df_downstream_outflows.at[outflow, emission],4)}")
+                            total_e_qty += emission_qty
+
+                            if emission_qty < 0:
+                                raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
+                            else:
+                                additional_outflows[emission_flow] += emission_qty
+                            
+                        balancers_in[f"CONSUMED {e}{dat.ignore_sep}downstream"] += total_e_qty
+
+                if type(downstream_inflows) is list: #add downstream removals to factory inflows                 
+                    for e in downstream_inflows:
+                        emission = iof.clean_str(e)
+                        total_e_qty = 0
+                        logger.debug(f"checking for downstream {emission} for {outflow}")
+                        if outflow in calc.df_downstream_inflows.index:
+                            logger.debug(f"{outflow} found")
+                            emission_flow = f'{e}{dat.ignore_sep}downstream ({outflow})'
+                            emission_qty = outflow_qty * calc.df_downstream_inflows.at[outflow, emission]
+                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(outflow_qty,4)} of {i} using factor of {round(calc.df_downstream_inflows.at[outflow, emission],4)}")
+                            total_e_qty += emission_qty
+
+                            if emission_qty < 0:
+                                raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
+                            else:
+                                additional_inflows[emission_flow] += emission_qty
+                
+                        balancers_out[f"CONSUMED {e}{dat.ignore_sep}downstream"] += total_e_qty
 
             for flow in additional_inflows:
                 factory_totals["i"][flow] = additional_inflows[flow]
@@ -845,7 +914,8 @@ class Factory:
 
     def run_scenarios(self, scenario_list, 
                       product_qty, product=False, product_unit=False, product_io=False, 
-                      upstream_outflows=False, upstream_inflows=False, aggregate_flows=False,
+                      upstream_outflows=False, upstream_inflows=False, downstream_outflows=False,
+                      downstream_inflows=False, aggregate_flows=False,
                       mass_energy=True, energy_flows=dat.energy_flows, 
                       write_to_xls=True, outdir=dat.outdir, file_id=''):
         """Balances the factory on the same quantity for a list of different scenarios.
@@ -902,6 +972,8 @@ class Factory:
                                        scenario=scenario,
                                        upstream_outflows=upstream_outflows, 
                                        upstream_inflows=upstream_inflows,
+                                       downstream_outflows=downstream_outflows,
+                                       downstream_inflows=downstream_inflows,
                                        aggregate_flows=aggregate_flows,
                                        mass_energy=mass_energy, 
                                        energy_flows=dat.energy_flows, 
@@ -963,8 +1035,8 @@ class Factory:
 
     def run_sensitivity(self, product_qty, base_scenario, chain_name, unit_name, variable, variable_options=[], fixed_vars=False,
                       product=False, product_unit=False, product_io=False, upstream_outflows=False, upstream_inflows=False,
-                      aggregate_flows=False, mass_energy=True, energy_flows=dat.energy_flows, 
-                      write_to_xls=True, outdir=dat.outdir, file_id=''):
+                      downstream_outflows=False, downstream_inflows=False, aggregate_flows=False, mass_energy=True, 
+                      energy_flows=dat.energy_flows, write_to_xls=True, outdir=dat.outdir, file_id=''):
         """Balances the factory on the same quantity for a list of different scenarios.
         Outputs a file with total inflows and outflows for the factory for each scenario.
 
@@ -1034,6 +1106,8 @@ class Factory:
                                        scenario=base_scenario,
                                        upstream_outflows=upstream_outflows,
                                        upstream_inflows=upstream_inflows,
+                                       downstream_outflows=downstream_outflows,
+                                       downstream_inflows=downstream_inflows, 
                                        aggregate_flows=aggregate_flows,
                                        mass_energy=mass_energy, 
                                        energy_flows=dat.energy_flows, 

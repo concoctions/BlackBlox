@@ -49,39 +49,10 @@ individual_xls = True
 # TESTS
 ###############################################################################
 
-qty = 1.0/0.737
+qty = 1.0/0.737 # standardized to 1 t clinker
 
 
 ###############################################################################
-# BLAST FURNACE STEELMAKING
-
-# BF_factory_dict = {
-#                 'IBC-0C': dict(chain_list_file="data/steel/factories/IBF_factory-0C.xlsx",
-#                                         chain_list_sheet='chains', 
-#                                         connections_sheet='connections', 
-#                                         name="BF-BOF-0C",
-#                                         scenario='BBF-0B'),
-# }
-
-# dat.outdir = f'{outdir}/BF/No Biomass'
-
-# com.test_factory_scenarios(factory_dict=BF_factory_dict,
-#                         scenario_factories=['IBC-0C'], 
-#                         scenario_product=False,
-#                         scenario_unit=False,
-#                         scenario_io=False,
-#                         qty=qty, 
-#                         scenario_list=['BBF-0B'], 
-#                         upstream_outflows=['CO2', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4'], 
-#                         upstream_inflows=['CO2 removed', 'factory CO2 removed'],
-#                         aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4''factory CO2 removed', 'stored CO2'],
-#                         write_to_console=write_to_console, 
-#                         write_to_xls=write_to_xls,
-#                         view_diagrams=view_diagrams,
-#                         save_diagrams=save_diagrams,
-#                         outdir=f'{outdir}/BF/No Biomass')
-
-
 
 factory_dict = {
                 'Cement-0C': dict(chain_list_file='data/cement/factories/cement_factory-0C.xlsx',
@@ -102,6 +73,7 @@ com.test_factory_scenarios(factory_dict=factory_dict,
                         scenario_list=['CEMCAP-0C'], 
                         upstream_outflows=['CO2', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4'], 
                         upstream_inflows=['CO2 removed', 'factory CO2 removed'],
+                        downstream_inflows=['CO2 removed'],
                         aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4''factory CO2 removed', 'stored CO2'],
                         write_to_console=write_to_console, 
                         write_to_xls=write_to_xls,
