@@ -621,8 +621,8 @@ calcs_dict = {
     'combustion-lhv-noenergyin': {'function': Combustion, 'kwargs': {'LHV':True, 'write_energy_in':False}},
     'combustion-hhv': {'function': Combustion, 'kwargs': {'LHV':False}},
     'combustion-hhv-noenergyin': {'function': Combustion, 'kwargs': {'LHV':False, 'write_energy_in':False}},
-    'lookup ratio': {'function': lookup_ratio, 'kwargs': {}},
-    'lookup ratio-fuels': {'function': lookup_ratio, 'kwargs': {'force_df': df_fuels}},
+    'lookupratio': {'function': lookup_ratio, 'kwargs': {}},
+    'lookupratio-fuels': {'function': lookup_ratio, 'kwargs': {'force_df': df_fuels}},
 }
 """Dictionary of calculators available to process unit process relationships.
 The keys in this dictionary should be all lowercase.
@@ -641,6 +641,6 @@ twoQty_calc_list = ['subtraction', 'addition']
 Used by the Unit Process class's balance function.
 """
 
-lookup_var_calc_list = ['lookup ratio', 'lookup ratio-fuels']
+lookup_var_calc_list = ['lookupratio', 'lookupratio-fuels']
 """List of calculations where the specified variable is for the lookup df, and not the unit process variable df
 """
