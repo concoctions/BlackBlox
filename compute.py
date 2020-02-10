@@ -4,6 +4,7 @@
 import dataconfig as dat
 from datetime import datetime
 from collections import defaultdict
+import pandas as pan
 
 
 # pause_between_tests = False
@@ -212,17 +213,20 @@ def test_factory_scenarios(factory_dict,
                             write_to_xls=write_to_xls,
                             view_diagrams=view_diagrams,
                             save_diagrams=save_diagrams,
-                            outdir=dat.outdir):
+                            outdir=dat.outdir,
+                            filename='multiscenario',
+                            productname='product'):
 
     print(f'\ncomparing factory outputs for {scenario_list}. for {qty} of product... \n')
     
     built_factories = build_factories(factory_dict)
 
+    first = True
     for f in scenario_factories:
         factory = built_factories[f]
         print(f"\n{str.upper(factory.name)} factory - multiscenario")
 
-        inflows, outflows = factory.run_scenarios(scenario_list=scenario_list, 
+        inflows, outflows, agg_inflows, agg_outflows = factory.run_scenarios(scenario_list=scenario_list, 
                                                   product_qty=qty, 
                                                   product=scenario_product, 
                                                   product_unit=scenario_unit, 
@@ -246,8 +250,42 @@ def test_factory_scenarios(factory_dict,
             factory.diagram(outdir=outdir, 
                             view=view_diagrams, 
                             save=save_diagrams)
-                            
+
+        inflows = inflows.rename(columns=lambda x: f+"_"+x)   
+        outflows = outflows.rename(columns=lambda x: f+"_"+x)
+        agg_inflows = agg_inflows.rename(columns=lambda x: f+"_"+x)
+        agg_outflows = agg_outflows.rename(columns=lambda x: f+"_"+x)
+
+        if first is True:
+            all_inflows = inflows.copy()
+            all_outflows = outflows.copy()
+            all_agg_inflows = agg_inflows.copy()
+            all_agg_outflows = agg_outflows.copy()
+        else:
+            all_inflows = pan.concat([all_inflows, inflows], ignore_index=False, sort=False, axis=1)
+            all_outflows = pan.concat([all_outflows, outflows], ignore_index=False, sort=False, axis=1)
+
+            all_agg_inflows = pan.concat([all_agg_inflows, agg_inflows], ignore_index=False, sort=False, axis=1)
+            all_agg_outflows = pan.concat([all_agg_outflows, agg_outflows], ignore_index=False, sort=False, axis=1)
+
         print(f"\n FACTORY (multi-scenario): Full results available in {outdir} directory.")
+        first = False
+
+    meta_df = iof.metadata_df(user=dat.user_data, 
+                            name=filename, 
+                            level="Multi Factory", 
+                            scenario=" ,".join(scenario_list), 
+                            product=productname,
+                            product_qty=qty, 
+                            energy_flows=dat.energy_flows)
+
+    dfs = [meta_df, all_inflows, all_outflows, all_agg_inflows, all_agg_outflows]
+    sheets = ["meta", "inflows", "outflows", "agg inflows", "agg outflows"]
+
+    iof.write_to_excel(df_or_df_list=dfs,
+                        sheet_list=sheets, 
+                        filedir=outdir, 
+                        filename=f'{filename}_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 
 
 def test_factory_sensitivity(factory_dict,

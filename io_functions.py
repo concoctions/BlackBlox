@@ -332,7 +332,7 @@ def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True, aggregate_c
             mass_df = mass_df.append(mass_df.sum().rename(f'TOTAL MASS, in {units["mass"]}'))
         if not energy_df.empty:
             energy_df = energy_df.append(energy_df.sum().rename(f'TOTAL ENERGY, in {units["energy"]}'))
-    combined_df = pan.concat([mass_df, energy_df], keys=['Mass', 'Energy'])
+    combined_df = pan.concat([mass_df, energy_df], keys=['Mass', 'Energy'], names=['type', 'substance'])
 
     return combined_df
     

@@ -1028,7 +1028,7 @@ class Factory:
                             filedir=outdir, 
                             filename=f'{self.name}_multi_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 
-        return inflows_df, outflows_df
+        return inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df
 
 
     def run_sensitivity(self, product_qty, base_scenario, chain_name, unit_name, variable, variable_options=[], fixed_vars=False,
