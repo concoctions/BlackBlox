@@ -505,7 +505,7 @@ class Factory:
                             logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(inflow_qty,4)} of {i} using factor of {round(calc.df_upstream_outflows.at[inflow, emission],4)}")
                             total_e_qty += emission_qty
 
-                            if emission_qty < 0:
+                            if round(emission_qty, 12) < 0:
                                 raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
                             else:
                                 additional_outflows[emission_flow] += emission_qty
@@ -524,7 +524,7 @@ class Factory:
                             logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(inflow_qty,4)} of {i} using factor of {round(calc.df_upstream_inflows.at[inflow, emission],4)}")
                             total_e_qty += emission_qty
 
-                            if emission_qty < 0:
+                            if round(emission_qty, 12) < 0:
                                 raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
                             else:
                                 additional_inflows[emission_flow] += emission_qty
@@ -571,7 +571,7 @@ class Factory:
                             logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(outflow_qty,4)} of {i} using factor of {round(calc.df_downstream_outflows.at[outflow, emission],4)}")
                             total_e_qty += emission_qty
 
-                            if emission_qty < 0:
+                            if round(emission_qty, 12) < 0:
                                 raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
                             else:
                                 additional_outflows[emission_flow] += emission_qty
@@ -590,7 +590,7 @@ class Factory:
                             logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(outflow_qty,4)} of {i} using factor of {round(calc.df_downstream_inflows.at[outflow, emission],4)}")
                             total_e_qty += emission_qty
 
-                            if emission_qty < 0:
+                            if round(emission_qty, 12) < 0:
                                 raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
                             else:
                                 additional_inflows[emission_flow] += emission_qty
