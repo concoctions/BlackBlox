@@ -31,7 +31,7 @@ dat.outdir = f'output/test_{datetime.now().strftime("%b%d")}/{datetime.now().str
 # SPECIFY TEST DATA
 ###############################################################################
 
-qty = ( 6930 )
+qty = ( 4041 )
 pause_between_tests = True
 
 
@@ -44,7 +44,10 @@ scenario_list = ['IEAGHG',
 unit_list = [
             # 'paper_chipping',
             # 'paper_pulping',
-            'paper_bleaching',
+            # 'paper_bleaching',
+            # 'paper_multifuel',
+            # 'paper_blackliquor',
+            'paper_caustic'
             ] 
 
 

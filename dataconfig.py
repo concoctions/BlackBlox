@@ -163,8 +163,11 @@ consumed_indicator = 'CONSUMED'
 """str: when this string begins a substance name (case sensitive), the substance
 is ignored in the unit process inflows/outflows list and in the diagram. However,
 it will still show up in the mass/energy balance.
-E.g. heat is used by a process and there is no useful heat byproduct, but
+E.g. 1 heat is used by a process and there is no useful heat byproduct, but
 you still want it to show up in the energy balance.
+E.g. 2. Process X produces product X which is used by Process Y, but it's not 
+necessary to fully model process X; therefore in Process Y, product X is listed
+as "CONSUMED" to indicate that it is factory-internal flow.
 """
 
 # OTHER DATA NAMING VARIABLES
