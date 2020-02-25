@@ -53,8 +53,8 @@ individual_xls = True
 qty = 1.0 # standardized to 1 t of product
 
 
-# ###############################################################################
-# # CLINKER
+###############################################################################
+# CLINKER
 
 # factory_dict = {
 #                 'clinker-0C': dict(chain_list_file='data/cement/factories/clinker_factory-0C.xlsx',
@@ -172,11 +172,16 @@ factory_dict = {
                                     connections_sheet='connections', 
                                     name='pulp-0C',
                                     scenario='IEAGHG'),
+                'pulp-HC': dict(chain_list_file='data/paper/factories/pulp_factory-HC.xlsx',
+                                    chain_list_sheet='chains', 
+                                    connections_sheet='connections', 
+                                    name='pulp-HC',
+                                    scenario='IEAGHG'),
 }
 
 
 com.test_factory_scenarios(factory_dict=factory_dict,
-                        scenario_factories=['pulp-0C'], 
+                        scenario_factories=['pulp-0C', 'pulp-HC'], 
                         scenario_product=False,
                         scenario_unit=False,
                         scenario_io=False,
