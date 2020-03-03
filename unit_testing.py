@@ -42,16 +42,16 @@ pause_between_tests = True
 scenario_list = ['IEAGHG',
                 ]
 unit_list = [
-            'paper_chipping',
-            'paper_pulping',
-            'paper_bleaching',
+            # 'paper_chipping',
+            # 'paper_pulping',
+            # 'paper_bleaching',
             'paper_multifuel',
-            'paper_blackliquor',
-            'paper_caustic',
-            'simple_lime',
-            'simple_WWT',
-            'simple_oxygen',
-            'simple_power',
+            # 'paper_blackliquor',
+            # 'paper_caustic',
+            # 'simple_lime',
+            # 'simple_WWT',
+            # 'simple_oxygen',
+            # 'simple_power',
             ] 
 
 

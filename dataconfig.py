@@ -148,7 +148,7 @@ energy_flows = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV', 'lhv', '
 Usable in flow names. Must be used at the beginning or end of the flow name.
 """
 
-default_emissions = ['CO2']
+default_emissions = ['CO2__fossil', 'CO2__bio', 'CO2']
 """list: emissions that the program automatically checks for factors for.
 """
 

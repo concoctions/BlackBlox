@@ -582,7 +582,7 @@ def Combustion(known_substance, qty, unknown_substance, var,
             if contribution is True:
                 combustion_emissions[f'{emission}{dat.ignore_sep}from {fuel_type}'] = (fuels_df.at[fuel_type, emission.lower()]) * (fuel_qty)
             else:
-                combustion_emissions[f'{emission}{dat.ignore_sep}emitted'] = (fuels_df.at[fuel_type, emission.lower()]) * (fuel_qty)
+                combustion_emissions[f'{emission}'] = (fuels_df.at[fuel_type, emission.lower()]) * (fuel_qty)
     waste_heat = (energy_qty) * (1 - combust_eff)
 
     if type(emissions_dict) == defaultdict:

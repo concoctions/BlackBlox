@@ -85,7 +85,7 @@ com.test_factory_scenarios(factory_dict=clinker_factory_dict,
                         upstream_outflows=['CO2'], 
                         upstream_inflows=['CO2 removed'],
                         downstream_inflows=['CO2 removed'],
-                        aggregate_flows=['CO2', 'CO2 removed', 'CO2 removed__downstream (calcination CO2)', 'CO2__upstream', 'stored CO2'],
+                        aggregate_flows=['CO2', 'CO2__fossil', 'CO2__bio', 'CO2__calcination', 'CO2 removed', 'CO2 removed__downstream (calcination CO2)', 'CO2__upstream', 'stored CO2'],
                         write_to_console=write_to_console, 
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
@@ -134,7 +134,7 @@ com.test_factory_scenarios(factory_dict=BF_factory_dict,
                             upstream_outflows=['CO2'], 
                             upstream_inflows=['CO2 removed'],
                             downstream_inflows=['CO2 removed'],
-                            aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
+                            aggregate_flows=['CO2', 'CO2__fossil', 'CO2__bio', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
                             write_to_console=write_to_console, 
                             write_to_xls=write_to_xls,
                             view_diagrams=view_diagrams,
@@ -154,7 +154,7 @@ com.test_factory_scenarios(factory_dict=DRI_factory_dict,
                             upstream_outflows=['CO2'], 
                             upstream_inflows=['CO2 removed'],
                             downstream_inflows=['CO2 removed'],
-                            aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
+                            aggregate_flows=['CO2', 'CO2__fossil', 'CO2__bio', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
                             write_to_console=write_to_console, 
                             write_to_xls=write_to_xls,
                             view_diagrams=view_diagrams,
@@ -190,7 +190,7 @@ com.test_factory_scenarios(factory_dict=pulp_factory_dict,
                         upstream_outflows=['CO2'], 
                         upstream_inflows=['CO2 removed'],
                         downstream_inflows=['CO2 removed'],
-                        aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
+                        aggregate_flows=['CO2', 'CO2__fossil', 'CO2__bio', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
                         write_to_console=write_to_console, 
                         write_to_xls=write_to_xls,
                         view_diagrams=view_diagrams,
@@ -204,185 +204,185 @@ com.test_factory_scenarios(factory_dict=pulp_factory_dict,
 # ELECTRICITY SENSITIVITY ANALYSIS
 
 
-elec_inflow_dict = iof.nested_dicts(3)
-elec_outflow_dict = iof.nested_dicts(3)
+# elec_inflow_dict = iof.nested_dicts(3)
+# elec_outflow_dict = iof.nested_dicts(3)
 
-# BLAST FURNACE IRON
-ibf_scenarios = ['BBF-0B', 'BBF-HB', 'TGR-0B', 'TGR-HB']
+# # BLAST FURNACE IRON
+# ibf_scenarios = ['BBF-0B', 'BBF-HB', 'TGR-0B', 'TGR-HB']
 
-for i in range(len(ibf_scenarios)):
-    dat.outdir = f'{outdir}/Electricity/{ibf_scenarios[i]}'
-    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=BF_factory_dict,
-                                scenario_factories=['IBF-0C', 'IBF-HC'], 
-                                scenario=ibf_scenarios[i],
-                                chain_name='power', 
-                                unit_name='simple_power', 
-                                variable='fueltype', 
-                                variable_options=['electricity 0g/kWh', 'electricity 200g/kWh', 
-                                                  'electricity 400g/kWh', 'electricity 600g/kWh', 
-                                                  'electricity 800g/kWh', 'electricity 1000g/kWh',],
-                                fixed_vars=[('combustion eff', 1.0)],
-                                scenario_product=False,
-                                scenario_unit=False,
-                                scenario_io=False,
-                                qty=qty, 
-                                upstream_outflows=['CO2',],
-                                upstream_inflows=['CO2 removed',],
-                                aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
-                                write_to_console=write_to_console, 
-                                write_to_xls=write_to_xls,
-                                view_diagrams=view_diagrams,
-                                save_diagrams=save_diagrams,
-                                outdir=f'{outdir}/Electricity/{ibf_scenarios[i]}')
+# for i in range(len(ibf_scenarios)):
+#     dat.outdir = f'{outdir}/Electricity/{ibf_scenarios[i]}'
+#     inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=BF_factory_dict,
+#                                 scenario_factories=['IBF-0C', 'IBF-HC'], 
+#                                 scenario=ibf_scenarios[i],
+#                                 chain_name='power', 
+#                                 unit_name='simple_power', 
+#                                 variable='fueltype', 
+#                                 variable_options=['electricity 0g/kWh', 'electricity 200g/kWh', 
+#                                                   'electricity 400g/kWh', 'electricity 600g/kWh', 
+#                                                   'electricity 800g/kWh', 'electricity 1000g/kWh',],
+#                                 fixed_vars=[('combustion eff', 1.0)],
+#                                 scenario_product=False,
+#                                 scenario_unit=False,
+#                                 scenario_io=False,
+#                                 qty=qty, 
+#                                 upstream_outflows=['CO2',],
+#                                 upstream_inflows=['CO2 removed',],
+#                                 aggregate_flows=['CO2', 'CO2__fossil', 'CO2__bio', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
+#                                 write_to_console=write_to_console, 
+#                                 write_to_xls=write_to_xls,
+#                                 view_diagrams=view_diagrams,
+#                                 save_diagrams=save_diagrams,
+#                                 outdir=f'{outdir}/Electricity/{ibf_scenarios[i]}')
 
-    for flow in inflow_dict:
-        for scen in inflow_dict[flow]:
-            for fact in inflow_dict[flow][scen]:
-                elec_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+#     for flow in inflow_dict:
+#         for scen in inflow_dict[flow]:
+#             for fact in inflow_dict[flow][scen]:
+#                 elec_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
 
-    for flow in outflow_dict:
-        for scen in outflow_dict[flow]:
-            for fact in outflow_dict[flow][scen]:
-                elec_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]
-
-
-# DIRECT REDUCED IRON
-dri_scenarios = ['MID-0B', 'MID-HB',]
-for i in range(len(dri_scenarios)):
-    dat.outdir = f'{outdir}/Electricity/{dri_scenarios[i]}'
-    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
-                                scenario_factories=['DRI-0C', 'DRI-HC'], 
-                                scenario=dri_scenarios[i],
-                                chain_name='power', 
-                                unit_name='simple_power', 
-                                variable='fueltype', 
-                                variable_options=['electricity 0g/kWh', 'electricity 200g/kWh', 
-                                                  'electricity 400g/kWh', 'electricity 600g/kWh', 
-                                                  'electricity 800g/kWh', 'electricity 1000g/kWh',],
-                                fixed_vars=[('combustion eff', 1.0)],
-                                scenario_product=False,
-                                scenario_unit=False,
-                                scenario_io=False,
-                                qty=qty, 
-                                upstream_outflows=['CO2',],
-                                upstream_inflows=['CO2 removed',],
-                                aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
-                                write_to_console=write_to_console, 
-                                write_to_xls=write_to_xls,
-                                view_diagrams=view_diagrams,
-                                save_diagrams=save_diagrams,
-                                outdir=f'{outdir}/Electricity/{dri_scenarios[i]}')
-
-    for flow in inflow_dict:
-            for scen in inflow_dict[flow]:
-                for fact in inflow_dict[flow][scen]:
-                    elec_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
-
-    for flow in outflow_dict:
-        for scen in outflow_dict[flow]:
-            for fact in outflow_dict[flow][scen]:
-                elec_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]    
+#     for flow in outflow_dict:
+#         for scen in outflow_dict[flow]:
+#             for fact in outflow_dict[flow][scen]:
+#                 elec_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]
 
 
-# CLINKER
+# # DIRECT REDUCED IRON
+# dri_scenarios = ['MID-0B', 'MID-HB',]
+# for i in range(len(dri_scenarios)):
+#     dat.outdir = f'{outdir}/Electricity/{dri_scenarios[i]}'
+#     inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
+#                                 scenario_factories=['DRI-0C', 'DRI-HC'], 
+#                                 scenario=dri_scenarios[i],
+#                                 chain_name='power', 
+#                                 unit_name='simple_power', 
+#                                 variable='fueltype', 
+#                                 variable_options=['electricity 0g/kWh', 'electricity 200g/kWh', 
+#                                                   'electricity 400g/kWh', 'electricity 600g/kWh', 
+#                                                   'electricity 800g/kWh', 'electricity 1000g/kWh',],
+#                                 fixed_vars=[('combustion eff', 1.0)],
+#                                 scenario_product=False,
+#                                 scenario_unit=False,
+#                                 scenario_io=False,
+#                                 qty=qty, 
+#                                 upstream_outflows=['CO2',],
+#                                 upstream_inflows=['CO2 removed',],
+#                                 aggregate_flows=['CO2', 'CO2__fossil', 'CO2__bio', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
+#                                 write_to_console=write_to_console, 
+#                                 write_to_xls=write_to_xls,
+#                                 view_diagrams=view_diagrams,
+#                                 save_diagrams=save_diagrams,
+#                                 outdir=f'{outdir}/Electricity/{dri_scenarios[i]}')
 
-clinker_scenarios = ['CLK-0B', 'CLK-HB']
-for i in range(len(clinker_scenarios)):
-    dat.outdir = f'{outdir}/Electricity/{clinker_scenarios[i]}'
-    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=clinker_factory_dict,
-                                scenario_factories=['CLK-0C', 'CLK-HC', 'CLK-CLC'], 
-                                scenario=clinker_scenarios[i],
-                                chain_name='power', 
-                                unit_name='simple_power', 
-                                variable='fueltype', 
-                                variable_options=['electricity 0g/kWh', 'electricity 200g/kWh', 
-                                                  'electricity 400g/kWh', 'electricity 600g/kWh', 
-                                                  'electricity 800g/kWh', 'electricity 1000g/kWh',],
-                                fixed_vars=[('combustion eff', 1.0)],
-                                scenario_product=False,
-                                scenario_unit=False,
-                                scenario_io=False,
-                                qty=qty, 
-                                upstream_outflows=['CO2',],
-                                upstream_inflows=['CO2 removed',],
-                                aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
-                                write_to_console=write_to_console, 
-                                write_to_xls=write_to_xls,
-                                view_diagrams=view_diagrams,
-                                save_diagrams=save_diagrams,
-                                outdir=f'{outdir}/Electricity/{clinker_scenarios[i]}')
+#     for flow in inflow_dict:
+#             for scen in inflow_dict[flow]:
+#                 for fact in inflow_dict[flow][scen]:
+#                     elec_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
 
-    for flow in inflow_dict:
-            for scen in inflow_dict[flow]:
-                for fact in inflow_dict[flow][scen]:
-                    elec_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+#     for flow in outflow_dict:
+#         for scen in outflow_dict[flow]:
+#             for fact in outflow_dict[flow][scen]:
+#                 elec_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]    
 
-    for flow in outflow_dict:
-        for scen in outflow_dict[flow]:
-            for fact in outflow_dict[flow][scen]:
-                elec_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]  
 
-# PULP   
+# # CLINKER
 
-pulp_scenarios = ['PLP-0B', 'PLP-HB']
-for i in range(len(pulp_scenarios)):
-    dat.outdir = f'{outdir}/Electricity/{pulp_scenarios[i]}'
-    inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=pulp_factory_dict,
-                                scenario_factories=['PLP-0C', 'PLP-HC'], 
-                                scenario=pulp_scenarios[i],
-                                chain_name='power', 
-                                unit_name='simple_power', 
-                                variable='fueltype', 
-                                variable_options=['electricity 0g/kWh', 'electricity 200g/kWh', 
-                                                  'electricity 400g/kWh', 'electricity 600g/kWh', 
-                                                  'electricity 800g/kWh', 'electricity 1000g/kWh',],
-                                fixed_vars=[('combustion eff', 1.0)],
-                                scenario_product=False,
-                                scenario_unit=False,
-                                scenario_io=False,
-                                qty=qty, 
-                                upstream_outflows=['CO2',],
-                                upstream_inflows=['CO2 removed',],
-                                aggregate_flows=['CO2', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
-                                write_to_console=write_to_console, 
-                                write_to_xls=write_to_xls,
-                                view_diagrams=view_diagrams,
-                                save_diagrams=save_diagrams,
-                                outdir=f'{outdir}/Electricity/{pulp_scenarios[i]}')
+# clinker_scenarios = ['CLK-0B', 'CLK-HB']
+# for i in range(len(clinker_scenarios)):
+#     dat.outdir = f'{outdir}/Electricity/{clinker_scenarios[i]}'
+#     inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=clinker_factory_dict,
+#                                 scenario_factories=['CLK-0C', 'CLK-HC', 'CLK-CLC'], 
+#                                 scenario=clinker_scenarios[i],
+#                                 chain_name='power', 
+#                                 unit_name='simple_power', 
+#                                 variable='fueltype', 
+#                                 variable_options=['electricity 0g/kWh', 'electricity 200g/kWh', 
+#                                                   'electricity 400g/kWh', 'electricity 600g/kWh', 
+#                                                   'electricity 800g/kWh', 'electricity 1000g/kWh',],
+#                                 fixed_vars=[('combustion eff', 1.0)],
+#                                 scenario_product=False,
+#                                 scenario_unit=False,
+#                                 scenario_io=False,
+#                                 qty=qty, 
+#                                 upstream_outflows=['CO2',],
+#                                 upstream_inflows=['CO2 removed',],
+#                                 aggregate_flows=['CO2', 'CO2__fossil', 'CO2__bio', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
+#                                 write_to_console=write_to_console, 
+#                                 write_to_xls=write_to_xls,
+#                                 view_diagrams=view_diagrams,
+#                                 save_diagrams=save_diagrams,
+#                                 outdir=f'{outdir}/Electricity/{clinker_scenarios[i]}')
 
-    for flow in inflow_dict:
-            for scen in inflow_dict[flow]:
-                for fact in inflow_dict[flow][scen]:
-                    elec_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+#     for flow in inflow_dict:
+#             for scen in inflow_dict[flow]:
+#                 for fact in inflow_dict[flow][scen]:
+#                     elec_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
 
-    for flow in outflow_dict:
-        for scen in outflow_dict[flow]:
-            for fact in outflow_dict[flow][scen]:
-                elec_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]  
+#     for flow in outflow_dict:
+#         for scen in outflow_dict[flow]:
+#             for fact in outflow_dict[flow][scen]:
+#                 elec_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]  
 
-# Aggregated Output File
+# # PULP   
 
-meta_df = iof.metadata_df(user=dat.user_data, 
-                            name=f"simple_power fueltype sens", 
-                            level="Factory", 
-                            scenario='multi', 
-                            product='default',
-                            product_qty=qty, 
-                            energy_flows=dat.energy_flows)
-elec_dfs = [meta_df]
-elec_sheets = ["meta"]
+# pulp_scenarios = ['PLP-0B', 'PLP-HB']
+# for i in range(len(pulp_scenarios)):
+#     dat.outdir = f'{outdir}/Electricity/{pulp_scenarios[i]}'
+#     inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=pulp_factory_dict,
+#                                 scenario_factories=['PLP-0C', 'PLP-HC'], 
+#                                 scenario=pulp_scenarios[i],
+#                                 chain_name='power', 
+#                                 unit_name='simple_power', 
+#                                 variable='fueltype', 
+#                                 variable_options=['electricity 0g/kWh', 'electricity 200g/kWh', 
+#                                                   'electricity 400g/kWh', 'electricity 600g/kWh', 
+#                                                   'electricity 800g/kWh', 'electricity 1000g/kWh',],
+#                                 fixed_vars=[('combustion eff', 1.0)],
+#                                 scenario_product=False,
+#                                 scenario_unit=False,
+#                                 scenario_io=False,
+#                                 qty=qty, 
+#                                 upstream_outflows=['CO2',],
+#                                 upstream_inflows=['CO2 removed',],
+#                                 aggregate_flows=['CO2', 'CO2__fossil', 'CO2__bio', 'CO2 removed', 'CO2__upstream', 'stored CO2'],
+#                                 write_to_console=write_to_console, 
+#                                 write_to_xls=write_to_xls,
+#                                 view_diagrams=view_diagrams,
+#                                 save_diagrams=save_diagrams,
+#                                 outdir=f'{outdir}/Electricity/{pulp_scenarios[i]}')
 
-for flow in elec_inflow_dict:
-    df = iof.make_df(elec_inflow_dict[flow])
-    elec_dfs.append(df)
-    elec_sheets.append(f"IN {flow}")
+#     for flow in inflow_dict:
+#             for scen in inflow_dict[flow]:
+#                 for fact in inflow_dict[flow][scen]:
+#                     elec_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
 
-for flow in elec_outflow_dict:
-    df = iof.make_df(elec_outflow_dict[flow])
-    elec_dfs.append(df)
-    elec_sheets.append(f"OUT {flow}")
+#     for flow in outflow_dict:
+#         for scen in outflow_dict[flow]:
+#             for fact in outflow_dict[flow][scen]:
+#                 elec_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]  
 
-iof.write_to_excel(df_or_df_list=elec_dfs,
-                    sheet_list=elec_sheets, 
-                    filedir=f"{outdir}/Electricity", 
-                    filename=f'Electricity_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+# # Aggregated Output File
+
+# meta_df = iof.metadata_df(user=dat.user_data, 
+#                             name=f"simple_power fueltype sens", 
+#                             level="Factory", 
+#                             scenario='multi', 
+#                             product='default',
+#                             product_qty=qty, 
+#                             energy_flows=dat.energy_flows)
+# elec_dfs = [meta_df]
+# elec_sheets = ["meta"]
+
+# for flow in elec_inflow_dict:
+#     df = iof.make_df(elec_inflow_dict[flow])
+#     elec_dfs.append(df)
+#     elec_sheets.append(f"IN {flow}")
+
+# for flow in elec_outflow_dict:
+#     df = iof.make_df(elec_outflow_dict[flow])
+#     elec_dfs.append(df)
+#     elec_sheets.append(f"OUT {flow}")
+
+# iof.write_to_excel(df_or_df_list=elec_dfs,
+#                     sheet_list=elec_sheets, 
+#                     filedir=f"{outdir}/Electricity", 
+#                     filename=f'Electricity_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
