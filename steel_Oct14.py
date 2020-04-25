@@ -64,6 +64,8 @@ biomass_co2 = True
 syngas = True
 alloy = True
 carbon_debt = True
+CO2_transport = True
+boiler_eff = True
 
 
 ###############################################################################
@@ -768,4 +770,205 @@ if carbon_debt is True:
                         sheet_list=ghg_sheets, 
                         filedir=f"{outdir}/sensitivity", 
                         filename=f'bioghg_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+
+
+
+if CO2_transport is True:
+    ghg_inflow_dict = iof.nested_dicts(3)
+    ghg_outflow_dict = iof.nested_dicts(3)
+
+    ibf_subdirs = ['No Biomass/BBF', 'No Biomass/TGR', 'No Biomass/HIS', 'High Biomass/BBF', 'High Biomass/TGR', 'High Biomass/HIS']
+    ibf_CO2transport_scenarios = ['BBF-0B', 'TGR-0B', 'HIS-0B', 'BBF-HB', 'TGR-HB', 'HIS-HB']
+
+    for i in range(len(ibf_CO2transport_scenarios)):
+        dat.outdir = f'{outdir}/sensitivity/CO2transport/{ibf_subdirs[i]}'
+        inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=BF_factory_dict,
+                                    scenario_factories=['IBC-LC', 'IBC-HC'], 
+                                    scenario=ibf_CO2transport_scenarios[i],
+                                    chain_name='CO2 Storage', 
+                                    unit_name='simple_CO2storage', 
+                                    variable='Onshore Distance', 
+                                    variable_options=[100, 500, 1000, 2000],
+                                    scenario_product=False,
+                                    scenario_unit=False,
+                                    scenario_io=False,
+                                    qty=qty, 
+                                    upstream_outflows=['CO2', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4'],
+                                    upstream_inflows=['CO2 removed', 'factory CO2 removed',],
+                                    aggregate_flows=['CO2', 'CO2__upstream', 'CO2 removed', 'stored CO2', 'debt CO2', 'factory CO2', 'CH4 (CO2eq)', 'factory CH4', 'factory CO2 removed', 'CO2 removed__upstream (dry'],
+                                    write_to_console=write_to_console, 
+                                    write_to_xls=write_to_xls,
+                                    view_diagrams=view_diagrams,
+                                    save_diagrams=save_diagrams,
+                                    outdir=f'{outdir}/sensitivity/CO2transport/{ibf_subdirs[i]}')
+
+        for flow in inflow_dict:
+                for scen in inflow_dict[flow]:
+                    for fact in inflow_dict[flow][scen]:
+                        ghg_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+
+        for flow in outflow_dict:
+            for scen in outflow_dict[flow]:
+                for fact in outflow_dict[flow][scen]:
+                    ghg_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]      
+
+
+    dri_subdirs = ['No Biomass/MID', 'No Biomass/ULC', 'High Biomass/MID', 'High Biomass/ULC']
+    dri_CO2transport_scenarios = ['MID-0B', 'ULC-0B', 'MID-HB', 'ULC-HB']
+    for i in range(len(dri_CO2transport_scenarios)):
+        dat.outdir = f'{outdir}/sensitivity/CO2transport/{dri_subdirs[i]}'
+        inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
+                                    scenario_factories=['DRI-LC', 'DRI-HC'], 
+                                    scenario=dri_CO2transport_scenarios[i],
+                                    chain_name='CO2 Storage', 
+                                    unit_name='simple_CO2storage', 
+                                    variable='Onshore Distance', 
+                                    variable_options=[100, 500, 1000, 2000],
+                                    scenario_product=False,
+                                    scenario_unit=False,
+                                    scenario_io=False,
+                                    qty=qty, 
+                                    upstream_outflows=['CO2', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4'],
+                                    upstream_inflows=['CO2 removed', 'factory CO2 removed',],
+                                    aggregate_flows=['CO2', 'CO2__upstream', 'CO2 removed', 'stored CO2', 'debt CO2', 'factory CO2', 'CH4 (CO2eq)', 'factory CH4', 'factory CO2 removed', 'CO2 removed__upstream (dry'],
+                                    write_to_console=write_to_console, 
+                                    write_to_xls=write_to_xls,
+                                    view_diagrams=view_diagrams,
+                                    save_diagrams=save_diagrams,
+                                    outdir=f'{outdir}/sensitivity/CO2transport/{dri_subdirs[i]}')
+
+        for flow in inflow_dict:
+                for scen in inflow_dict[flow]:
+                    for fact in inflow_dict[flow][scen]:
+                        ghg_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+
+        for flow in outflow_dict:
+            for scen in outflow_dict[flow]:
+                for fact in outflow_dict[flow][scen]:
+                    ghg_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]      
+
+    meta_df = iof.metadata_df(user=dat.user_data, 
+                                name=f"CO2 transport distance", 
+                                level="Factory", 
+                                scenario='multi', 
+                                product='default',
+                                product_qty=qty, 
+                                energy_flows=dat.energy_flows)
+    ghg_dfs = [meta_df]
+    ghg_sheets = ["meta"]
+
+    for flow in ghg_inflow_dict:
+        df = iof.make_df(ghg_inflow_dict[flow])
+        ghg_dfs.append(df)
+        ghg_sheets.append(f"IN {flow}")
+
+    for flow in ghg_outflow_dict:
+        df = iof.make_df(ghg_outflow_dict[flow])
+        ghg_dfs.append(df)
+        ghg_sheets.append(f"OUT {flow}")
+
+    iof.write_to_excel(df_or_df_list=ghg_dfs,
+                        sheet_list=ghg_sheets, 
+                        filedir=f"{outdir}/sensitivity", 
+                        filename=f'CO2transport_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+
+
+if boiler_eff is True:
+    ghg_inflow_dict = iof.nested_dicts(3)
+    ghg_outflow_dict = iof.nested_dicts(3)
+
+    ibf_subdirs = ['No Biomass/BBF', 'No Biomass/TGR', 'No Biomass/HIS', 'High Biomass/BBF', 'High Biomass/TGR', 'High Biomass/HIS']
+    ibf_boiler_scenarios = ['BBF-0B', 'TGR-0B', 'HIS-0B', 'BBF-HB', 'TGR-HB', 'HIS-HB']
+
+    for i in range(len(ibf_boiler_scenarios)):
+        dat.outdir = f'{outdir}/sensitivity/boiler/{ibf_subdirs[i]}'
+        inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=BF_factory_dict,
+                                    scenario_factories=['IBC-LC', 'IBC-HC'], 
+                                    scenario=ibf_CO2transport_scenarios[i],
+                                    chain_name='heat', 
+                                    unit_name='simple_heat', 
+                                    variable='combustion eff', 
+                                    variable_options=[0.6, 0.7, 0.8, 0.9],
+                                    scenario_product=False,
+                                    scenario_unit=False,
+                                    scenario_io=False,
+                                    qty=qty, 
+                                    upstream_outflows=['CO2', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4'],
+                                    upstream_inflows=['CO2 removed', 'factory CO2 removed',],
+                                    aggregate_flows=['CO2', 'CO2__upstream', 'CO2 removed', 'stored CO2', 'debt CO2', 'factory CO2', 'CH4 (CO2eq)', 'factory CH4', 'factory CO2 removed', 'CO2 removed__upstream (dry'],
+                                    write_to_console=write_to_console, 
+                                    write_to_xls=write_to_xls,
+                                    view_diagrams=view_diagrams,
+                                    save_diagrams=save_diagrams,
+                                    outdir=f'{outdir}/sensitivity/boiler/{ibf_subdirs[i]}')
+
+        for flow in inflow_dict:
+                for scen in inflow_dict[flow]:
+                    for fact in inflow_dict[flow][scen]:
+                        ghg_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+
+        for flow in outflow_dict:
+            for scen in outflow_dict[flow]:
+                for fact in outflow_dict[flow][scen]:
+                    ghg_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]      
+
+
+    dri_subdirs = ['No Biomass/MID', 'No Biomass/ULC', 'High Biomass/MID', 'High Biomass/ULC']
+    dri_boiler_scenarios = ['MID-0B', 'ULC-0B', 'MID-HB', 'ULC-HB']
+    for i in range(len(dri_boiler_scenarios)):
+        dat.outdir = f'{outdir}/sensitivity/boiler/{dri_subdirs[i]}'
+        inflow_dict, outflow_dict = com.test_factory_sensitivity(factory_dict=DRI_factory_dict,
+                                    scenario_factories=['DRI-LC', 'DRI-HC'], 
+                                    scenario=dri_boiler_scenarios[i],
+                                    chain_name='heat', 
+                                    unit_name='simple_heat', 
+                                    variable='combustion eff', 
+                                    variable_options=[0.6, 0.7, 0.8, 0.9],
+                                    scenario_product=False,
+                                    scenario_unit=False,
+                                    scenario_io=False,
+                                    qty=qty, 
+                                    upstream_outflows=['CO2', 'CH4 (CO2eq)', 'factory CO2', 'factory CH4'],
+                                    upstream_inflows=['CO2 removed', 'factory CO2 removed',],
+                                    aggregate_flows=['CO2', 'CO2__upstream', 'CO2 removed', 'stored CO2', 'debt CO2', 'factory CO2', 'CH4 (CO2eq)', 'factory CH4', 'factory CO2 removed', 'CO2 removed__upstream (dry'],
+                                    write_to_console=write_to_console, 
+                                    write_to_xls=write_to_xls,
+                                    view_diagrams=view_diagrams,
+                                    save_diagrams=save_diagrams,
+                                    outdir=f'{outdir}/sensitivity/boiler/{dri_subdirs[i]}')
+
+        for flow in inflow_dict:
+                for scen in inflow_dict[flow]:
+                    for fact in inflow_dict[flow][scen]:
+                        ghg_inflow_dict[flow][scen][fact] = inflow_dict[flow][scen][fact]
+
+        for flow in outflow_dict:
+            for scen in outflow_dict[flow]:
+                for fact in outflow_dict[flow][scen]:
+                    ghg_outflow_dict[flow][scen][fact] = outflow_dict[flow][scen][fact]      
+
+    meta_df = iof.metadata_df(user=dat.user_data, 
+                                name=f"steam boiler efficiency", 
+                                level="Factory", 
+                                scenario='multi', 
+                                product='default',
+                                product_qty=qty, 
+                                energy_flows=dat.energy_flows)
+    ghg_dfs = [meta_df]
+    ghg_sheets = ["meta"]
+
+    for flow in ghg_inflow_dict:
+        df = iof.make_df(ghg_inflow_dict[flow])
+        ghg_dfs.append(df)
+        ghg_sheets.append(f"IN {flow}")
+
+    for flow in ghg_outflow_dict:
+        df = iof.make_df(ghg_outflow_dict[flow])
+        ghg_dfs.append(df)
+        ghg_sheets.append(f"OUT {flow}")
+
+    iof.write_to_excel(df_or_df_list=ghg_dfs,
+                        sheet_list=ghg_sheets, 
+                        filedir=f"{outdir}/sensitivity", 
+                        filename=f'boiler_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 

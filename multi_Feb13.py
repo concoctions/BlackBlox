@@ -106,7 +106,7 @@ BF_factory_dict = {
                 'IBF-HC': dict(chain_list_file="data/steel/factories/iron_IBF_factory-HC.xlsx",
                                         chain_list_sheet='chains', 
                                         connections_sheet='connections', 
-                                        name="BF-BOF-HC",
+                                        name="BF-HC",
                                         scenario='BBF-0B'),
 }
 
@@ -114,12 +114,12 @@ DRI_factory_dict = {
                 'DRI-0C': dict(chain_list_file="data/steel/factories/iron_DRI_factory-0C.xlsx",
                                         chain_list_sheet='chains', 
                                         connections_sheet='connections', 
-                                        name="DRI-EAF-0C",
+                                        name="DRI-0C",
                                         scenario='MID-0B'),
                 'DRI-HC': dict(chain_list_file="data/steel/factories/iron_DRI_factory-HC.xlsx",
                                         chain_list_sheet='chains', 
                                         connections_sheet='connections', 
-                                        name="DRI-EAF-HC",
+                                        name="DRI-HC",
                                         scenario='MID-0B'),
 }
 
