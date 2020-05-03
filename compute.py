@@ -353,16 +353,16 @@ def test_factory_sensitivity(factory_dict,
     outflow_dict = iof.nested_dicts(3)
     for f in sensitivity_dict:
         for scen in sensitivity_dict[f]['i']:
-            scen_short = scen.lstrip(f"{scenario}_")
-            scen_short = scen_short.lstrip(f"{unit_name}-")
-            scen_short = scen_short.lstrip(f"{variable}_")
+            scen_short = scen.strip(f"{scenario}_")
+            scen_short = scen_short.strip(f"{unit_name}-")
+            scen_short = scen_short.strip(f"{variable}_")
             for flow in sensitivity_dict[f]['i'][scen]:
                 inflow_dict[flow][scen_short][f] = sensitivity_dict[f]['i'][scen][flow]
 
         for scen in sensitivity_dict[f]['o']:
-            scen_short = scen.lstrip(f"{scenario}_")
-            scen_short = scen_short.lstrip(f"{unit_name}-")
-            scen_short = scen_short.lstrip(f"{variable}_")
+            scen_short = scen.strip(f"{scenario}_")
+            scen_short = scen_short.strip(f"{unit_name}-")
+            scen_short = scen_short.strip(f"{variable}_")
             for flow in sensitivity_dict[f]['o'][scen]:
                 outflow_dict[flow][scen_short][f] = sensitivity_dict[f]['o'][scen][flow]
 
