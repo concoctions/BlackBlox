@@ -1160,7 +1160,7 @@ class Factory:
         iof.write_to_excel(df_or_df_list=dfs,
                             sheet_list=sheets, 
                             filedir=outdir, 
-                            filename=f'{self.name}_sens_{datetime.now().strftime("%X")}')
+                            filename=f'{self.name}_sens_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 
         original_var_df_copy=original_var_df.copy()
         unit.var_df = original_var_df_copy
