@@ -15,14 +15,11 @@ from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 from datetime import datetime
 
-FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s")
 Path("logs").mkdir(parents=True, exist_ok=True) 
+
+FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s")
 LOG_FILE = Path("logs/BlackBlox.log")
 
-# def get_console_handler():
-#    console_handler = logging.StreamHandler(sys.stdout)
-#    console_handler.setFormatter(FORMATTER)
-#    return console_handler
 
 def get_file_handler():
    """Chooses a file handler based on the operating system of the user
