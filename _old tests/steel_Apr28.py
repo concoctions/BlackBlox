@@ -66,6 +66,7 @@ alloy = True
 carbon_debt = True
 CO2_transport = True
 boiler_eff = True
+DRI_biofuel = True
 
 
 ###############################################################################
@@ -788,7 +789,7 @@ if CO2_transport is True:
                                     chain_name='CO2 Storage', 
                                     unit_name='simple_CO2storage', 
                                     variable='Onshore Distance', 
-                                    variable_options=[100, 500, 1000, 2000],
+                                    variable_options=[0, 250, 500, 750, 1000],
                                     scenario_product=False,
                                     scenario_unit=False,
                                     scenario_io=False,
@@ -823,7 +824,7 @@ if CO2_transport is True:
                                     chain_name='CO2 Storage', 
                                     unit_name='simple_CO2storage', 
                                     variable='Onshore Distance', 
-                                    variable_options=[100, 500, 1000, 2000],
+                                    variable_options=[0, 250, 500, 750, 1000],
                                     scenario_product=False,
                                     scenario_unit=False,
                                     scenario_io=False,
@@ -888,7 +889,7 @@ if boiler_eff is True:
                                     chain_name='heat', 
                                     unit_name='simple_heat', 
                                     variable='combustion eff', 
-                                    variable_options=[0.6, 0.7, 0.8, 0.9],
+                                    variable_options=[0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9],
                                     scenario_product=False,
                                     scenario_unit=False,
                                     scenario_io=False,
@@ -923,7 +924,7 @@ if boiler_eff is True:
                                     chain_name='heat', 
                                     unit_name='simple_heat', 
                                     variable='combustion eff', 
-                                    variable_options=[0.6, 0.7, 0.8, 0.9],
+                                    variable_options=[0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9],
                                     scenario_product=False,
                                     scenario_unit=False,
                                     scenario_io=False,
@@ -971,4 +972,3 @@ if boiler_eff is True:
                         sheet_list=ghg_sheets, 
                         filedir=f"{outdir}/sensitivity", 
                         filename=f'boiler_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
-
