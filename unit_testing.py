@@ -39,7 +39,7 @@ pause_between_tests = True
 # UNIT PROCESSES
 #-------------------------------------------------------------------------------
 
-scenario_list = ['IEAGHG',
+scenario_list = ['PLP-0B',
                 ]
 unit_list = [
             # 'paper_chipping',
