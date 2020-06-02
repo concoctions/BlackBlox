@@ -44,6 +44,7 @@ logger = get_logger("IO")
 
 # INPUT DATA VALIDATORS AND CLENAERS
 
+
 def clean_str(string_to_check, str_to_cut=False, lower=True, remove_dblnewline=True,
                 cut_whole_line_only=False):
     """Multipurpose function to clean user input strings
@@ -168,6 +169,14 @@ def is_energy(string, energy_strings=dat.energy_flows):
     return is_it_energy
 
 
+def no_suf(str, separator=dat.ignore_sep):
+    """Returns string before separator
+    Ignores unique-identifier suffixes, e.g. so substance name can be
+    used for molmassratio calculations or in lookup tables.
+    """
+    return str.split(separator)[0]
+
+
 # DATA FRAME CONSTRUCTORS 
 
 def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta", 
@@ -228,7 +237,6 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
         if index is not None:
             df = df[~df.index.str.startswith(metaprefix)]
         cols = [col for col in list(df) if not col.startswith(metaprefix)]
-        logger.debug(f"IOF make dataframe - cols: {cols}")
         logger.debug(f"if you get an error here, check that the unit name is correct and exists in the unit library")
         df = df[cols]
 
@@ -253,9 +261,10 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
 
     if fillna is True:
         df = df.fillna(0)
-        logger.debug(f"Are there any remaining null values: {df.isnull().values.any()}")
+        if df.isnull().values.any() is True:
+            logger.warning(f"Remaining null values: {df.isnull}")
 
-    logger.debug(f"DataFrame created ewith columns {df.columns}")
+    logger.debug(f"DataFrame created with columns: {df.columns}")
 
     return df
 
