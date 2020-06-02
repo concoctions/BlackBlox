@@ -36,6 +36,11 @@ user_data = {"name": "Mysterious Stranger",
              "project": "Mysterious Project",
 }
 
+# FlOAT TOLERANCE
+float_tol = 5
+"""The number of decimal places after which (floating point) differences should be ignored.
+"""
+
 
 # DEFAULT FILEPATHS 
 unit_process_library_file = "data/unitlibrary.xlsx" 
@@ -148,7 +153,7 @@ energy_flows = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV', 'lhv', '
 Usable in flow names. Must be used at the beginning or end of the flow name.
 """
 
-default_emissions = ['CO2__fossil', 'CO2__bio', 'CO2']
+default_emissions = ['CO2__fossil', 'CO2__bio', 'H2O']
 """list: emissions that the program automatically checks for factors for.
 """
 
