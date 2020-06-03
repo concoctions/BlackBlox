@@ -464,12 +464,14 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
         fuel_qty = (qty)
         energy_qty = qty * (fuels_df.at[fuel_type, HV.lower()]) # total energy in fuel
         return_qty = energy_qty * combust_eff # useful energy after combustion
+        logger.debug(f"energy qty ({fuel_type}) calculated at {energy_qty}, of which {return_qty} useful (Eff: {combust_eff}")
 
     else:
         fuel_type = iof.no_suf(unknown_substance)
         energy_qty = (qty) * ((1/combust_eff)) # total energy in fuel
         fuel_qty = div_no_zero(energy_qty, fuels_df.at[fuel_type, HV.lower()])
         return_qty = fuel_qty
+        logger.debug(f"fuel qty ({fuel_type}) calculated at {return_qty}")
 
     combustion_emissions = dict()
     for emission in emissions_list:
@@ -477,20 +479,26 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
             combustion_emissions[f'{emission}'] = (fuels_df.at[fuel_type, emission.lower()]) * (fuel_qty)
         else:
             logger.warning(f'{emission} not found for {fuel_type}.')
-    combustion_emissions['waste_heat'] = (energy_qty) * (1 - combust_eff)
 
     if type(emissions_dict) == defaultdict:
+        if type(inflows_dict) == defaultdict: #only writes balancing inflow O2 and energy if emissions and waste heat will be added to emission dict.
+            inflows_dict[f'O2{dat.ignore_sep}combustion'] += sum(combustion_emissions.values()) - fuel_qty # closes mass balance
+            logger.debug(f"{sum(combustion_emissions.values()) - fuel_qty} of O2 added to inflow dict")
+            if write_energy_in is True:
+                inflows_dict[f'energy in combusted {fuel_type}'] = energy_qty
+                logger.debug(f"{energy_qty} of inflow energy added to inflow dict")
+
+        combustion_emissions['waste_heat'] = (energy_qty) * (1 - combust_eff) 
         for emission in combustion_emissions:
             emissions_dict[emission] += combustion_emissions[emission]
 
-        if type(inflows_dict) == defaultdict: #only writes balancing inflow O2 and energy if emissions and waste heat were aded to emission dict.
-            inflows_dict[f'O2{dat.ignore_sep}combustion'] += sum(combustion_emissions.values()) - fuel_qty # closes mass balance
-            if write_energy_in is True:
-                inflows_dict[f'energy in combusted {fuel_type}'] = energy_qty
+        
+
+        
 
     logger.debug("Emission Data Calculated:")
     for emission in combustion_emissions:
-        logger.debug(f"{emission}: {combustion_emissions[emission]}")
+        logger.debug(f"{emission}: {combustion_emissions[emission]}") 
 
     return return_qty
 
