@@ -233,188 +233,56 @@ class UnitProcess:
             Defaultdict of outflows with substance names as keys and quantities as values.
         """
 
-        if i_o is False:
-            i_o = self.default_io
-            if i_o is None:
-                raise Exception('Please specify whether the product is an inflow, outflow, or temporary flow')
-        i_o = iof.clean_str(i_o[0])
-        if i_o not in ['i', 'o', 't']:
-            raise Exception(f'{self.name.upper()}: {i_o} not valid product destination')
-                
-        if product is False:
-            product = self.default_product
-            if product is None:
-                raise Exception('Please specify product to balance')
-        if product not in self.inflows and product not in self.outflows:
-            raise Exception(f'{self.name.upper()}: {product} not found in inflows or outflows')
-        if product in lookup_var_dict: # get product name from var_df, at variable specified in lookup_var_dict
-            lookup_product_key = product 
-            product = self.var_df.at[scenario, lookup_var_dict[product]['lookup_var']]  
-        else:
-            lookup_product_key = False
-
+        i_o = self.check_io(i_o)
+        
         if scenario not in self.var_df.index.values:
             raise Exception(f'{self.name.upper()}: {scenario} not found in variables file')
 
-        calc_df = self.calc_df
-        logger.debug(f"{self.name.upper()}: Attempting to balance on {qty} of {product} (different name from origin: {product_alt_name}) ({i_o}) using {scenario} variables")
-
-        io_dicts = {
-            'i' : defaultdict(float),    # inflows dictionary
-            'o' : defaultdict(float),    # outflows dictionary
-            't' : defaultdict(float),    # temp dictionay (intermediate values - discarded)
-            'e' : defaultdict(float),    # emissions dictionary (values added to outflows after all calculations)
-            'c' : defaultdict(float),    # co-inflows dictionary (values added to inflows after all calculations)
-        }
-
-        # primes inflow or outflow dictionary with product quantity
-        if product_alt_name is not False: 
-            io_dicts[i_o][product_alt_name] = qty 
-            logger.debug(f"{self.name.upper()}: {qty} of {product_alt_name} added to {i_o} dict, in place of {product}")
+        product = self.check_product(product)
+        if product in lookup_var_dict: 
+            lookup_product_key = product 
+            product = self.var_df.at[scenario, lookup_var_dict[product]['lookup_var']]  # get product name from var_df, at variable specified in lookup_var_dict
         else:
-            io_dicts[i_o][product] = qty 
-            logger.debug(f"{self.name.upper()}: {qty} of {product} added to {i_o} dict")
+            lookup_product_key = False
+
+        io_dicts = self.make_io_dicts(product, qty, i_o, product_alt_name)
+
+        calc_df = self.calc_df
+        logger.info(f"{self.name.upper()}: Attempting to balance on {qty} of {product} (different name from origin: {product_alt_name}) ({i_o}) using {scenario} variables")
 
         i = 0
         attempt = 0
 
-        while len(calc_df) > 0:     
-            if i >= len(calc_df):
-                i = 0   # if at end of list, loop around
-
-            # removes blank rows; possibly doesn't work
-            if type(calc_df.at[i, dat.known]) is not str or calc_df.at[i, dat.known] in dat.no_var:
-                calc_df = calc_df.drop(i)
-                calc_df = calc_df.reset_index(drop=True)
-                attempt = 0
-                logger.debug(f"{self.name.upper()}: known substance is not a string. Dropping this row")
-                continue
-
-            known_substance = calc_df.at[i, dat.known]
-            known_io =iof.clean_str(calc_df.at[i, dat.known_io][0])
+        while len(calc_df) > 0:
+            i = self.check_attempt(i, attempt, calc_df)     
+    
+            # get flow names and locations
+            logger.debug("if you get an error here, verify value types the var file (e.g. string, float") #I don't remember exactly how this applies
+            known_substance, known_proxy, known_lookup = self.check_substance(calc_df.at[i, dat.known], scenario, product, product_alt_name, lookup_product_key)
+            unknown_substance, unknown_proxy, unknown_lookup = self.check_substance(calc_df.at[i, dat.unknown], scenario, product, product_alt_name, lookup_product_key)
+            known_io = iof.clean_str(calc_df.at[i, dat.known_io][0])
             unknown_io = iof.clean_str(calc_df.at[i, dat.unknown_io][0]) 
-            unknown_substance = calc_df.at[i, dat.unknown]
 
-            known_substance2 = None
-            known_qty2 = None
-            known2_proxy = None
-            lookup_df = None
-
+            lookup_df = self.check_lookup(known_lookup, unknown_lookup)
+                
             calc_type = iof.clean_str(calc_df.at[i, dat.calc_type])
-            invert = False
+            skip, invert, known2_qty, known2_proxy = self.check_calc(i, calc_type, calc_df, scenario, known_substance, known_io, unknown_substance, unknown_io, io_dicts)
 
-            var = None
-            raw_var = calc_df.at[i, dat.calc_var]
-            if isinstance(raw_var, str) and iof.clean_str(raw_var) not in dat.no_var:
-                if calc_type in calc.lookup_var_calc_list:          # for lookup calculations the var specifies the column of the lookup df
-                    var = iof.clean_str(raw_var, lower=False)       # which is given as the var in the calc df
-                else:                                               # otherwise looks up the variable in the var df
-                    var = self.var_df.at[scenario, iof.clean_str(raw_var)] # from the relevant scenario
-
-            
             logger.debug(f"{self.name.upper()}: current index: {i}, current product: {known_substance}")
-            if attempt >= len(calc_df): 
-                print(io_dicts)
-                raise Exception(f"{self.name.upper()}: Cannot process {known_substance} ({known_io}-flow), when trying to calculate {unknown_substance} ({unknown_io}-flow) via {calc_type}. Breaking to prevent infinite loop. Try checking flow location and remember that substance names are case sensitive.")
             
-            # replaces product name with product_alt_name if and where applicable
-            if product_alt_name is not False:
-                if known_substance == product:
-                    known_substance = product_alt_name #name at origin
-                    logger.debug(f"{self.name.upper()}: {product_alt_name} substitued for {product} as known substance")
-                elif lookup_product_key is not False:
-                    if known_substance == lookup_product_key:
-                        known_substance = product_alt_name #name at origin
-                        logger.debug(f"{self.name.upper()}: {product_alt_name} substitued for {product} as known substance")
-                if unknown_substance == product:
-                    unknown_substance = product_alt_name #name at origin
-                    logger.debug(f"{self.name.upper()}: {product_alt_name} substitued for {product} as unknown substance")
-                elif lookup_product_key is not False:
-                    if unknown_substance == lookup_product_key:
-                        unknown_substance = product_alt_name #name at origin
-                        logger.debug(f"{self.name.upper()}: {product_alt_name} substitued for {product} as unknown substance")
-
-            # sets lookup_df for any lookup ratio calculations
-            if known_substance in lookup_var_dict:
-                if 'data_frame' in lookup_var_dict[known_substance]:
-                    lookup_df = lookup_var_dict[known_substance]['data_frame']
-                known_substance = self.var_df.at[scenario, lookup_var_dict[known_substance]['lookup_var']]
-            if unknown_substance in lookup_var_dict:
-                if lookup_df is not None and 'data_frame' in lookup_var_dict[unknown_substance]:
-                    print(f"[!] POSSIBLE ERROR [!] in ({self.name} unit process):\nBoth {known_substance} (known) and {unknown_substance} (unknown) are from lookup dicts. Only one lookup dict can be used for lookup-ratios. Defaulting to that of known substance.")
-                else:
-                    if 'data_frame' in lookup_var_dict[unknown_substance]:
-                        lookup_df = lookup_var_dict[unknown_substance]['data_frame']
-                unknown_substance = self.var_df.at[scenario, lookup_var_dict[unknown_substance]['lookup_var']]
-
-            #ignores unique-identifier suffixes to allows for multiple flows of the same substance
-            logger.debug("if you get an error here, check in the var file that you don't have a number where you should have a string") #I don't remember exactly how this applies
-            if dat.ignore_sep in known_substance:
-                if known_substance.split(dat.ignore_sep)[0] in lookup_var_dict:
-                    lookup_df = lookup_var_dict[known_substance.split(dat.ignore_sep)[0]]['data_frame']
-                    known_proxy = self.var_df.at[scenario, lookup_var_dict[known_substance.split(dat.ignore_sep)[0]]['lookup_var']]
-                    known_substance = known_proxy + dat.ignore_sep + known_substance.split(dat.ignore_sep)[1]
-                else:
-                    known_proxy = known_substance.split(dat.ignore_sep)[0]
-                logger.debug(f"{self.name.upper()}: {dat.ignore_sep} separator found in {known_substance}. Using {known_proxy} for calculations.")
-            else:
-                known_proxy = known_substance
-            if dat.ignore_sep in unknown_substance:    
-                if unknown_substance.split(dat.ignore_sep)[0] in lookup_var_dict:
-                    lookup_df = lookup_var_dict[unknown_substance.split(dat.ignore_sep)[0]]['data_frame']                    
-                    unknown_proxy = self.var_df.at[scenario, lookup_var_dict[unknown_substance.split(dat.ignore_sep)[0]]['lookup_var']]
-                    unknown_substance = unknown_proxy + dat.ignore_sep + unknown_substance.split(dat.ignore_sep)[1]
-                else:
-                    unknown_proxy = unknown_substance.split(dat.ignore_sep)[0]  
-                logger.debug(f"{self.name.upper()}: {dat.ignore_sep} separator found in {unknown_substance}. Using {unknown_proxy} for calculations.")          
-            else:
-                unknown_proxy = unknown_substance
-
-            # checks if calculation inversion is necessary
-            if known_substance in io_dicts[known_io]:
-                pass
-            elif unknown_io not in ['c', 'e'] and unknown_substance in io_dicts[unknown_io]:
-                invert = True
-                known_substance, unknown_substance = unknown_substance, known_substance
-                known_io, unknown_io = unknown_io, known_io
-                known_proxy, unknown_proxy = unknown_proxy, known_proxy
-                logger.debug(f"{self.name.upper()}: {known_substance} not found, but {unknown_substance} found. Inverting calculations")
-            else:
+            var = self.check_var(calc_df.at[i, dat.calc_var], calc_type, scenario)
+            
+            if skip is True:
                 i += 1
                 attempt += 1
                 logger.debug(f"{self.name.upper()}: neither {known_substance} nor {unknown_substance} found, skipping for now")
                 continue
-            
-            if calc_type not in calc.calcs_dict:
-                raise Exception(f"{self.name.upper()}: {calc_type} is an unknown calculation type")
-            if unknown_io not in io_dicts and unknown_io != 'd': #'d' can be used for discarded substances
-                raise Exception(f"{self.name.upper()}: {unknown_io} is an unknown destination")
 
-            # if the calculation requires two known quantities, make sure both exist
-            if calc_type in calc.twoQty_calc_list:
-                known_substance2 = calc_df.at[i, dat.known2]
-                k2_io = iof.clean_str(calc_df.at[i, dat.known2_io][0])
-
-                if known_substance2 in lookup_var_dict:
-                    known_substance2 = self.var_df.at[scenario, lookup_var_dict[known_substance2]['lookup_var']] 
-
-                if dat.ignore_sep in known_substance2:    
-                    if known_substance2.split(dat.ignore_sep)[0] in lookup_var_dict:
-                        known2_proxy = self.var_df.at[scenario, lookup_var_dict[known_substance2.split(dat.ignore_sep)[0]]['lookup_var']]
-                        known_substance2 = known2_proxy + dat.ignore_sep + known_substance2.split(dat.ignore_sep)[1]
-                    else:
-                        known2_proxy  = known_substance2.split(dat.ignore_sep)[0]  
-                    logger.debug(f"{self.name.upper()}: {dat.ignore_sep} separator found in {known_substance2}. Using {known2_proxy} for calculations.")          
-                else:
-                    known2_proxy = known_substance2
-
-                if known_substance2 in io_dicts[k2_io]:
-                    known_qty2 = io_dicts[k2_io][known_substance2]
-                else:
-                    i += 1
-                    attempt += 1
-                    logger.debug(f"{self.name.upper()}: {known_substance2} not found (both {known_substance} ({known_io}) and {known_substance2} ({k2_io}) required), skipping for now")
-                    continue
+            if invert is True:
+                known_substance, unknown_substance = unknown_substance, known_substance
+                known_io, unknown_io = unknown_io, known_io
+                known_proxy, unknown_proxy = unknown_proxy, known_proxy
+                logger.debug(f"{self.name.upper()}: {known_substance} not found, but {unknown_substance} found. Inverting calculations")
 
             qty_known = io_dicts[known_io][known_substance]
             
@@ -422,8 +290,8 @@ class UnitProcess:
                           var=calc.no_nan(var), 
                           known_substance=known_proxy, 
                           unknown_substance=unknown_proxy,
-                          known_substance2 = known2_proxy,
-                          qty2 = calc.no_nan(known_qty2),
+                          known2_substance = known2_proxy,
+                          qty2 = calc.no_nan(known2_qty),
                           invert=invert, 
                           emissions_dict=io_dicts['e'],
                           inflows_dict=io_dicts['c'],
@@ -434,11 +302,7 @@ class UnitProcess:
             qty_calculated = calc.calcs_dict[calc_type]['function'](**kwargs)
             qty_calculated = calc.no_nan(qty_calculated)
 
-            if qty_calculated < 0:
-                print(f"{self.name.upper()}:\n[!] POSSIBLE ERROR [!]\nNegative number found:\n"
-                      f"{qty_calculated} of {unknown_substance} calculated while performing {calc_type} using {qty_known} of {known_substance}")
-                if known_substance2 is not None:
-                    print(f"and {known_qty2} of {known_substance2}")
+            calc.check_qty(qty_calculated)
             
             if unknown_io in ['c', 'e']:
                 io_dicts[unknown_io][unknown_substance] += qty_calculated
@@ -452,40 +316,38 @@ class UnitProcess:
             attempt = 0
             logger.debug(f"{self.name.upper()}: {qty_calculated} of {unknown_substance} calculated. {len(calc_df)} calculations remaining.")
 
-        logger.debug(f"{self.name.upper()}: emissions: {io_dicts['e']}")
-        logger.debug(f"{self.name.upper()}: coinflows: {io_dicts['c']}")
+        # After processing all rows in calc_df
         for substance, qty in io_dicts['e'].items(): #adds emissions dictionary to outflow dictionary
             io_dicts['o'][substance] += qty
         for substance, qty in io_dicts['c'].items(): #adds co-inflows dictionary to inflows dictionary
             io_dicts['i'][substance] += qty
 
+        logger.debug(f"{self.name.upper()}: Balancing mass flows")
         total_mass_in, total_mass_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
                                                  raise_imbalance=raise_imbalance, 
                                                  ignore_flows=energy_flows)
 
         if total_mass_in > total_mass_out:
             io_dicts['o']['UNKNOWN-mass'] = total_mass_in - total_mass_out
+            logger.info(f"{self.name.upper()}: mass imbalance found {total_mass_in - total_mass_out} of UNKNOWN MASS added to outflows")
         elif total_mass_out > total_mass_in:
             io_dicts['i']['UNKNOWN-mass'] = total_mass_out - total_mass_in
+            logger.info(f"{self.name.upper()}:mass imbalance found {total_mass_out - total_mass_in} of UNKNOWN MASS added to inflows")
 
         if balance_energy is True:
-            logger.debug("{self.name.upper()}: Balancing energy")
+            logger.debug(f"{self.name.upper()}: Balancing energy flows")
             total_energy_in, total_energy_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
                                                  raise_imbalance=raise_imbalance, 
                                                  ignore_flows=[],
                                                  only_these_flows=energy_flows)
             if total_energy_in > total_energy_out:
                 io_dicts['o']['UNKNOWN-energy'] = total_energy_in - total_energy_out
+                logger.info(f"{self.name.upper()}: energy imbalance found {total_energy_in - total_energy_out} of UNKOWN ENERGY added to outflows")
             elif total_mass_out > total_mass_in:
                 io_dicts['i']['UNKNOWN-energy'] = total_energy_out - total_energy_in
+                logger.info(f"{self.name.upper()}:energy imbalance found {total_energy_in - total_energy_out} of UNKOWN ENERGY added to inflows")
 
-        logger.debug(f"{self.name} process balanced on {qty} of {product}")
-        logger.debug('Inflows:')
-        for substance, qty in io_dicts['i'].items():
-            logger.debug(f"{substance}: {qty}")
-        logger.debug('Outflows:')
-        for substance, qty in io_dicts['o'].items():
-            logger.debug(f"{substance}: {qty}")
+        logger.info(f"{self.name} process balanced on {qty} of {product}")
 
         return io_dicts['i'], io_dicts['o']
 
@@ -552,7 +414,7 @@ class UnitProcess:
         rebalanced_flows[i_o][recyclate_flow] += used_recyclate_qty
 
         if unused_recyclate_qty < 0:
-            raise ValueError(f"{self.name.upper()}: Something went wrong. remaining_recycle_qty < 0 {remaining_recyclate_qty}")
+            raise ValueError(f"{self.name.upper()}: Something went wrong. remaining_recycle_qty < 0 {unused_recyclate_qty}")
 
         logger.info(f'{self.name.upper()}: {toBeReplaced_flow} replaced with {used_recyclate_qty} of {recyclate_flow}.')
 
@@ -676,3 +538,178 @@ class UnitProcess:
             raise ValueError(f"{self.name.upper()}: Something went wrong. remaining_recycle_qty < 0 {remaining_energy_qty}")
 
         return rebalanced_flows['i'], rebalanced_flows['o'], remaining_energy_qty
+
+
+#####################
+# SUBFUNCTIONS (used in unit.Balance())
+        
+    def check_io(self, i_o):
+        """chekks that the flow location is valid
+        """
+        if type(i_o) is not str:
+            if type(self.default_io) is not str:
+                raise Exception('Flow location not specified')
+            return self.default_io[0]
+                
+        i_o = iof.clean_str(i_o[0])
+        if i_o not in ['i', 'o', 't']:
+            raise Exception(f'{self.name.upper()}: {i_o} not valid product destination')
+        return i_o
+
+    
+    def check_product(self, product):
+        """checks that the product is valid
+        """
+        if product is False:
+            return self.default_product
+        if product is None:
+            raise Exception('Please specify product to balance')
+        if product not in self.inflows and product not in self.outflows:
+            raise Exception(f'{self.name.upper()}: {product} not found in inflows or outflows')
+        else:
+            return product
+
+
+    def make_io_dicts(self, product, qty, i_o, product_alt_name):
+        """creates inflow and outflow dictionary and inserts starting product qty
+        """
+        io_dicts = {
+            'i' : defaultdict(float),    # inflows dictionary
+            'o' : defaultdict(float),    # outflows dictionary
+            't' : defaultdict(float),    # temp dictionay (intermediate values - discarded)
+            'e' : defaultdict(float),    # emissions dictionary (values added to outflows after all calculations)
+            'c' : defaultdict(float),    # co-inflows dictionary (values added to inflows after all calculations)
+        }
+
+        # prime inflow or outflow dictionary with product quantity
+        if product_alt_name is not False: 
+            io_dicts[i_o][product_alt_name] = qty 
+            logger.debug(f"{self.name.upper()}: {qty} of {product_alt_name} added to {i_o} dict, in place of {product}")
+        else:
+            io_dicts[i_o][product] = qty 
+            logger.debug(f"{self.name.upper()}: {qty} of {product} added to {i_o} dict")
+
+        return io_dicts
+
+
+    def check_attempt(self, i, attempt, calc_df):
+        """checks that the calculation attempt is valid
+        """
+        if attempt >= len(calc_df): 
+            raise Exception(f"{self.name.upper()}: Cannot process {calc_df.iloc[i]}. Try checking flow location and remember that substance names are case sensitive.")
+        if i >= len(calc_df):
+            return 0   # if at end of list, loop around
+        else:
+            return i
+
+
+    def check_var(self, var, calc_type, scenario):
+        """checks that the variable is valid and returns the correct variable for the calc type
+        """
+        if isinstance(var, str) and iof.clean_str(var) not in dat.no_var:
+            if calc_type in calc.lookup_var_calc_list:          # for lookup calculations the var specifies the column of the lookup df
+                return iof.clean_str(var, lower=False)       # which is given as the var in the calc df
+            else:                                               # otherwise looks up the variable in the var df
+                return self.var_df.at[scenario, iof.clean_str(var)] # from the relevant scenario
+        else:
+            return None
+
+
+    def check_substance(self, substance, scenario, product, product_alt_name, lookup_product_key):
+        """checks that the substance name is valid and, if necesssary substitutes an alternative name 
+        product_alt_name (str): from factory connection
+        if in lookup_var_dict substitutes substance name from scenario in associated var_df column
+            and identifies a lookup DF if needed
+        if a unique_identifier suffix is used, returns a proxy of the generic substance name for
+            use in calculations
+        """
+        lookup_df = False
+
+        if product_alt_name is not False:
+            if substance == product or substance == lookup_product_key:
+                substance = product_alt_name #name at origin
+                logger.debug(f"{self.name.upper()}: {product_alt_name} substitued for {product} as known substance")
+
+        if substance in lookup_var_dict:
+            if 'data_frame' in lookup_var_dict[substance]:
+                logger.debug(f"{self.name.upper()}: {substance} has dataframe in lookup_var_dict")
+                lookup_df = lookup_var_dict[substance]['data_frame']
+            substance = self.var_df.at[scenario, lookup_var_dict[substance]['lookup_var']]
+            logger.debug(f"{self.name.upper()}: lookup substance {substance} substituted")
+
+        if dat.ignore_sep in substance:
+            if substance.split(dat.ignore_sep)[0] in lookup_var_dict:
+                logger.debug(f"{self.name.upper()}: {substance} in lookup_var_dict")
+                if 'data_frame' in lookup_var_dict[substance.split(dat.ignore_sep)[0]]:
+                    lookup_df = lookup_var_dict[substance.split(dat.ignore_sep)[0]]['data_frame']
+                proxy = self.var_df.at[scenario, lookup_var_dict[substance.split(dat.ignore_sep)[0]]['lookup_var']]
+                substance = proxy + dat.ignore_sep + substance.split(dat.ignore_sep)[1]
+                logger.debug(f"{self.name.upper()}:lookup substance {substance} substituted")
+            else:
+                proxy = substance.split(dat.ignore_sep)[0]
+            logger.debug(f"{self.name.upper()}: {dat.ignore_sep} separator found in {substance}. Using {proxy} for calculations.")
+        else:
+            proxy = substance
+
+        return substance, proxy, lookup_df
+
+
+    def check_lookup(self, known_lookup, unknown_lookup):
+        """checks that only one lookup_df is available
+        """
+        if known_lookup is not False and unknown_lookup is not False:
+            logger.debug(f"{self.name.upper()}: WARNING: Cannot use multiple lookup dictionaries. Using lookup dict specified for known substance")
+            return known_lookup
+        elif known_lookup is False:
+            return unknown_lookup
+        else:
+            return known_lookup
+       
+
+    def check_calc(self, i, calc_type, calc_df, scenario, known_substance, known_io, unknown_substance, unknown_io, io_dicts):
+        """checks whether inversion is needed, and whether all needed data is available
+            if qty of the unknown substance but not known substance is available, inverts
+            if neitehr qty is available, flags to skip to the next row
+            if the calc requires two quantities, checks whether both qtys are available
+                if not, flags to skip to the next row
+        """
+        skip = False
+        known2_qty = None
+        known2_proxy = None
+
+        if calc_type not in calc.calcs_dict:
+                raise Exception(f"{self.name.upper()}: {calc_type} is an unknown calculation type")
+
+        if known_substance in io_dicts[known_io]:
+            invert = False
+        elif unknown_io not in io_dicts and unknown_io != 'd': #'d' can be used for discarded substances
+            raise Exception(f"{self.name.upper()}: {unknown_io} is an unknown destination")
+        elif unknown_io not in ['c', 'e'] and unknown_substance in io_dicts[unknown_io]:
+            invert = True
+        else: # when neither a qty of known or unknown substance is available
+            return True, False, False, False
+
+        if calc_type in calc.twoQty_calc_list: #e.g. addition or subtraction
+            known2_substance = calc_df.at[i, dat.known2]
+            k2_io = iof.clean_str(calc_df.at[i, dat.known2_io][0])
+
+            if known2_substance in lookup_var_dict:
+                known2_substance = self.var_df.at[scenario, lookup_var_dict[known2_substance]['lookup_var']] 
+
+            if dat.ignore_sep in known2_substance:    
+                if known2_substance.split(dat.ignore_sep)[0] in lookup_var_dict:
+                    known2_proxy = self.var_df.at[scenario, lookup_var_dict[known2_substance.split(dat.ignore_sep)[0]]['lookup_var']]
+                    known2_substance = known2_proxy + dat.ignore_sep + known2_substance.split(dat.ignore_sep)[1]
+                else:
+                    known2_proxy  = known2_substance.split(dat.ignore_sep)[0]  
+                logger.debug(f"{self.name.upper()}: {dat.ignore_sep} separator found in {known2_substance}. Using {known2_proxy} for calculations.")          
+            else:
+                known2_proxy = known2_substance
+
+            if known2_substance in io_dicts[k2_io]:
+                known2_qty = io_dicts[k2_io][known2_substance]
+            else: 
+                logger.debug(f"{self.name.upper()}: {known2_substance} not found (both {known_substance} ({known_io}) and {known2_substance} ({k2_io}) required), skipping for now")
+                return True, False, False, False
+
+        return skip, invert, known2_qty, known2_proxy

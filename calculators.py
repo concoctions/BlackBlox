@@ -262,7 +262,6 @@ def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
     logger.debug("using {} of {} to determine qty of {}".format(qty, known_substance, unknown_substance))
 
     check_qty(qty)
-
     return (qty) * (Formula(unknown_substance).mass / Formula(known_substance).mass)
 
 
@@ -492,14 +491,11 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
         for emission in combustion_emissions:
             emissions_dict[emission] += combustion_emissions[emission]
 
-        
-
-        
-
     logger.debug("Emission Data Calculated:")
     for emission in combustion_emissions:
         logger.debug(f"{emission}: {combustion_emissions[emission]}") 
 
+    check_qty(return_qty)
     return return_qty
 
 
