@@ -324,8 +324,8 @@ class Factory:
                                     original_outflows_dict=io_dicts['o'][dest_chain.name][dest_unit.name],
                                     recycled_qty=qty,
                                     recycle_io=dest_product_io,
-                                    recycled_flow=origin_product,
-                                    replaced_flow=replace_flow,
+                                    recyclate_flow=origin_product,
+                                    toBeReplaced_flow=replace_flow,
                                     max_replace_fraction=max_replace_fraction,
                                     scenario=scenario)
 

@@ -185,61 +185,31 @@ class UnitProcess:
                 energy_flows=dat.energy_flows,
                 balance_energy=True, 
                 raise_imbalance=False,):
-        """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario, energy_flows=dat.energy_flows, balance_energy=True, raise_imbalance=False,)
-        performs a mass (and/or energy) balance on the unit process.
 
-        Calculates all inflows and outflows, using the specified relationships in
-        the calculations dataframe and the variable values for a scenario in the 
-        variables dataframe.
+        i_o = check_io(i_o, self.default_io)
 
-        Note:
-            If the inflow mass and outflow mass are imbalanced an error will
-            be raised and/or a "UNKNOWN MASS" or  "UNKNOWN ENERGY " flow will 
-            be added to the offending flow dictionary with the imbalance quantity.
+    
+        return io_dicts['i'], io_dicts['o']
 
-        Args:
-            qty (float): The quantity of the balancing flow
-            product (str/bool): the inflow or outflow on which to balance 
-                the calculations. If False, uses the default product, if specified.
-                (Defaults to False)
-            i_o (str): 'i' or 'o', depending on whether the specified
-                product is an inflow (i) or outflow (o). If False, uses the 
-                default product's location, if specified
-                (Defaults to False)
-            scenario (str): row index of var_df to use for the variables value,
-                generally corresponding to the name of the scenario. If
-                False, uses the default scenario index specified in 
-                dataconfig.
-                (Defaults to False)
-            product_alt_name (str/bool): If string, uses this substance name
-                in place of the substance name of the product for inflow
-                and outflow dictonaries (and including lookups). Otherwise
-                balances the unit process as normal.
-                (Defaults to False)
-            energy_flows (list[str]): If any substance name starts with
-                or ends with a string on this list, the substance will not 
-                be considered when performing the mass balance.
-                Defaults to energy keyword list in dataconfig.
-            balance_energy(bool): If true, checks for a balance of the flows
-                with the specified energy prefix/suffix in energy_flows.
-            raise_imbalance (bool): If True, the process will raise an 
-                exception if the inflow and outflow masses and/or energies are 
-                unbalanced. If False, will add a "UNKNOWN MASS" or "UNKNOWN 
-                ENERGY" substance to the offended inflow or outflow dictionary.
-                Defaults to False.
 
-        Returns:
-            Defaultdict of inflows with substance names as keys and quantities as values
-            Defaultdict of outflows with substance names as keys and quantities as values.
-        """
+#####################
+# SUBFUNCTIONS
+        
+def check_io(i_o, default_io):
+    if type(i_o) is not str:
+        if type(default_io) is not str:
+            raise Exception('Flow location not specified')
+        return default_io
+            
+    i_o = iof.clean_str(i_o[0])
+    if i_o not in ['i', 'o', 't']:
+        raise Exception(f'{self.name.upper()}: {i_o} not valid product destination')
+    return i_o
 
-        if i_o is False:
-            i_o = self.default_io
-            if i_o is None:
-                raise Exception('Please specify whether the product is an inflow, outflow, or temporary flow')
-        i_o = iof.clean_str(i_o[0])
-        if i_o not in ['i', 'o', 't']:
-            raise Exception(f'{self.name.upper()}: {i_o} not valid product destination')
+
+
+############
+# ORIGINAL PIECES
                 
         if product is False:
             product = self.default_product
@@ -488,191 +458,3 @@ class UnitProcess:
             logger.debug(f"{substance}: {qty}")
 
         return io_dicts['i'], io_dicts['o']
-
-
-    def recycle_1to1(self, 
-                       original_inflows_dict,
-                       original_outflows_dict,
-                       recycled_qty,
-                       recycle_io,
-                       recyclate_flow,
-                       toBeReplaced_flow,
-                       max_replace_fraction=1.0,
-                       scenario=dat.default_scenario, 
-                       **kwargs):
-    
-        """Replaces a calculated flow within a unit process with another flow, either wholly or partially
-
-        Args:
-            original_inflows_dict (defaultdict): Dictionary of inflow quantities 
-                from the orignal balancing of the unit process
-            original_outflows_dict (defaultdict): Dictionary of outflow 
-                quantities from the orignal balancing of the unit process
-            recycled_qty (float): quantity of recycled flow
-            recycle_io (str): "i" if the recycled flow is an inflow or "o" if 
-                it is an outflow
-            recyclate_flow (str): name of the recycled flow
-            replaced_flow (str): name of the flow to be replaced by the recycled flow
-            max_replace_fraction (float/none): the maximum percentage of the 
-                original flow that the recycled flow is allowed to replace
-
-        Returns:
-            - *dictionary* of rebalanced inflows
-            - *dictionary* of rebalanced outflows
-            - *float* of the remaining quantity of the recycle stream
-        """
-        logger.info(f'{self.name.upper()}: attempting to replace {toBeReplaced_flow} with {recyclate_flow}')
-
-        original_flows = dict(i=original_inflows_dict,
-                              o=original_outflows_dict)
-        rebalanced_flows = dict(i=copy(original_inflows_dict),
-                                o=copy(original_outflows_dict))
-    
-
-        i_o =iof.clean_str(recycle_io[0])
-
-        if i_o not in ['i', 'o']:
-            raise KeyError(f'{i_o} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
-
-        if toBeReplaced_flow in lookup_var_dict:
-            toBeReplaced_flow = self.var_df.at[scenario, lookup_var_dict[toBeReplaced_flow]['lookup_var']] 
-        if toBeReplaced_flow in calc.df_fuels:
-            logger.info(f'{self.name.upper()}: WARNING! {toBeReplaced_flow} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
-
-        calc.check_qty(max_replace_fraction, fraction = True)
-        replacable_qty = original_flows[i_o][toBeReplaced_flow] * max_replace_fraction
-        unused_recyclate_qty = recycled_qty - replacable_qty
-        if unused_recyclate_qty >= 0:
-            used_recyclate_qty = recycled_qty - unused_recyclate_qty
-        else:
-            used_recyclate_qty = recycled_qty
-            unused_recyclate_qty = 0
-
-        rebalanced_flows[i_o][toBeReplaced_flow] -= used_recyclate_qty
-        rebalanced_flows[i_o][recyclate_flow] += used_recyclate_qty
-
-        if unused_recyclate_qty < 0:
-            raise ValueError(f"{self.name.upper()}: Something went wrong. remaining_recycle_qty < 0 {remaining_recyclate_qty}")
-
-        logger.info(f'{self.name.upper()}: {toBeReplaced_flow} replaced with {used_recyclate_qty} of {recyclate_flow}.')
-
-        return rebalanced_flows['i'], rebalanced_flows['o'], unused_recyclate_qty
-
-
-    def recycle_energy_replacing_fuel(self, 
-                       original_inflows_dict,
-                       original_outflows_dict,
-                       recycled_qty,
-                       recycle_io,
-                       recyclate_flow,
-                       toBeReplaced_flow,
-                       max_replace_fraction=1.0,
-                       combustion_eff = dat.combustion_efficiency_var,
-                       scenario=dat.default_scenario,
-                       emissions_list = dat.default_emissions, 
-                       **kwargs):
-        """recycle_energy_replacing_fuel(original_inflows_dict, original_outflows_dict, recycled_qty, recycle_io, recyclate_flow, toBeReplaced_flow, max_replace_fraction=1.0, combustion_eff = dat.combustion_efficiency_var, scenario=dat.default_scenario, emissions_list = ['CO2', 'H2O', 'SO2'], **kwargs)
-        replaces fuel use and associated emissions with a recycled energy flow (e.g. waste heat to replace combusted coal)
-
-        Args:
-            original_inflows_dict (defaultdict): Dictionary of inflow quantities from the orignal
-                balancing of the unit process
-            original_outflows_dict (defaultdict): Dictionary of outflow quantities from the orignal
-                balancing of the unit process
-            recycled_qty (float): quantity of recycled flow (energy)
-            recycle_io (str): "i" if the recycled flow is an inflow or "o" if it is an outflow
-            recyclate_flow (str): name of the recycled flow
-            toBeReplaced_flow (str): name of the flow to be replaced by the recycled flow
-            combustion_eff [str/float]: The name of the combustion efficiency variable (case sensitive) from the variables table
-                or a float of the combustion_eff (must be between 0 and 1)
-            scenario (str): name of the scenario to use
-                (Defaults to dat.default_scenario)
-            emissions_list (list[str]): list of emissions to recalculation. O2 is always automatically recalculated.
-                (Defaults to ['CO2', 'H2O', 'SO2'])
-
-        Returns:
-            - *dictionary* of rebalanced inflows
-            - *dictionary* of rebalanced outflows
-            - *float* of the remaining quantity of the recycle stream
-
-        """
-
-        logger.info(f"{self.name.upper()}: Attempting to replace {toBeReplaced_flow} (energy) with {recyclate_flow}.")
-
-        original_flows = dict(i=original_inflows_dict,
-                              o=original_outflows_dict)
-        rebalanced_flows = dict(i=copy(original_inflows_dict),
-                                o=copy(original_outflows_dict))
-        replaced_emissions_dict = defaultdict(float)
-        replaced_inflows_dict = defaultdict(float)
-
-        i_o =iof.clean_str(recycle_io[0])
-        if i_o not in ['i', 'o']:
-            raise KeyError(f'{self.name.upper()}: {i_o} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
-
-        if toBeReplaced_flow in lookup_var_dict:
-            toBeReplaced_flow = self.var_df.at[scenario, lookup_var_dict[toBeReplaced_flow]['lookup_var']] 
-
-        if type(combustion_eff) is str:
-            combustion_eff = self.var_df.at[scenario, combustion_eff]
-
-        equivelent_fuel_qty = calc.Combustion(known_substance='energy', 
-                                              qty=recycled_qty, 
-                                              unknown_substance=toBeReplaced_flow, 
-                                              var=combustion_eff, 
-                                              emissions_list=emissions_list, 
-                                              emissions_dict=replaced_emissions_dict, 
-                                              inflows_dict=replaced_inflows_dict)
-
-        logger.debug(f"{self.name.upper()}: {recycled_qty} of {recyclate_flow} assumed equivelent to {equivelent_fuel_qty} of {toBeReplaced_flow}")
-
-        calc.check_qty(max_replace_fraction, fraction = True)
-
-        replacable_qty = original_flows[i_o][toBeReplaced_flow] * max_replace_fraction
-        unreplacable_qty = original_flows[i_o][toBeReplaced_flow] * (1 - max_replace_fraction)
-        remaining_fuel_qty = replacable_qty - equivelent_fuel_qty
-
-        if remaining_fuel_qty >= 0:
-            rebalanced_flows[i_o][toBeReplaced_flow] = remaining_fuel_qty + unreplacable_qty
-            rebalanced_flows[i_o][recyclate_flow] = recycled_qty
-            remaining_energy_qty = 0
-
-            for flow in replaced_emissions_dict:
-                rebalanced_flows['o'][flow] -= replaced_emissions_dict[flow]
-
-            for flow in replaced_inflows_dict:
-                rebalanced_flows['i'][flow] -= replaced_inflows_dict[flow]
-
-            remaining_energy_qty = 0
-
-        else: #if remaining_fuel_qty is negative, that means there is a surplus of recycled energy
-            rebalanced_flows[i_o][toBeReplaced_flow] = 0 + unreplacable_qty
-            used_equivelent_fuel_qty = equivelent_fuel_qty + remaining_fuel_qty
-
-            replaced_emissions_dict = defaultdict(float)
-            replaced_inflows_dict = defaultdict(float)
-            
-            used_energy_qty = calc.Combustion(known_substance=toBeReplaced_flow, 
-                                              qty=used_equivelent_fuel_qty, 
-                                              unknown_substance='energy', 
-                                              var=combustion_eff, 
-                                              emissions_list=emissions_list, 
-                                              emissions_dict=replaced_emissions_dict, 
-                                              inflows_dict=replaced_inflows_dict)
-
-            rebalanced_flows[i_o][recyclate_flow] += used_energy_qty
-            remaining_energy_qty = recycled_qty - used_energy_qty
-        
-            for flow in replaced_emissions_dict:
-                rebalanced_flows['o'][flow] -= replaced_emissions_dict[flow]
-                if round(rebalanced_flows['o'][flow], 8) == 0: # rounds off floating point errors
-                    rebalanced_flows['o'][flow] = 0
-            for flow in replaced_inflows_dict:
-                rebalanced_flows['i'][flow] -= replaced_inflows_dict[flow]
-                if round(rebalanced_flows['i'][flow], 8) == 0: # rounds off floating point errors
-                    rebalanced_flows['i'][flow] = 0
-
-        if remaining_energy_qty < 0:
-            raise ValueError(f"{self.name.upper()}: Something went wrong. remaining_recycle_qty < 0 {remaining_energy_qty}")
-
-        return rebalanced_flows['i'], rebalanced_flows['o'], remaining_energy_qty
