@@ -21,33 +21,29 @@ Module Outline:
 from collections import defaultdict
 from datetime import datetime
 from graphviz import Digraph
-from blackblox.bb_log import get_logger
+
 import blackblox.io_functions as iof
 import blackblox.dataconfig as dat
 import blackblox.unitprocess as unit
 
-
+from blackblox.bb_log import get_logger
 logger = get_logger("Chain")
 
 
 class ProductChain:
     """Linear chain of connected unit processes.
 
-    A ProductChain is a set of unit process that can be balanced via linear links:
+    A ProductChain contains multiple unit processes that can be balanced via linear links:
     an outflow of one unit process is an inflow in the next unit process in the chain.
     
-    Requires the existence of a unit process library file.
+    Currently equires the use of df_unit_library
 
     Args:
-        chain_data (dataframe/str): Dataframe or filepath to a excel or 
-            tabular data that specifies the linkages of the unit process, 
-            with each row detailing an inflow, a unit process, and an outflow,
-            with the outflow in one row being the inflow in the next row.
-            Chain data is order depedent. Specifying the inflow of the 
-            first row or outflow of the last row is optional.
+        chain_data (dataframe/str): Dataframe or filepath to tabular data that 
+            specifies the linkages of the unit process.
         name (str): Name for the chain. Optional.
             (Defaults to "Product Chain.)
-        xls_sheet (str/None): Excel sheet where chain data resides. Optional.
+        xls_sheet (str/None): Excel sheetname for chain data. Optional.
             (Defaults to None)
 
     Attributes:
@@ -69,62 +65,40 @@ class ProductChain:
 
     def __init__(self, chain_data, name="Product Chain", xls_sheet=None):
         self.name = name
-        logger.debug(f"PROCESS CHAIN INIT - chain name: {name}")
-        logger.debug(f"PROCESS CHAIN INIT - chain data: {chain_data}")
-        logger.debug(f"PROCESS CHAIN INIT -xls sheet: {xls_sheet}")
+        logger.info(f"PROCESS CHAIN INIT - chain name: {name}, chain data: {chain_data}, xls sheet: {xls_sheet}")
         self.process_chain_df = iof.make_df(chain_data, sheet=xls_sheet, index=None)
         self.default_product = False
-        self.process_list = False
-        self.process_names = False
-        self.process_ids = False
-        self.process_dict = False
-    
-    def build(self):
-        """Generates the needed unit process objects
+        self.process_list = [] #list of UnitProcess objects, in order (used in Factory balance)
+        self.process_names = [] #list of UnitProcess names, in order
+        self.process_ids = [] #list of UnitProcess unique IDs, in order
+        self.process_dict = dict() # keys: unit process IDs, values: unit process objects. (used in Factory balance)
 
-        Chekcs that the processes specified in the chain dataframe have 
-        data available in the unit process library. Checks that the
-        inflow and outflow specified in the chain exist for the associated
-        unit process. Populates self.default_product and self.process_list.
-
-        """
-        logger.debug(f"initializing chain for {self.name}")
-        process_list = []
-        process_names = []
-        process_ids = []
-        process_dict = dict()
-
+        # create UnitProcess objects for each unit in chain
         for index, process_row in self.process_chain_df.iterrows():
             process = unit.UnitProcess(process_row[dat.process_col])
+            logger.debug(f"{self.name.upper()}: UnitProcess object created for {process.name}")
             inflow = process_row[dat.inflow_col]
             outflow = process_row[dat.outflow_col]
 
             if inflow not in process.inflows and index != 0:
-                raise KeyError(f"{inflow} not found in {process.name} inflows")            
-            
+                raise KeyError(f"{inflow} not found in {process.name} inflows")           
             if (outflow not in process.outflows 
                 and index !=self.process_chain_df.index[-1]):
                 raise KeyError(f"{outflow} not found in {process.name} outflows")
  
-            process_list.append(dict(process=process, i=inflow, o=outflow))
-            process_ids.append(process.u_id)
-            process_names.append(process.name)
-            process_dict[process.u_id] = process
+            self.process_list.append(dict(process=process, i=inflow, o=outflow))
+            self.process_ids.append(process.u_id)
+            self.process_names.append(process.name)
+            self.process_dict[process.u_id] = process
             
-        self.process_list = process_list
-        self.process_names = process_names
-        self.process_ids = process_ids
-        self.process_dict = process_dict
-
+        # set deafult product
         if not self.default_product:
-            if process_list[-1]['o'] in process_list[-1]['process'].outflows:
-                self.default_product = process_list[-1]['o']
-
-            elif process_list[0]['i'] in process_list[0]['process'].inflows:
-                self.default_product = process_list[-1]['i']
-
+            if self.process_list[-1]['o'] in self.process_list[-1]['process'].outflows:
+                self.default_product = self.process_list[-1]['o']
+            elif self.process_list[0]['i'] in self.process_list[0]['process'].inflows:
+                self.default_product = self.process_list[-1]['i']
             else:
-                logger.debug(f"No default product found for {self.name}.")
+                logger.debug(f"{self.name.upper()}: No default product found for {self.name}.")
 
     
     def balance(self, qty, product=False, i_o=False, unit_process=False, 
@@ -140,29 +114,22 @@ class ProductChain:
         Args:
             qty (float): the quantity of the product to balance on.
             product (str/bool): the product name, as it appears in the chain. 
-                If False, uses the default product in the chain object attributes.
-                Required if balancing a chain on an intermediate process.
+                If False, attepmts to use the default product in the chain object attributes.
                 (Defaults to False)
-            i_o (str/bool): String beginning with "i" or "o". "i" if the product
-                is an inflow of the chain's first unit process, "o" if it is an
-                outflow of the chain's last unit process. If False, first checks
-                to see if product exist in last unit process's outflows, then
-                first unit process's inflows, and uses the first matching 
-                product that it finds. Required if balancing a chain on an
-                intermediate process.
+            i_o (str/bool): "i" or "o" indicating whether the product is an inflow
+                or outflow. 
+                If False, attempts to assign based on chain inflows
+                and outflows.
                 (Defaults to False)
-            unit_process (str): Name of the unit process that the specified product
-                belongs to. Necessary to balance chain on intermediate process.
-            product_alt_name (str): Different name to use for the chain product.
-                Will process all product calculations with the product_alt_name
-                for reading and writing from flow dictionaries. Used for "connect
-                as" products (e.g. connect "blast furnace gas" as "waste heat").
-                Only the balancing product of the chain can have an alt_name; all
-                other flows will be balanced using their original specified names 
-                from their unit.calc_df
-            scenario (str): The name of the scenario of variable values to use, 
-                corresponding to the matching row index in each unit process's
-                var_df. 
+            unit_process (str): Name of the unit process where the product exists.
+                Required if the unit process does not begin or end a chain.
+                (Default to False)
+            product_alt_name (str): Product name as it appears in linked unit 
+                process, if different than in unit process to be balanced
+                (e.g. "blast furnace gas" exiting a blast furnace process would be
+                product_alt_name for the "waste heat" product entering "coke oven")
+            scenario (str): The var_df index identifier of the set of variables 
+                values to use when balancing Unit Processes.
                 (Defaults to the string specified in dat.default_scenario)
 
         Returns:
@@ -173,13 +140,12 @@ class ProductChain:
 
         """
 
-        if not self.process_list:
-            self.build()
+        chain = self.process_list.copy() # to avoid manipulating self.process_list directly
 
-        chain = self.process_list.copy()
-
+        # identify UnitProcess of balancing product (start) and divides chains into processes
+        # before the start process (upstream) and after the start process (downstream)
         if unit_process is not False:
-            logger.debug(f"attempting to balance chain at {unit_process}")
+            logger.debug(f"{self.name.upper()}: attempting to balance chain at {unit_process}")
             if unit_process in self.process_ids:
                 unit_index = self.process_ids.index(unit_process)
                 upstream = chain[0:unit_index]
@@ -188,26 +154,32 @@ class ProductChain:
                 start = chain[unit_index]['process']
             else:
                 raise KeyError(f"{unit_process} not found in {self.name} process list")
+
+            if product is False:
+                raise ValueError(f"If specifying a unit process, product cannot be False")
+
             if i_o is False:
                 raise ValueError(f"If specifying a unit process, i_o cannot be False")
             else:
                 i_o = iof.clean_str(i_o[0])
                 if i_o not in ['i', 'o']:
                     raise ValueError("i_o must start with 'i' for inflow or 'o' for outflow")
-            if product is False:
-                raise ValueError(f"If specifying a unit process, product cannot be False")
+
             if i_o == 'i':
                 if product not in chain[unit_index]['process'].inflows:
                     raise KeyError(f"{product} is not an {i_o}-flow of {start.name}")
-            elif i_o == 'o':
+            else:
                 if product not in chain[unit_index]['process'].outflows:
                     raise KeyError(f"{product} is not an {i_o}-flow of {start.name}")
-        
+       
         else:
             if product is False:
                 product = self.default_product
+            logger.debug(f"{self.name.upper()}: attempting to balance chain on {product}")
+
             if i_o:
                 i_o = iof.clean_str(i_o[0]) 
+
             if product in chain[-1]['process'].outflows and i_o != 'i':
                 start = chain[-1]['process']
                 chain.reverse()
@@ -222,6 +194,7 @@ class ProductChain:
             else:
                 raise KeyError(f"{product} not found as input or outflow of chain.")
 
+        # create dictionaries of chain inflows, outflows, and flows between chain UnitProcesses
         io_dicts = {
             'i': defaultdict(lambda: defaultdict(float)), 
             'o': defaultdict(lambda: defaultdict(float))
@@ -230,87 +203,62 @@ class ProductChain:
         internal_flows = []
 
         # balances starting process
-        logger.debug(f"attempting to balance {start.name} on {qty} of {product}({i_o}) using {scenario} variables.")
+        logger.debug(f"{self.name.upper()}: attempting to balance {start.name} on {qty} of {product}({i_o}) using {scenario} variables.")
         (io_dicts['i'][start.name], io_dicts['o'][start.name]) = start.balance(qty, product, i_o, scenario, product_alt_name=product_alt_name)
  
-        # balances upstream processes
-        if upstream:
-            for i, unit in enumerate(upstream):
-                process = unit['process']
+        # balances individual UnitProcesses in order
+        for stream, prod_io, qty_io in [(upstream,'o', 'i'),(downstream, 'i', 'o')]:
+            if stream is not False:
+                for i, unit in enumerate(stream):
+                    process = unit['process']
 
-                if i == 0:
-                    previous_process = start
+                    if i == 0:
+                        previous_process = start
 
-                product = unit['o']
-                qty = io_dicts['i'][previous_process.name][product]
-                intermediate_product_dict[product] = qty
-                internal_flows.append([self.name, previous_process.name, product, qty, self.name, process.name])
+                    product = unit[prod_io]
+                    qty = io_dicts[qty_io][previous_process.name][product]
+                    intermediate_product_dict[product] = qty
+                    internal_flows.append([self.name, previous_process.name, product, qty, self.name, process.name])
 
-                logger.debug(f"attempting to balance {process.name} on {qty} of {product}({'o'}) using {scenario} variables.")
-                (io_dicts['i'][process.name], 
-                io_dicts['o'][process.name]) = process.balance(qty, product, 'o', scenario)
+                    logger.debug(f"{self.name.upper()}: attempting to balance {process.name} on {qty} of {product}({prod_io}) using {scenario} variables.")
+                    (io_dicts['i'][process.name], 
+                    io_dicts['o'][process.name]) = process.balance(qty, product, prod_io, scenario)
 
-                previous_process = process
+                    previous_process = process
 
-        # balances downstream processes
-        if downstream:
-            for i, unit in enumerate(downstream):
-                process = unit['process']
-
-                if i == 0:
-                    previous_process = start
-
-                product = unit['i']
-                qty = io_dicts['o'][previous_process.name][product]
-                intermediate_product_dict[product] = qty
-                internal_flows.append([self.name, previous_process.name, product, qty, self.name, process.name])
-
-                logger.debug(f"attempting to balance {process.name} on {qty} of {product}({'i'}) using {scenario} variables.")
-                (io_dicts['i'][process.name], 
-                io_dicts['o'][process.name]) = process.balance(qty, product, 'i', scenario)
-
-                previous_process = process
-
-        # generates chain total data
         totals = {
             'i': defaultdict(float),
             'o': defaultdict(float)
             }
+
+        # aggregates inflows and outflows from all unit processes
         for dummy_process, inflows_dict in io_dicts['i'].items():
             for inflow, qty in inflows_dict.items():
                 totals['i'][inflow] += qty
+        
         for dummy_process, outflows_dict in io_dicts['o'].items():
             for outflow, qty in outflows_dict.items():
                 totals['o'][outflow] += qty
+
+        # removes intra-chain flows
         for io_dict in totals:
             for product, qty in intermediate_product_dict.items():
                 totals[io_dict][product] -= qty
+
+        # adds to inflow/outflow dictionaries
         io_dicts['i']["chain totals"] = totals['i']
         io_dicts['o']["chain totals"] = totals['o']
         
-
-        logger.debug(f"successfully balanced {self.name} using {scenario} variables.")
+        logger.debug(f"{self.name.upper()}: successfully balanced {self.name} using {scenario} variables.")
         return io_dicts['i'], io_dicts['o'], intermediate_product_dict, internal_flows
 
 
     def diagram(self, view=True, save=True, outdir=f'{dat.outdir}/pfd'):
         """diagram(self, view_diagram=True, save=True, outdir=f'{dat.outdir}/pfd')
-        Generates a diagram of the chain
-
-        Using Graphviz, takes the unit process names, sets of inflows and 
-        outflows, and the specified linkages of the chain to generate a
-        diagram of the chain as a png and svg.
-
-        Code looks repetitive, but slightly different elements are needed to
-        be generated if the unit process is the first in the list, a middle
-        process, or the last unit process in the list, as well as a special
-        case needed if the chain is only one unit process long. Each node is
-        also given a long unique identifier, which is necessary for building
-        factory-level diagrams.
+        Generates chain flow diagrams (png and svg) using Graphviz
         
         The use of a product flow subgraph allows the unconnected inflows and
-        outflows to appear in invisible (white) nodes, and also is returnable
-        for use in larger factory diagrams.
+        outflows to appear in invisible (white) nodes.
 
         Args:
             view(bool): If True, displays the diagram in the system
@@ -323,19 +271,15 @@ class ProductChain:
                 a 'pfd' subfolder.)
 
         Returns:
-            Optional: The Digraph object of the product flow diagram, with each
+            The Digraph object of the product flow diagram, with each
             unit process as a node, with the concatanated chain name and 
             unit process name (e.g. chainunitprocess) as the identifier,
             and also the non-linking inflows and outflows as white-bordered
             nodes with concatanated chain, process, and flowtype (e.g.
             chainunitprocessinflows)
-
         """
-
-        if not self.process_list:
-            self.build()        
-
-        c = self.name
+   
+        c = self.name # used for building identifiers
 
         filename = f'{c}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
 
@@ -353,20 +297,11 @@ class ProductChain:
             line_style = 'solid'
             connection_color = 'black'
 
-            if i == 0:
-                chain_diagram.node(c+name+inflows, label=inflows, color='white')
-                chain_diagram.edge(c+name+inflows, c+name)
-
-                if len(self.process_list) == 1: 
-                    chain_diagram.node(c+name+outflows, label=outflows, color='white')
-                    chain_diagram.edge(c+name, c+name+outflows)
-
-                elif outflows != unit['o']:
+            if i == 0: # for first UnitProcess in chain
+                if outflows != unit['o']:
                     outflows = iof.clean_str(outflows, str_to_cut=unit['o'], cut_whole_line_only=True)
-                    chain_diagram.node(c+name+outflows, label=outflows, color='white')
-                    chain_diagram.edge(c+name, c+name+outflows)
 
-            elif i < len(self.process_list) - 1:
+            elif i < len(self.process_list) - 1: # for intermediate UnitProcesses
                 if iof.is_energy(unit['i']):
                     line_style = 'dotted'
                     connection_color = 'red'
@@ -374,35 +309,32 @@ class ProductChain:
 
                 if inflows != unit['i']:
                     inflows = iof.clean_str(inflows, str_to_cut=unit['i'], cut_whole_line_only=True)
-                    chain_diagram.node(c+name+inflows, label=inflows, color='white')
-                    chain_diagram.edge(c+name+inflows, c+name)
 
                 if outflows != unit['o']:
                     outflows = iof.clean_str(outflows, str_to_cut=unit['o'], cut_whole_line_only=True)
-                    chain_diagram.node(c+name+outflows, label=outflows, color='white')
-                    chain_diagram.edge(c+name, c+name+outflows)
 
-            else:
+            else: # for last UnitProcess
                 product_flow.edge(c+prevunit, c+name, label=unit['i'])
 
                 if inflows != unit['i']:
                     inflows = iof.clean_str(inflows, str_to_cut=unit['i'], cut_whole_line_only=True)
-                    chain_diagram.node(c+name+inflows, label=inflows, color='white')
-                    chain_diagram.edge(c+name+inflows, c+name)
+                    
+            chain_diagram.node(c+name+inflows, label=inflows, color='white')
+            chain_diagram.edge(c+name+inflows, c+name)
 
-                chain_diagram.node(c+name+outflows, label=outflows, color='white')
-                chain_diagram.edge(c+name, c+name+outflows)
+            chain_diagram.node(c+name+outflows, label=outflows, color='white')
+            chain_diagram.edge(c+name, c+name+outflows)
 
             prevunit = name
 
         chain_diagram.subgraph(product_flow)   
 
-        if save is True:     
+        if save is True:     # outputs as png and svg
             chain_diagram.render()
-            chain_diagram.format = 'svg'
+            chain_diagram.format = 'svg' 
             chain_diagram.render()
 
-        if view is True:
+        if view is True:    # sends to system viewer
             chain_diagram.view()
 
         logger.debug(f"diagram created for {self.name} chain")

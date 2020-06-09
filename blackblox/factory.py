@@ -155,7 +155,6 @@ class Factory:
                                     product=c[dat.chain_product], 
                                     i_o=iof.clean_str(c[dat.chain_io][0]))
 
-            chain_dict[name]['chain'].build()
 
         self.chain_dict = chain_dict
 
