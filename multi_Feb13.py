@@ -1,9 +1,9 @@
 """GENERATE RESULTS
 """
 
-import compute as com
-import dataconfig as dat
-import io_functions as iof
+import blackblox.compute as com
+import blackblox.dataconfig as dat
+import blackblox.io_functions as iof
 from datetime import datetime
 from collections import defaultdict
 import importlib

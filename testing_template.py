@@ -1,7 +1,7 @@
 """TESTING FILE
 """
 
-import dataconfig as dat
+import blackblox.dataconfig as dat
 from datetime import datetime
 from collections import defaultdict
 
@@ -207,11 +207,11 @@ compare_inflows = False
 
 
 import pandas as pan
-import io_functions as iof
-import unitprocess as uni
-import processchain as cha
-import factory as fac
-import industry as ind
+import blackblox.io_functions as iof
+import blackblox.unitprocess as uni
+import blackblox.processchain as cha
+import blackblox.factory as fac
+import blackblox.industry as ind
 
 
 #------------------------------------------------------------------------------

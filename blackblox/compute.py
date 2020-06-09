@@ -1,11 +1,11 @@
 """TESTING FUNCTIONS
 """
 
-import dataconfig as dat
 from datetime import datetime
 from collections import defaultdict
 import pandas as pan
 
+import blackblox.dataconfig as dat
 
 # pause_between_tests = False
 
@@ -53,11 +53,11 @@ scenario_io = False
 # ==============================================================================
 
 import pandas as pan
-import io_functions as iof
-import unitprocess as uni
-import processchain as cha
-import factory as fac
-import industry as ind
+import blackblox.io_functions as iof
+import blackblox.unitprocess as uni
+import blackblox.processchain as cha
+import blackblox.factory as fac
+import blackblox.industry as ind
 
 
 #------------------------------------------------------------------------------

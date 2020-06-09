@@ -6,15 +6,14 @@ import pandas as pan
 from collections import defaultdict
 from graphviz import Digraph
 from datetime import datetime
-
-from bb_log import get_logger
-
-import io_functions as iof
-import dataconfig as dat
-import factory as fac
-import calculators as calc
 import matplotlib.pyplot as plt
 
+import blackblox.io_functions as iof
+import blackblox.dataconfig as dat
+import blackblox.factory as fac
+import blackblox.calculators as calc
+
+from blackblox.bb_log import get_logger
 
 logger = get_logger("Industry")
 

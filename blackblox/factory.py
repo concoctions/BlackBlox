@@ -24,12 +24,13 @@ from math import isnan
 from collections import defaultdict
 from graphviz import Digraph
 from datetime import datetime
-from bb_log import get_logger
-import io_functions as iof
-import dataconfig as dat
-import unitprocess as unit
-import processchain as cha
-import calculators as calc
+from blackblox.bb_log import get_logger
+import blackblox.io_functions as iof
+import blackblox.dataconfig as dat
+import blackblox.unitprocess as unit
+import blackblox.processchain as cha
+import blackblox.calculators as calc
+from blackblox.frames import df_upstream_outflows, df_upstream_inflows, df_downstream_outflows, df_downstream_inflows
 
 # Graphviz does not want to go on my PATH on my work desktop, thus...
 import platform
@@ -498,11 +499,11 @@ class Factory:
                         emission = iof.clean_str(e)
                         total_e_qty = 0
                         logger.debug(f"checking for upstream {emission} for {inflow}")
-                        if inflow in calc.df_upstream_outflows.index:
+                        if inflow in df_upstream_outflows.index:
                             logger.debug(f"{inflow} found")
                             emission_flow = f'{e}{dat.ignore_sep}upstream ({inflow})'
-                            emission_qty = inflow_qty * calc.df_upstream_outflows.at[inflow, emission]
-                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(inflow_qty,4)} of {i} using factor of {round(calc.df_upstream_outflows.at[inflow, emission],4)}")
+                            emission_qty = inflow_qty * df_upstream_outflows.at[inflow, emission]
+                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(inflow_qty,4)} of {i} using factor of {round(df_upstream_outflows.at[inflow, emission],4)}")
                             total_e_qty += emission_qty
 
                             if round(emission_qty, 12) < 0:
@@ -517,11 +518,11 @@ class Factory:
                         emission = iof.clean_str(e)
                         total_e_qty = 0
                         logger.debug(f"checking for upstream {emission} for {inflow}")
-                        if inflow in calc.df_upstream_inflows.index:
+                        if inflow in df_upstream_inflows.index:
                             logger.debug(f"{inflow} found")
                             emission_flow = f'{e}{dat.ignore_sep}upstream ({inflow})'
-                            emission_qty = inflow_qty * calc.df_upstream_inflows.at[inflow, emission]
-                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(inflow_qty,4)} of {i} using factor of {round(calc.df_upstream_inflows.at[inflow, emission],4)}")
+                            emission_qty = inflow_qty * df_upstream_inflows.at[inflow, emission]
+                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(inflow_qty,4)} of {i} using factor of {round(df_upstream_inflows.at[inflow, emission],4)}")
                             total_e_qty += emission_qty
 
                             if round(emission_qty, 12) < 0:
@@ -564,11 +565,11 @@ class Factory:
                         emission = iof.clean_str(e)
                         total_e_qty = 0
                         logger.debug(f"checking for downstream {emission} for {outflow}")
-                        if outflow in calc.df_downstream_outflows.index:
+                        if outflow in df_downstream_outflows.index:
                             logger.debug(f"{outflow} found")
                             emission_flow = f'{e}{dat.ignore_sep}downstream ({outflow})'
-                            emission_qty = outflow_qty * calc.df_downstream_outflows.at[outflow, emission]
-                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(outflow_qty,4)} of {i} using factor of {round(calc.df_downstream_outflows.at[outflow, emission],4)}")
+                            emission_qty = outflow_qty * df_downstream_outflows.at[outflow, emission]
+                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(outflow_qty,4)} of {i} using factor of {round(df_downstream_outflows.at[outflow, emission],4)}")
                             total_e_qty += emission_qty
 
                             if round(emission_qty, 12) < 0:
@@ -583,11 +584,11 @@ class Factory:
                         emission = iof.clean_str(e)
                         total_e_qty = 0
                         logger.debug(f"checking for downstream {emission} for {outflow}")
-                        if outflow in calc.df_downstream_inflows.index:
+                        if outflow in df_downstream_inflows.index:
                             logger.debug(f"{outflow} found")
                             emission_flow = f'{e}{dat.ignore_sep}downstream ({outflow})'
-                            emission_qty = outflow_qty * calc.df_downstream_inflows.at[outflow, emission]
-                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(outflow_qty,4)} of {i} using factor of {round(calc.df_downstream_inflows.at[outflow, emission],4)}")
+                            emission_qty = outflow_qty * df_downstream_inflows.at[outflow, emission]
+                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(outflow_qty,4)} of {i} using factor of {round(df_downstream_inflows.at[outflow, emission],4)}")
                             total_e_qty += emission_qty
 
                             if round(emission_qty, 12) < 0:

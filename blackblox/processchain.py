@@ -21,22 +21,22 @@ Module Outline:
 from collections import defaultdict
 from datetime import datetime
 from graphviz import Digraph
-from bb_log import get_logger
-import io_functions as iof
-import dataconfig as dat
-import unitprocess as unit
+from blackblox.bb_log import get_logger
+import blackblox.io_functions as iof
+import blackblox.dataconfig as dat
+import blackblox.unitprocess as unit
 
 
 logger = get_logger("Chain")
 
 
 class ProductChain:
-    """Linear linkage of unit processes.
+    """Linear chain of connected unit processes.
 
-    Product chains are a linear sets of unit process linked by their inflows
-    and outflow; the outflow of a unit process must be an inflow into 
-    the next unit process. Requires the existence of a unit process library
-    file.
+    A ProductChain is a set of unit process that can be balanced via linear links:
+    an outflow of one unit process is an inflow in the next unit process in the chain.
+    
+    Requires the existence of a unit process library file.
 
     Args:
         chain_data (dataframe/str): Dataframe or filepath to a excel or 

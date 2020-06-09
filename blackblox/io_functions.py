@@ -35,9 +35,9 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from collections import defaultdict, OrderedDict
 from datetime import datetime
-import dataconfig as dat
-from bb_log import get_logger
-import about
+import blackblox.dataconfig as dat
+from blackblox.bb_log import get_logger
+import blackblox.about as about
 
 logger = get_logger("IO")
 

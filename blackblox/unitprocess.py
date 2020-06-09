@@ -17,37 +17,27 @@ Module Outline:
     - class function: Balance
     - class function: recycle_1to1
     - class function: recycle_energy_replacing_fuel
+    - class (sub)function: check_io
+    - class (sub)function: check_product
+    - class (sub)function: make_io_dicts
+    - class (sub)function: check_attempt
+    - class (sub)function: check_substance
+    - class (sub)function: check_lookup
+    - class (sub)function: check_calc
+
 """
 
 from collections import defaultdict
 from copy import copy
 from math import isnan
-from bb_log import get_logger
-import io_functions as iof
-import dataconfig as dat
-import calculators  as calc
+from blackblox.bb_log import get_logger
+import blackblox.io_functions as iof
+import blackblox.dataconfig as dat
+import blackblox.calculators  as calc
+from blackblox.frames import df_unit_library, lookup_var_dict
 
 logger = get_logger("Unit Process")
 
-# LOOK UP VARIABLES
-df_unit_library = iof.make_df(dat.unit_process_library_file, 
-                             sheet=dat.unit_process_library_sheet)
-"""dataframe of all unit process names and file locations
-
-This data frame provides the locations of the calculations and variable tables 
-for one or more unit process. Data locations for each unit process can also be 
-provided invidivually when creating the a specific instance of a unit process 
-class.
-
-The index of the table contains the unique idenitifer of the unit processes
-and the columns contains the location of the variable and calculation tables.
-"""
-
-lookup_var_dict = copy(dat.lookup_var_dict)
-for var in lookup_var_dict:
-    if 'filepath' in lookup_var_dict[var]:
-        df = iof.make_df(lookup_var_dict[var]['filepath'], sheet=lookup_var_dict[var]['sheet'])
-        lookup_var_dict[var]['data_frame'] = df
 
 
 class UnitProcess:

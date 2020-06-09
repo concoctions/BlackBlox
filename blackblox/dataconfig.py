@@ -26,7 +26,7 @@ Module Outline:
 
 """
 
-from bb_log import get_logger
+from blackblox.bb_log import get_logger
 logger = get_logger("config")
 
 
@@ -70,31 +70,43 @@ be specified.
 
 
 # LOOKUP VARIABLES
+fuel_dict = dict(filepath='data/shared/fuels.xlsx',
+            sheet='Fuels',
+            lookup_var='fueltype')
+
 lookup_var_dict = { 
     #FUELS
     'fuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
+                 is_fuel = True,
                  lookup_var='fueltype'),
     'other fuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
+                 is_fuel = True,
                  lookup_var='other fuel type'),
     'primary fuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
+                 is_fuel = True,
                  lookup_var='primary fuel type'),
     'secondary fuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
+                 is_fuel = True,
                  lookup_var='secondary fuel type'),
     'fossil fuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
+                 is_fuel = True,
                  lookup_var='fossil fuel type'),
     'biofuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
+                 is_fuel = True,
                  lookup_var='biofuel type'),
     'secondary biofuel': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
+                 is_fuel = True,
                  lookup_var='secondary biofuel type'),
     'reducing agent': dict(filepath='data/shared/fuels.xlsx',
                  sheet='Fuels',
+                 is_fuel = True,
                  lookup_var='reducing agent'),
     #UPSTREAM
     'upstream outflows': dict(lookup_var='upstream outflows',
@@ -110,7 +122,7 @@ lookup_var_dict = {
     'downstream inflows': dict(lookup_var='downstream inflows',
                      filepath='data/shared/upstream.xlsx',
                      sheet='down-removals'),
-    #NO FURTHER DATA
+    #NO FURTHER DATA (only used to pass flowname from var_df)
     'biomass': dict(lookup_var='biomass type'),
     'feedstock': dict(lookup_var='feedstock type'),
     'alloy': dict(lookup_var='alloy type')
@@ -137,7 +149,7 @@ Each entry in this dictionary should be formatted with the following:
 """
 
 fuel_flows = ['fuel', 'other fuel', 'primary fuel', 'secondary fuel', 'fossil fuel', 'biofuel',]
-"""list: strings that indicate that a substance is an energy flow
+"""list: strings that indicate that a substance is an fuel flow
 
 Usable in flow names. Must be used at the beginning or end of the flow name.
 """
@@ -148,9 +160,7 @@ default_units = {'mass': 'tonnes',
 }
 
 energy_flows = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV', 'lhv', 'hhv']
-"""list: strings that indicate that a substance is an energy flow
-
-Usable in flow names. Must be used at the beginning or end of the flow name.
+"""list: strings that, at the start or end of a flow identifier indicate an energy flow
 """
 
 default_emissions = ['CO2__fossil', 'CO2__bio', 'H2O']

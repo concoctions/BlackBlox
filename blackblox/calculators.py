@@ -16,9 +16,6 @@ are provided to the calculator function in unitprocess.py, whether or
 not they are used by that specific function.
 
 Module Outline:
-- module variables: df_fuels, df_upstream_outflows, df_upstream_inflows,
-    df_downstream_inflows, df_downstream_outflows
-
 - function: check_qty
 - function: no_nan
 - function: div_no_zero
@@ -44,41 +41,13 @@ import numpy as np
 import pandas as pan
 from molmass import Formula
 from collections import defaultdict
-import io_functions as iof
-import dataconfig as dat
-from bb_log import get_logger
+import blackblox.io_functions as iof
+import blackblox.dataconfig as dat
+from blackblox.bb_log import get_logger
+from blackblox.frames import df_fuels
 
 logger = get_logger("Calculators")
 logger.info("Logger for calculators.py initalized")
-
-# LOOKUP DATA USED BY CALCULATORS
-
-df_fuels = None
-if 'fuel' in dat.lookup_var_dict: 
-    logger.info("initalizing dataframe for fuel property lookup info [df_fuels]")
-
-    df_fuels = iof.make_df(dat.lookup_var_dict['fuel']['filepath'], sheet=dat.lookup_var_dict['fuel']['sheet'])
-"""Dataframe of information regarding different fuel types, used for combustion calculations, 
-intalized from a spreadsheet including fuel name, fuel LHV, and fuel emission ratio.
-Generated if 'fuel' is in dat.lookup_var_dict
-"""
-
-df_upstream_outflows = None
-if 'upstream outflows' in dat.lookup_var_dict:
-    df_upstream_outflows = iof.make_df(dat.lookup_var_dict['upstream outflows']['filepath'], sheet=dat.lookup_var_dict['upstream outflows']['sheet'])
-
-df_upstream_inflows = None
-if 'upstream inflows' in dat.lookup_var_dict:
-    df_upstream_inflows = iof.make_df(dat.lookup_var_dict['upstream inflows']['filepath'], sheet=dat.lookup_var_dict['upstream inflows']['sheet'])
-
-df_downstream_outflows = None
-if 'downstream outflows' in dat.lookup_var_dict:
-    df_downstream_outflows = iof.make_df(dat.lookup_var_dict['downstream outflows']['filepath'], sheet=dat.lookup_var_dict['downstream outflows']['sheet'])
-
-df_downstream_inflows = None
-if 'downstream inflows' in dat.lookup_var_dict:
-    df_downstream_inflows = iof.make_df(dat.lookup_var_dict['downstream inflows']['filepath'], sheet=dat.lookup_var_dict['downstream inflows']['sheet'])
-
 
 
 
