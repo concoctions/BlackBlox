@@ -268,7 +268,8 @@ class UnitProcess:
                 logger.debug(f"{self.name.upper()}: neither {known_substance} nor {unknown_substance} found, skipping for now")
                 continue
 
-            if invert is True:
+            # inverts when original unknown_substance is available but qty of known_substance is not
+            if invert is True: 
                 known_substance, unknown_substance = unknown_substance, known_substance
                 known_io, unknown_io = unknown_io, known_io
                 known_proxy, unknown_proxy = unknown_proxy, known_proxy
@@ -276,6 +277,7 @@ class UnitProcess:
 
             qty_known = io_dicts[known_io][known_substance]
             
+            # set kwargs for calculation
             kwargs = dict(qty=calc.no_nan(qty_known), 
                           var=calc.no_nan(var), 
                           known_substance=known_proxy, 
@@ -286,14 +288,15 @@ class UnitProcess:
                           emissions_dict=io_dicts['e'],
                           inflows_dict=io_dicts['c'],
                           lookup_df = lookup_df)
-            kwargs = {**kwargs, **calc.calcs_dict[calc_type]['kwargs']}
+            kwargs = {**kwargs, **calc.calcs_dict[calc_type]['kwargs']} # add additional kwargs based on specified calc type
             
+            # calculate
             logger.debug(f"{self.name.upper()}: Attempting {calc_type} calculation for {unknown_substance} using {qty_known} of {known_substance}")
             qty_calculated = calc.calcs_dict[calc_type]['function'](**kwargs)
             qty_calculated = calc.no_nan(qty_calculated)
-
             calc.check_qty(qty_calculated)
             
+            # write qty calculated to dictionary
             if unknown_io in ['c', 'e']:
                 io_dicts[unknown_io][unknown_substance] += qty_calculated
             elif unknown_io == 'd':
@@ -301,6 +304,7 @@ class UnitProcess:
             else:
                 io_dicts[unknown_io][unknown_substance] = qty_calculated
 
+            # remove row of completed calculation from calc_df
             calc_df = calc_df.drop(i)
             calc_df = calc_df.reset_index(drop=True)
             attempt = 0
@@ -312,6 +316,7 @@ class UnitProcess:
         for substance, qty in io_dicts['c'].items(): #adds co-inflows dictionary to inflows dictionary
             io_dicts['i'][substance] += qty
 
+        # check if inflows and outflows balance
         logger.debug(f"{self.name.upper()}: Balancing mass flows")
         total_mass_in, total_mass_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
                                                  raise_imbalance=raise_imbalance, 
@@ -338,7 +343,6 @@ class UnitProcess:
                 logger.info(f"{self.name.upper()}:energy imbalance found {total_energy_in - total_energy_out} of UNKOWN ENERGY added to inflows")
 
         logger.info(f"{self.name} process balanced on {qty} of {product}")
-
         return io_dicts['i'], io_dicts['o']
 
 
@@ -385,15 +389,17 @@ class UnitProcess:
 
         if i_o not in ['i', 'o']:
             raise KeyError(f'{i_o} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
-
+        
         if toBeReplaced_flow in lookup_var_dict:
             toBeReplaced_flow = self.var_df.at[scenario, lookup_var_dict[toBeReplaced_flow]['lookup_var']] 
         if toBeReplaced_flow in calc.df_fuels:
             logger.info(f'{self.name.upper()}: WARNING! {toBeReplaced_flow} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
 
         calc.check_qty(max_replace_fraction, fraction = True)
+
         replacable_qty = original_flows[i_o][toBeReplaced_flow] * max_replace_fraction
         unused_recyclate_qty = recycled_qty - replacable_qty
+
         if unused_recyclate_qty >= 0:
             used_recyclate_qty = recycled_qty - unused_recyclate_qty
         else:
@@ -468,6 +474,7 @@ class UnitProcess:
         if type(combustion_eff) is str:
             combustion_eff = self.var_df.at[scenario, combustion_eff]
 
+        # calculate how much fuel energy will replace, including emissions/coinflows
         equivelent_fuel_qty = calc.Combustion(known_substance='energy', 
                                               qty=recycled_qty, 
                                               unknown_substance=toBeReplaced_flow, 
@@ -489,6 +496,7 @@ class UnitProcess:
             rebalanced_flows[i_o][recyclate_flow] = recycled_qty
             remaining_energy_qty = 0
 
+             # remove emissions/coinflows of replaced fuel
             for flow in replaced_emissions_dict:
                 rebalanced_flows['o'][flow] -= replaced_emissions_dict[flow]
 
@@ -515,13 +523,15 @@ class UnitProcess:
             rebalanced_flows[i_o][recyclate_flow] += used_energy_qty
             remaining_energy_qty = recycled_qty - used_energy_qty
         
+            # remove emissions/coinflows of replaced fuel
             for flow in replaced_emissions_dict:
                 rebalanced_flows['o'][flow] -= replaced_emissions_dict[flow]
-                if round(rebalanced_flows['o'][flow], 8) == 0: # rounds off floating point errors
+                if round(rebalanced_flows['o'][flow], dat.float_tol) == 0: # rounds off floating point errors
                     rebalanced_flows['o'][flow] = 0
+
             for flow in replaced_inflows_dict:
                 rebalanced_flows['i'][flow] -= replaced_inflows_dict[flow]
-                if round(rebalanced_flows['i'][flow], 8) == 0: # rounds off floating point errors
+                if round(rebalanced_flows['i'][flow], dat.float_tol) == 0: # rounds off floating point errors
                     rebalanced_flows['i'][flow] = 0
 
         if remaining_energy_qty < 0:
