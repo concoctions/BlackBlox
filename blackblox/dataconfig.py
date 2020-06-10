@@ -287,3 +287,7 @@ f_connections_sheet = "factory connections sheet"
 f_product = "factory product"
 f_product_qty = "product qty"
 f_scenario = "scenario"
+
+
+# Other Filepaths
+graphviz_path = 'C:/ProgramData/Anaconda3/Library/bin/graphviz/'

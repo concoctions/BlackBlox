@@ -97,7 +97,6 @@ def test_chains(chain_dict,
                 
     for c in chain_dict:
         chain = cha.ProductChain(**chain_dict[c])
-        chain.build()
         print(f"\n{str.upper(chain.name)} chain")
 
         if view_diagrams is True or save_diagrams is True:
@@ -131,7 +130,6 @@ def build_factories(factory_dict):
 
     for f in factory_dict:
         factory = fac.Factory(**factory_dict[f])
-        factory.build()
         built_factories[f] = factory
 
         if view_diagrams is True or save_diagrams is True:
