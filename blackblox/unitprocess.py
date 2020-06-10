@@ -118,16 +118,10 @@ class UnitProcess:
                                        sheet=c_sheet, 
                                        index=None)
 
-        #identify process inflows and outflows
-        if dat.unit_product in units_df:
-            self.default_product = units_df.at[u_id, dat.unit_product]
-        else:
-            self.default_product = None
 
-        if dat.unit_product_io in units_df:
-            self.default_io = units_df.at[u_id, dat.unit_product_io]
-        else:
-            self.default_io = None
+       
+        self.default_product = iof.check_for_col(units_df, dat.unit_product, u_id)  # use default value if available, otherwise none
+        self.default_io = iof.check_for_col(units_df, dat.unit_product_io, u_id)  # use default value if available, otherwise none
         
         self.inflows = set() 
         self.outflows = set() 
