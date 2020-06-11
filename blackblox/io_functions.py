@@ -228,7 +228,7 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
             df = pan.DataFrame(data)
         elif data.endswith(('.xls', 'xlsx')):
             df = pan.read_excel(data, sheet_name=sheet, index_col=index)
-        elif data.endswith('.csv', '.tsv', '.txt', 'dat'):
+        elif data.endswith('.csv', '.tsv', '.txt', '.dat'):
             df = pan.read_csv(data, sep=',', index_col=index)
     else:
         return pan.DataFrame()

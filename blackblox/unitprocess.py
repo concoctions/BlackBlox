@@ -13,18 +13,19 @@ Module Outline:
 
 - import statements and logger
 - module variable: df_units_library (dataframe)
-- class: unit process
+- class: UnitProcess
     - class function: Balance
     - class function: recycle_1to1
     - class function: recycle_energy_replacing_fuel
-    - class (sub)function: check_io
-    - class (sub)function: check_product
-    - class (sub)function: make_io_dicts
-    - class (sub)function: check_attempt
-    - class (sub)function: check_substance
-    - class (sub)function: check_lookup
-    - class (sub)function: check_calc
 
+    subfunctions used in UnitProcess.balance():
+    - class subfunction: check_io
+    - class subfunction: check_product
+    - class subfunction: make_io_dicts
+    - class subfunction: check_attempt
+    - class subfunction: check_substance
+    - class subfunction: check_lookup
+    - class subfunction: check_calc
 """
 
 from collections import defaultdict

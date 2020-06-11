@@ -12,10 +12,21 @@ Module Outline:
 
 - import statements and logger
 - class: Factory
-    - class function: Build
     - class function: Balance
     - class function: Diagram
     - class function: Run_Scenarios
+    
+    used in factory.Balance():
+    - class subfunction: check_origin_product
+    - class subfunction: check_product_qty
+    - class subfunction: check_for_value
+    - class subfunction: check_for_recycle_fractions
+    - class subfunction: check_for_lookup
+    - class subfunction: connect_recycle_flow
+    - class subfunction: update_chain_dict_after_recycle
+    - class subfunction: describe_internal_flow
+    - class subfunction: add_updownstream_flows
+    - class subfunction: factory_to_excel
 """
 
 import pandas as pan
@@ -151,8 +162,7 @@ class Factory:
     def balance(self, product_qty, product=False, product_unit=False, product_io=False, 
                 scenario=dat.default_scenario, upstream_outflows=False, upstream_inflows=False, 
                 downstream_outflows=False, downstream_inflows=False,
-                aggregate_flows=False, write_to_xls=True, outdir=dat.outdir, 
-                mass_energy=True, energy_flows=dat.energy_flows):
+                aggregate_flows=False, write_to_xls=True, outdir=dat.outdir):
         """Calculates the mass balance of the factory using qty of main product
 
         Balances all UnitProcesses and Chains in the factory
@@ -187,13 +197,6 @@ class Factory:
                 (Defaults to True)
             outdir (str): Filepath where to create the balance spreadsheets.
                 (Defaults to the dat.outdir)  
-            mass_energy (bool): If true, seperates mass and energy flows within 
-                each excel sheet during output, using the identifier specified
-                in energy_flows
-                (Defaults to True)
-            energy_flows (list): list of prefix/suffixes which identify which
-                substances are energy flows.
-                (Defaults to dat.energy_flows)
 
         Returns:
             dictionary of factory inflow substances and total quantities
@@ -226,46 +229,46 @@ class Factory:
                                                            unit_process = product_unit,
                                                            scenario=scenario)
 
+        logger.debug(f"{self.name.upper()}: balanced main chain {main['name']} on {product_qty} of {product}")
         internal_flows.extend(main_chain_internal_flows) #keeps track of flows betwen units
-
 
         # balances auxillary ProductChains
         if self.connections_df is not None:
-            for dummy_index, aux in self.connections_df.iterrows(): 
+            for dummy_index, row in self.connections_df.iterrows(): 
 
                 # reset variables
-                orig_product_io = iof.clean_str(aux[dat.origin_io][0])
-                orig_product = aux[dat.origin_product]
+                orig_product_io = iof.clean_str(row[dat.origin_io][0])
+                orig_product = row[dat.origin_product]
+                qty_remaining = 0 
 
                 dest_unit = False
-                dest_unit_name = False
                 dest_unit_id = False
                 dest_product = False
-                dest_product_io = iof.clean_str(aux[dat.dest_io][0])
+                dest_product_io = iof.clean_str(row[dat.dest_io][0])
 
                 i_tmp = None
                 o_tmp = None
                 
                 # identify origin (existing) and destination (connecting) ProductChains
-                orig_chain = self.chain_dict[aux[dat.origin_chain]]['chain']
+                orig_chain = self.chain_dict[row[dat.origin_chain]]['chain']
                 if not io_dicts[orig_product_io][orig_chain.name]:
                     raise KeyError(f"{[orig_chain.name]} has not been balanced yet. Please check the order of your connections.")
                 
-                dest_chain = self.chain_dict[aux[dat.dest_chain]]['chain'] 
-                if dat.dest_unit in aux:
-                    if aux[dat.dest_unit] in dest_chain.process_dict:
-                        dest_unit = dest_chain.process_dict[aux[dat.dest_unit]]
-                        dest_unit_name = dest_unit.name
+                dest_chain = self.chain_dict[row[dat.dest_chain]]['chain'] 
+                if dat.dest_unit in row:
+                    if row[dat.dest_unit] in dest_chain.process_dict:
+                        dest_unit = dest_chain.process_dict[row[dat.dest_unit]]
+                        dest_unit_id = dest_unit.u_id
 
                 # if destination chain connects to all UnitProcesses in origin chain, 
                 # use totals flow values from origin chain, rather than individual UnitProcess data
-                if aux[dat.origin_unit] == dat.connect_all: 
+                if row[dat.origin_unit] == dat.connect_all: 
                     qty = io_dicts[orig_product_io][orig_chain.name]['chain totals'][orig_product]
                     orig_unit = False
                     logger.debug(f"using {qty} of {orig_product} from all units in {orig_chain.name}")
 
                 else:
-                    orig_unit = orig_chain.process_dict[aux[dat.origin_unit]]
+                    orig_unit = orig_chain.process_dict[row[dat.origin_unit]]
 
                     # processes substance name based on seperator and lookup key rules
                     orig_product = self.check_origin_product(orig_product, orig_unit, scenario)
@@ -278,13 +281,15 @@ class Factory:
                     raise ValueError(f"{qty} of {orig_product}  from {orig_unit.name} in {orig_chain.name} < 0.")
                 
                 # For Recycle Connections
-                if self.check_for_value(dat.replace, aux) is True:
+                if self.check_for_value(dat.replace, row) is True:
                     logger.debug(f"{self.name.upper()}: attempting to recycle {orig_product} from {orig_unit.name}")
 
-                    new_chain_in_dict, new_chain_out_dict, qty_remaining, replace_flow = self.connect_recycle_flow(qty, aux, scenario, 
+                    new_chain_in_dict, new_chain_out_dict, qty_remaining, replace_flow = self.connect_recycle_flow(qty, row, scenario, 
                                                                                         orig_chain, orig_unit, orig_product, 
                                                                                         dest_chain, dest_unit, dest_product_io, 
                                                                                         io_dicts, chain_intermediates_dict)
+
+                                                                                        
 
                     io_dicts['i'][dest_chain.name] = new_chain_in_dict 
                     io_dicts['o'][dest_chain.name] = new_chain_out_dict 
@@ -297,23 +302,24 @@ class Factory:
                     replace_flow = None
 
                     # allow for "connect as" products
-                    dest_product = self.check_for_value(dat.dest_product, aux, ifyes=aux[dat.dest_product], ifno=orig_product)         
+                    dest_product = self.check_for_value(dat.dest_product, row, ifyes=row[dat.dest_product], ifno=orig_product)         
 
+                    #balance auxillary chain based on qty of connecting product from already-calculated origin chain
                     logger.debug(f"sending {qty} of {orig_product} to {dest_chain.name} as {dest_product} ({dest_product_io}-flow)")
                     
-                    c_kwargs = dict(qty=qty, 
-                                    product=dest_product, 
-                                    product_alt_name = orig_product,
-                                    i_o=dest_product_io, 
-                                    unit_process = dest_unit_id,
-                                    scenario=scenario,)
                     (i_tmp, o_tmp, 
-                    chain_intermediates_dict[dest_chain.name], chain_internal_flows) = dest_chain.balance(**c_kwargs)
-                    
+                    chain_intermediates_dict[dest_chain.name], 
+                    chain_internal_flows) = dest_chain.balance(qty=qty, 
+                                                               product=dest_product, 
+                                                               product_alt_name = orig_product,
+                                                               i_o=dest_product_io, 
+                                                               unit_process = dest_unit_id,
+                                                               scenario=scenario,)
+                
                     internal_flows.extend(chain_internal_flows)
                 
                     # add chain inflow/outflow data to factory inflow/outflow dictionaries
-                    # check if the chain already exists, and if so, aggregate the flow values instead of assigning/replacing
+                    # if chain already exists, add flow values instead of replacing
                     if io_dicts['i'][dest_chain.name] and io_dicts['o'][dest_chain.name]:
                         for process_dict in i_tmp:
                             for substance, i_qty in i_tmp[process_dict].items():
@@ -325,293 +331,57 @@ class Factory:
                         io_dicts['i'][dest_chain.name] = i_tmp
                         io_dicts['o'][dest_chain.name] = o_tmp 
                     
-                    qty_remaining = 0
                     logger.debug(f"{qty} of {orig_product} as product from {orig_chain.name} ({orig_product_io}) sent to to {dest_chain.name} ({dest_product_io})")
 
 
                 # FOR ALL CONNECTIONS
-                # add used product to dictionary counting intra-factories flows (to be deleted from totals)
+                # add intra-chain product qty to intra-factory flow dictionary (to be deleted from factory total in/out)
                 intermediate_product_dict[orig_product] += (qty - qty_remaining)
                 logger.debug(f"{qty - qty_remaining} of {orig_product} added to intermediate_product_dict")
 
-                # generates internal flows list data
-                orig_chain_name = orig_chain.name
-                dest_chain_name = dest_chain.name
+                # update list of intra-factory flows for documentation output
+                internal_flows.append(self.describe_internal_flow(row, qty, qty_remaining, orig_chain, orig_unit, orig_product, orig_product_io, dest_chain, dest_unit, dest_product, dest_product_io, replace_flow))
 
-                if orig_unit and orig_unit.name:
-                    orig_unit_name = orig_unit.name
-                elif aux[dat.origin_unit] == dat.connect_all:
-                    orig_unit_name = 'all'
-                else:
-                    orig_unit_name = 'unknown'
-
-                if dest_unit and dest_unit.name:
-                    dest_unit_name = dest_unit.name
-                    dest_unit_id = dest_unit.u_id
-                elif dest_product_io == 'i':
-                    dest_unit_name = dest_chain.process_names[0]
-                elif dest_product_io == 'o':
-                    dest_unit_name = dest_chain.process_names[-1]
-                else:
-                    dest_unit_name = 'unknown'
-
-                if dest_product_io == 'o' and orig_product_io == 'i':
-                    orig_chain_name, dest_chain_name = dest_chain_name, orig_chain_name
-                    orig_unit_name, dest_unit_name = dest_unit_name, orig_unit_name
-
-                if replace_flow is not None:
-                    internal_flows.append([orig_chain_name, orig_unit_name, f'{orig_product} REPLACING {replace_flow}', (qty-qty_remaining), dest_chain_name, dest_unit_name])
-                else:
-                    internal_flows.append([orig_chain_name, orig_unit_name, f'{orig_product} AS {dest_product}', (qty-qty_remaining), dest_chain_name, dest_unit_name])
-
-        # after processing all connections, generate total data
-
+        # Calculate Factory-level inflows and outflows
         factory_totals = {
             'i': defaultdict(float),
             'o': defaultdict(float)
             }
+        
+        # aggregate chain totals 
         for chain in io_dicts['i']:
             for inflow, qty in io_dicts['i'][chain]['chain totals'].items():
                 factory_totals['i'][inflow] += qty
         for chain in io_dicts['o']:
             for outflow, qty in io_dicts['o'][chain]['chain totals'].items():
                 factory_totals['o'][outflow] += qty
-        logger.debug(f"factory totals, pre intermediate products\n {iof.make_df(factory_totals)}")
+        
+        # remove inter-chain flows
         for io_dict in factory_totals:
             for product, qty in intermediate_product_dict.items():
                 factory_totals[io_dict][product] -= qty # removes intermediate product quantities
-        logger.debug(f"factory totals, post intermediate products\n {iof.make_df(factory_totals)}")
 
-        # UPSTREAM INFLOWS/OUTFLOWS
+        # add additional upstream/downstream flows for factory inflows and outflows, based on factory totals
         if type(upstream_outflows) is list or type(upstream_inflows) is list: #add upstream emissions to factory output
-            logger.debug("calculating upstream flows")
-            balancers_in = defaultdict(float)
-            balancers_out = defaultdict(float)
-            additional_inflows = defaultdict(float)   
-            additional_outflows = defaultdict(float)
+            factory_totals = self.add_updownstream_flows(factory_totals, 
+                                                    io='i', 
+                                                    inflow_list=upstream_inflows, 
+                                                    df_inflows= df_upstream_inflows, 
+                                                    outflow_list=upstream_outflows, 
+                                                    df_outflows=df_upstream_outflows)
 
-            for i in factory_totals['i']:
-                logger.debug(f"checking for upstream data for {i}")
-                inflow = i
-                inflow_qty = factory_totals['i'][i]
-                if dat.ignore_sep in inflow:
-                    inflow = inflow.split(dat.ignore_sep)[0]
-                
-                logger.debug(f"using name {inflow}")
-
-                if type(upstream_outflows) is list:
-                    for e in upstream_outflows:
-                        emission = iof.clean_str(e)
-                        total_e_qty = 0
-                        logger.debug(f"checking for upstream {emission} for {inflow}")
-                        if inflow in df_upstream_outflows.index:
-                            logger.debug(f"{inflow} found")
-                            emission_flow = f'{e}{dat.ignore_sep}upstream ({inflow})'
-                            emission_qty = inflow_qty * df_upstream_outflows.at[inflow, emission]
-                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(inflow_qty,4)} of {i} using factor of {round(df_upstream_outflows.at[inflow, emission],4)}")
-                            total_e_qty += emission_qty
-
-                            if round(emission_qty, 12) < 0:
-                                raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
-                            else:
-                                additional_outflows[emission_flow] += emission_qty
-                            
-                        balancers_in[f"CONSUMED {e}{dat.ignore_sep}upstream"] += total_e_qty
-
-                if type(upstream_inflows) is list: #add upstream removals to factory inflows                 
-                    for e in upstream_inflows:
-                        emission = iof.clean_str(e)
-                        total_e_qty = 0
-                        logger.debug(f"checking for upstream {emission} for {inflow}")
-                        if inflow in df_upstream_inflows.index:
-                            logger.debug(f"{inflow} found")
-                            emission_flow = f'{e}{dat.ignore_sep}upstream ({inflow})'
-                            emission_qty = inflow_qty * df_upstream_inflows.at[inflow, emission]
-                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(inflow_qty,4)} of {i} using factor of {round(df_upstream_inflows.at[inflow, emission],4)}")
-                            total_e_qty += emission_qty
-
-                            if round(emission_qty, 12) < 0:
-                                raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
-                            else:
-                                additional_inflows[emission_flow] += emission_qty
-                
-                        balancers_out[f"CONSUMED {e}{dat.ignore_sep}upstream"] += total_e_qty
-
-            for flow in additional_inflows:
-                factory_totals["i"][flow] = additional_inflows[flow]
-            for flow in additional_outflows:
-                factory_totals["o"][flow] = additional_outflows[flow]
-
-            for e in balancers_in:
-                factory_totals["i"][e] = balancers_in[e]
-            for e in balancers_out:
-                factory_totals["o"][e] = balancers_out[e]
-
-         # DOWNSTREAM INFLOWS/OUTFLOWS
-        logger.debug("Looking for downstream flows")
         if type(downstream_outflows) is list or type(downstream_inflows) is list: #add downstream emissions to factory output
-            logger.debug("calculating downstream flows")
-            balancers_in = defaultdict(float)
-            balancers_out = defaultdict(float)
-            additional_inflows = defaultdict(float)   
-            additional_outflows = defaultdict(float)
-
-            for o in factory_totals['o']:
-                logger.debug(f"checking for downstream data for {o}")
-                outflow = o
-                outflow_qty = factory_totals['o'][o]
-                # if dat.ignore_sep in outflow:
-                #     outflow = outflow.split(dat.ignore_sep)[0]
-                
-                logger.debug(f"using name {outflow}")
-
-                if type(downstream_outflows) is list:
-                    for e in downstream_outflows:
-                        emission = iof.clean_str(e)
-                        total_e_qty = 0
-                        logger.debug(f"checking for downstream {emission} for {outflow}")
-                        if outflow in df_downstream_outflows.index:
-                            logger.debug(f"{outflow} found")
-                            emission_flow = f'{e}{dat.ignore_sep}downstream ({outflow})'
-                            emission_qty = outflow_qty * df_downstream_outflows.at[outflow, emission]
-                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(outflow_qty,4)} of {i} using factor of {round(df_downstream_outflows.at[outflow, emission],4)}")
-                            total_e_qty += emission_qty
-
-                            if round(emission_qty, 12) < 0:
-                                raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
-                            else:
-                                additional_outflows[emission_flow] += emission_qty
-                            
-                        balancers_in[f"CONSUMED {e}{dat.ignore_sep}downstream"] += total_e_qty
-
-                if type(downstream_inflows) is list: #add downstream removals to factory inflows                 
-                    for e in downstream_inflows:
-                        emission = iof.clean_str(e)
-                        total_e_qty = 0
-                        logger.debug(f"checking for downstream {emission} for {outflow}")
-                        if outflow in df_downstream_inflows.index:
-                            logger.debug(f"{outflow} found")
-                            emission_flow = f'{e}{dat.ignore_sep}downstream ({outflow})'
-                            emission_qty = outflow_qty * df_downstream_inflows.at[outflow, emission]
-                            logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(outflow_qty,4)} of {i} using factor of {round(df_downstream_inflows.at[outflow, emission],4)}")
-                            total_e_qty += emission_qty
-
-                            if round(emission_qty, 12) < 0:
-                                raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
-                            else:
-                                additional_inflows[emission_flow] += emission_qty
-                
-                        balancers_out[f"CONSUMED {e}{dat.ignore_sep}downstream"] += total_e_qty
-
-            for flow in additional_inflows:
-                factory_totals["i"][flow] = additional_inflows[flow]
-            for flow in additional_outflows:
-                factory_totals["o"][flow] = additional_outflows[flow]
-
-            for e in balancers_in:
-                factory_totals["i"][e] = balancers_in[e]
-            for e in balancers_out:
-                factory_totals["o"][e] = balancers_out[e]
-                
-        
-
+            factory_totals = self.add_updownstream_flows(factory_totals, 
+                                                    io='o', 
+                                                    inflow_list=downstream_inflows, 
+                                                    df_inflows= df_downstream_inflows, 
+                                                    outflow_list=downstream_outflows, 
+                                                    df_outflows=df_downstream_outflows)
+                        
+        # output to file
         if write_to_xls is True:
-            if outdir == dat.outdir:
-                outdir = f'{dat.outdir}/{self.name}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
-                
-            filename = f'f_{self.name}_{scenario}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
-
-            meta_df = iof.metadata_df(user=dat.user_data, name=self.name, 
-                          level="Factory", scenario=scenario, product=self.main_product,
-                          product_qty=product_qty, energy_flows=energy_flows)
-
-            totals_dict = iof.nested_dicts(2)
-            totals_dict['factory inflows'] = factory_totals['i']
-            totals_dict['factory outflows'] = factory_totals['o']
-            totals_df = iof.make_df(totals_dict, drop_zero=True)
-            totals_df = iof.mass_energy_df(totals_df, aggregate_consumed=True)
-            
-            if type(aggregate_flows) is list:
-                aggregated_inflows = defaultdict(float)
-                aggregated_outflows = defaultdict(float)
-               
-
-                for flow in aggregate_flows:
-                    for inflow in factory_totals['i']:
-                        if inflow.lower().startswith(flow.lower()):
-                            aggregated_inflows[flow] += factory_totals['i'][inflow]
-
-                    for outflow in factory_totals['o']:
-                        if outflow.lower().startswith(flow.lower()):
-                            aggregated_outflows[flow] += factory_totals['o'][outflow]
-                
-                aggregated_dict = iof.nested_dicts(2)
-                aggregated_dict['inflows'] = aggregated_inflows
-                aggregated_dict['outflows'] = aggregated_outflows
-                aggregated_df = iof.make_df(aggregated_dict, drop_zero=True)
-                            
-            internal_flows_header = ['origin chain', 'origin unit', 'flow product', 'quantity', 'destination chain', 'destination unit']
-            internal_flows_df = pan.DataFrame(internal_flows, columns=internal_flows_header)
-
-            # shortens factory names to preven issues with spreadsheet name length limits
-            if len(self.name) > 20:
-                factory_name = self.name[:20]+'...'
-            else:
-                factory_name = self.name
-
-            if type(aggregate_flows) is list:
-                df_list = [meta_df, totals_df, aggregated_df, internal_flows_df]
-                sheet_list = ['metadata', f'{factory_name} totals', 'aggregated flows', 'internal flows']
-            else:
-                df_list = [meta_df, totals_df, internal_flows_df]
-                sheet_list = ['metadata', f'{factory_name} totals', 'internal flows']
-
-            all_inflows = defaultdict(lambda: defaultdict(float))
-            all_outflows = defaultdict(lambda: defaultdict(float))
-
-            #shortens chain names to prevent issues with spreadsheet name length limits
-            for chain in io_dicts['i']:
-                if len(chain) > 20:
-                    chain_name = chain[:20]+'...'
-                else:
-                    chain_name = chain
-                columns = self.chain_dict[chain]['chain'].process_names + ['chain totals']
-                chain_inflow_df = iof.make_df(io_dicts['i'][chain], 
-                                              col_order=columns, 
-                                              drop_zero=True)
-                chain_inflow_df = iof.mass_energy_df(chain_inflow_df)
-                df_list.append(chain_inflow_df)
-                sheet_list.append(chain_name+" in")
-
-                chain_outflow_df = iof.make_df(io_dicts['o'][chain], 
-                                               col_order=columns,
-                                               drop_zero=True)
-                logger.debug(chain_outflow_df)
-                chain_outflow_df = iof.mass_energy_df(chain_outflow_df)
-                logger.debug(chain_outflow_df)
-                df_list.append(chain_outflow_df)
-                sheet_list.append(chain_name+" out")
-
-                for process_dict in io_dicts['i'][chain]:
-                    if 'total' not in process_dict:
-                        for substance, qty in io_dicts['i'][chain][process_dict].items():
-                            all_inflows[process_dict][substance] = qty
-                        for substance, qty in io_dicts['o'][chain][process_dict].items():
-                            all_outflows[process_dict][substance] = qty
-
-            all_outflows_df = iof.make_df(all_outflows, drop_zero=True)
-            all_outflows_df = iof.mass_energy_df(all_outflows_df, totals=False)
-            df_list.insert(3,all_outflows_df)
-            sheet_list.insert(3, "unit outflow matrix")
-
-            all_inflows_df = iof.make_df(all_inflows, drop_zero=True)
-            all_inflows_df = iof.mass_energy_df(all_inflows_df, totals=False)
-            df_list.insert(3, all_inflows_df)
-            sheet_list.insert(3, "unit inflow matrix")
-
-            iof.write_to_excel(df_list, sheet_list=sheet_list, 
-                               filedir=outdir, filename=filename)
-
+            self.factory_to_excel(outdir, io_dicts, factory_totals, internal_flows, 
+                            scenario, product_qty, aggregate_flows)
         
         logger.debug(f"successfully balanced factory on {product_qty} of {self.chain_dict[self.main_chain]['product']}")
 
@@ -722,7 +492,6 @@ class Factory:
                         else:
                             product = c[dat.origin_product]
                         
-
                         if chain == c[dat.origin_chain]:
                             if process == c[dat.origin_unit] or c[dat.origin_unit] == dat.connect_all:
                                 if iof.clean_str(c[dat.origin_io][0]) == 'i':
@@ -792,7 +561,6 @@ class Factory:
                         io_diagram.node(chain+process+outflows, label=outflows)
                         factory_diagram.edge(chain+process, chain+process+outflows)
 
-
         i = 0
         for diagram in factory_diagrams:
             factory_diagrams[diagram]['diagram'].attr('graph', name='cluster'+str(i))
@@ -813,11 +581,11 @@ class Factory:
 
         logger.debug(f"created diagram for {self.name} factory")
 
+
     def run_scenarios(self, scenario_list, 
                       product_qty, product=False, product_unit=False, product_io=False, 
                       upstream_outflows=False, upstream_inflows=False, downstream_outflows=False,
                       downstream_inflows=False, aggregate_flows=False,
-                      mass_energy=True, energy_flows=dat.energy_flows, 
                       write_to_xls=True, outdir=dat.outdir, file_id=''):
         """Balances the factory on the same quantity for a list of different scenarios.
         Outputs a file with total inflows and outflows for the factory for each scenario.
@@ -837,12 +605,6 @@ class Factory:
             product_io (str/bool): Whether the product is an inflow or outflow
                 of the specified unit process. If False,checks for the product 
                 as an inflow or outflow of the main product chain.
-            mass_energy (bool): If true, seperates mass and energy flows within 
-                each excel sheet, adding rows for the respective totals.
-                (Defaults to True)
-            energy_flows (list): list of prefix/suffixes used to identify which 
-                substances are energy flows and seperates them.
-                (Defaults to dat.energy_flows)
             write_to_xls (bool): If True, outputs the balances of each scenario 
                 to an excel workbook, with sheets for factory totals, inflows 
                 and outflows for all unit processes, and inflows and outflows 
@@ -875,9 +637,7 @@ class Factory:
                                        upstream_inflows=upstream_inflows,
                                        downstream_outflows=downstream_outflows,
                                        downstream_inflows=downstream_inflows,
-                                       aggregate_flows=aggregate_flows,
-                                       mass_energy=mass_energy, 
-                                       energy_flows=dat.energy_flows, 
+                                       aggregate_flows=aggregate_flows, 
                                        write_to_xls=write_to_xls, 
                                        outdir=dat.outdir)
             
@@ -916,8 +676,7 @@ class Factory:
                                     level="Factory", 
                                     scenario=" ,".join(scenario_list), 
                                     product=product,
-                                    product_qty=product_qty, 
-                                    energy_flows=dat.energy_flows)
+                                    product_qty=product_qty)
 
         if type(aggregate_flows) is list:
             dfs = [meta_df, inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df]
@@ -936,8 +695,8 @@ class Factory:
 
     def run_sensitivity(self, product_qty, base_scenario, chain_name, unit_name, variable, variable_options=[], fixed_vars=False,
                       product=False, product_unit=False, product_io=False, upstream_outflows=False, upstream_inflows=False,
-                      downstream_outflows=False, downstream_inflows=False, aggregate_flows=False, mass_energy=True, 
-                      energy_flows=dat.energy_flows, write_to_xls=True, outdir=dat.outdir, file_id=''):
+                      downstream_outflows=False, downstream_inflows=False, aggregate_flows=False, write_to_xls=True, 
+                      outdir=dat.outdir, file_id=''):
         """Balances the factory on the same quantity for a list of different scenarios.
         Outputs a file with total inflows and outflows for the factory for each scenario.
 
@@ -959,9 +718,6 @@ class Factory:
             mass_energy (bool): If true, seperates mass and energy flows within 
                 each excel sheet, adding rows for the respective totals.
                 (Defaults to True)
-            energy_flows (list): list of prefix/suffixes used to identify which 
-                substances are energy flows and seperates them.
-                (Defaults to dat.energy_flows)
             write_to_xls (bool): If True, outputs the balances of each scenario 
                 to an excel workbook, with sheets for factory totals, inflows 
                 and outflows for all unit processes, and inflows and outflows 
@@ -1010,8 +766,6 @@ class Factory:
                                        downstream_outflows=downstream_outflows,
                                        downstream_inflows=downstream_inflows, 
                                        aggregate_flows=aggregate_flows,
-                                       mass_energy=mass_energy, 
-                                       energy_flows=dat.energy_flows, 
                                        write_to_xls=write_to_xls, 
                                        outdir=dat.outdir)
             
@@ -1050,8 +804,7 @@ class Factory:
                                     level="Factory", 
                                     scenario=f'{base_scenario}-{unit_name}-{variable}-sensitivity', 
                                     product=product,
-                                    product_qty=product_qty, 
-                                    energy_flows=dat.energy_flows)
+                                    product_qty=product_qty)
 
         if type(aggregate_flows) is list:
             dfs = [meta_df, inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df]
@@ -1073,10 +826,15 @@ class Factory:
 
 
 ###############################################################################
-# BALANCE SUBFUNCTIONS
+# SUBFUNCTIONS
 ###############################################################################
 
+# BALANCE SUBFUNCTIONS
+
     def check_origin_product(self, origin_product, orig_unit, scenario):
+        """parses separators and lookup variables in product name
+            Used in self.balance() (above)
+        """
 
         if  dat.ignore_sep in origin_product:
             if origin_product.split(dat.ignore_sep)[0] in lookup_var_dict:
@@ -1089,6 +847,9 @@ class Factory:
 
 
     def check_product_qty(self, product, product_io, chain_name, unit_name, io_dicts, remaining_product_dict):
+        """checks if product qty needs to account for use in previous recycled flows
+            Used in self.balance() (above)
+        """
 
         if product in remaining_product_dict[product_io][chain_name][unit_name]: 
             qty = remaining_product_dict[product_io][chain_name][unit_name][product]
@@ -1099,13 +860,79 @@ class Factory:
 
         return qty
 
-    def connect_recycle_flow(self, qty, aux, scenario, orig_chain, orig_unit, orig_product, dest_chain, dest_unit, 
+
+    def check_for_value(self, col, row, ifyes=True, ifno=False):
+        """check whether a value exists in a DataFrame, and return a specified
+            value in either case. (Defaults to True/False)
+            Used in self.balance() (above)
+        """
+
+        if col in row and type(row[col]) is str and row[col] not in dat.no_var:
+            return ifyes
+        else:
+            return ifno
+
+
+    def check_for_recycle_fractions(self, qty, row):
+        """check whether a recycle flow has a purge fraction or maximum replace fraction.
+            Used in self.connect_recycle_flow() (below)
+        """
+
+        purge = 0
+        max_replace_fraction = 1.0
+
+        if dat.purge_fraction in row: 
+            if row[dat.purge_fraction] not in dat.no_var:
+                if type(row[dat.purge_fraction]) in [float, int] and not isnan(row[dat.purge_fraction]):
+                    calc.check_qty(row[dat.purge_fraction], fraction=True)
+                    purge = qty * row[dat.purge_fraction]
+                    qty = qty - purge
+                    logger.debug(f"purge: {purge}, new qty: {qty}")
+
+        if dat.max_replace_fraction in row:
+            if row[dat.max_replace_fraction] not in dat.no_var:
+                if type(row[dat.max_replace_fraction]) in [float, int] and not isnan(row[dat.max_replace_fraction]):
+                    calc.check_qty(row[dat.max_replace_fraction], fraction=True)
+                    max_replace_fraction = row[dat.max_replace_fraction]
+
+        if qty < 0:
+            raise ValueError(f"{qty} < 0 after calculating purge ({purge})")
+
+        return qty, max_replace_fraction
+
+
+    def check_for_lookup(self, col, df, unit, scenario, check_if_in_list=False):
+        """check whether a dataframe value is a lookup value and/or in a list
+            Used in self.connect_recycle_flow() (below)
+        """
+
+        in_list = None
+
+        if df[col] in lookup_var_dict:
+            flow = unit.var_df.at[scenario, lookup_var_dict[df[col]]['lookup_var']] 
+            
+            if type(check_if_in_list) is list:
+                if df[col] in check_if_in_list:
+                    in_list= True
+                else:
+                    in_list = False
+
+        else: flow = df[col]
+
+        return flow, in_list
+
+
+    def connect_recycle_flow(self, qty, row, scenario, orig_chain, orig_unit, orig_product, dest_chain, dest_unit, 
                             dest_product_io, io_dicts, chain_intermediates_dict):
-        qty, max_replace_fraction = self.check_for_recycle_fractions(qty, aux)
+        """recalculates chain flow data for a recycled flow connection
+            used in self.balance() (above)
+        """
+                                   
+        qty, max_replace_fraction = self.check_for_recycle_fractions(qty, row)
 
         # check if flow to be replaced is a lookup variable and/or a fuel
         replace_flow, replace_fuel = self.check_for_lookup(col=dat.replace, 
-                                                    df=aux, 
+                                                    df=row, 
                                                     unit=dest_unit, 
                                                     scenario=scenario, 
                                                     check_if_in_list=dat.fuel_flows)
@@ -1128,6 +955,8 @@ class Factory:
             for string in dat.energy_flows:
                 if orig_product.startswith(string) or orig_product.endswith(string):
                     logger.debug("replacing fuel with energy")
+
+                    # recalculate fuel and emissions qtys
                     i_tmp, o_tmp, qty_remaining = dest_unit.recycle_energy_replacing_fuel(**r_kwargs)
                     break
 
@@ -1151,52 +980,10 @@ class Factory:
         return new_chain_in_dict, new_chain_out_dict, qty_remaining, replace_flow
 
 
-    def check_for_recycle_fractions(self, qty, aux):
-        purge = 0
-        max_replace_fraction = 1.0
-
-        if dat.purge_fraction in aux: 
-            if aux[dat.purge_fraction] not in dat.no_var:
-                if type(aux[dat.purge_fraction]) in [float, int] and not isnan(aux[dat.purge_fraction]):
-                    calc.check_qty(aux[dat.purge_fraction], fraction=True)
-                    purge = qty * aux[dat.purge_fraction]
-                    qty = qty - purge
-                    logger.debug(f"purge: {purge}, new qty: {qty}")
-
-        if dat.max_replace_fraction in aux:
-            if aux[dat.max_replace_fraction] not in dat.no_var:
-                if type(aux[dat.max_replace_fraction]) in [float, int] and not isnan(aux[dat.max_replace_fraction]):
-                    calc.check_qty(aux[dat.max_replace_fraction], fraction=True)
-                    max_replace_fraction = aux[dat.max_replace_fraction]
-
-        if qty < 0:
-            raise ValueError(f"{qty} < 0 after calculating purge ({purge})")
-
-        return qty, max_replace_fraction
-
-    def check_for_value(self, col, row, ifyes=True, ifno=False):
-        if col in row and type(row[col]) is str and row[col] not in dat.no_var:
-            return ifyes
-        else:
-            return ifno
-
-    def check_for_lookup(self, col, df, unit, scenario, check_if_in_list=False):
-        in_list = None
-
-        if df[col] in lookup_var_dict:
-            flow = unit.var_df.at[scenario, lookup_var_dict[df[col]]['lookup_var']] 
-            
-            if type(check_if_in_list) is list:
-                if df[col] in check_if_in_list:
-                    in_list= True
-                else:
-                    in_list = False
-
-        else: flow = df[col]
-
-        return flow, in_list
-
     def update_chain_dict_after_recycle(self, chain_in_dict, chain_out_dict, chain_name, unit_name, new_in, new_out, chain_intermediates_dict):
+        """updates chain dictionaries using recalculated flow data
+            used in self.balance() (above)
+        """                            
         
         chain_in_dict[unit_name].clear()
         chain_out_dict[unit_name].clear()
@@ -1236,3 +1023,242 @@ class Factory:
         chain_out_dict["chain totals"] = new_chain_totals['o']
 
         return chain_in_dict, chain_out_dict
+
+
+    def describe_internal_flow(self, row, qty, qty_remaining, orig_chain, orig_unit, orig_product, orig_product_io, dest_chain, dest_unit, dest_product, dest_product_io, replace_flow):
+        """formats data about an intra-factory flow for output to dataframe
+            used in self.balance() (above)
+        """          
+
+        # copy to avoid overwriting
+        orig_chain_name = orig_chain.name
+        dest_chain_name = dest_chain.name
+
+        if orig_unit and orig_unit.name:
+            orig_unit_name = orig_unit.name
+        elif row[dat.origin_unit] == dat.connect_all:
+            orig_unit_name = 'all'
+        else:
+            orig_unit_name = 'unknown'
+
+        if dest_unit and dest_unit.name:
+            dest_unit_name = dest_unit.name
+        elif dest_product_io == 'i':
+            dest_unit_name = dest_chain.process_names[0]
+        elif dest_product_io == 'o':
+            dest_unit_name = dest_chain.process_names[-1]
+        else:
+            dest_unit_name = 'unknown'
+
+        if dest_product_io == 'o' and orig_product_io == 'i':
+            orig_chain_name, dest_chain_name = dest_chain_name, orig_chain_name
+            orig_unit_name, dest_unit_name = dest_unit_name, orig_unit_name
+
+        if replace_flow is not None:
+            return [orig_chain_name, orig_unit_name, f'{orig_product} REPLACING {replace_flow}', (qty-qty_remaining), dest_chain_name, dest_unit_name]
+        else:
+            return [orig_chain_name, orig_unit_name, f'{orig_product} AS {dest_product}', (qty-qty_remaining), dest_chain_name, dest_unit_name]
+
+
+    def add_updownstream_flows(self, factory_totals, io, inflow_list=None, df_inflows= None, outflow_list=None, df_outflows=None):
+        """adds additional flows to factory total inflows and outflows based on qty of factory total inflows or outflows. 
+            e.g. for life cycle assessment background systems
+            used in self.balance() (above)
+
+            args:
+                io (str): when "i", computes additional flows based on factory inflows, 
+                    when "o", based on outflows
+                inflow_list: list of additional inflows to compute
+                df_inflows: dataframe with factory flow names as index and columns with additional inflow data
+                outflow_list: list of additional outflows to compute
+                df_outflows: dataframe with factory flow names as index and columns with additional outflow data
+
+        """          
+        if io not in ['i', 'o']:
+            raise ValueError("io must be i (for inflows) or o (for outflows)")
+
+        # initalize dicts for up/downstream flows to be added to factory totals
+        additional_inflows = defaultdict(float)   
+        additional_outflows = defaultdict(float)
+
+        # initalize dicts for balancer terms to close mass balance (added to opposite flow dict of )
+        balancers_in = defaultdict(float)
+        balancers_out = defaultdict(float)
+
+        # for each relevant factory flow (inflows for upstream, outflows for downstream)
+        for f in factory_totals[io]:
+            factory_flow = f
+            factory_flow_qty = factory_totals[io][f]
+            if dat.ignore_sep in factory_flow:
+                factory_flow = factory_flow.split(dat.ignore_sep)[0]
+
+            # check for and calculate updownstream outflows 
+            if type(outflow_list) is list:
+                for e in outflow_list:
+                    emission = iof.clean_str(e)
+                    total_e_qty = 0
+                    logger.debug(f"checking for upstream {emission} for {factory_flow}")
+                    if factory_flow in df_outflows.index: # if factory flow not found, then skip
+                        logger.debug(f"{factory_flow} found")
+                        emission_flow = f'{e}{dat.ignore_sep}upstream ({factory_flow})'
+                        emission_qty = factory_flow_qty * df_outflows.at[factory_flow, emission]
+                        logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(factory_flow_qty,4)} of {factory_flow} using factor of {round(df_outflows.at[factory_flow, emission],4)}")
+                        total_e_qty += emission_qty
+
+                        if round(emission_qty, dat.float_tol) < 0:
+                            raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
+                        else:
+                            additional_outflows[emission_flow] += emission_qty
+                        
+                    balancers_in[f"BALANCER for {e} updownstream"] += total_e_qty
+
+            # check for and calculate updownstream inflows
+            if type(inflow_list) is list:             
+                for e in inflow_list:
+                    emission = iof.clean_str(e)
+                    total_e_qty = 0
+                    logger.debug(f"checking for upstream {emission} for {factory_flow}")
+                    if factory_flow in df_inflows.index: # if factory flow not found, then skip
+                        logger.debug(f"{factory_flow} found")
+                        emission_flow = f'{e}{dat.ignore_sep}upstream ({factory_flow})'
+                        emission_qty = factory_flow_qty * df_inflows.at[factory_flow, emission]
+                        logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(factory_flow_qty,4)} of {factory_flow} using factor of {round(df_inflows.at[factory_flow, emission],4)}")
+                        total_e_qty += emission_qty
+
+                        if round(emission_qty, dat.float_tol) < 0:
+                            raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
+                        else:
+                            additional_inflows[emission_flow] += emission_qty
+            
+                    balancers_out[f"BALANCER for {e} updownstream"] += total_e_qty
+
+        for flow in additional_inflows:
+            factory_totals["i"][flow] = additional_inflows[flow]
+        for flow in additional_outflows:
+            factory_totals["o"][flow] = additional_outflows[flow]
+
+        for e in balancers_in:
+            factory_totals["i"][e] = balancers_in[e]
+        for e in balancers_out:
+            factory_totals["o"][e] = balancers_out[e]
+
+        return factory_totals
+
+
+    def factory_to_excel(self, outdir, io_dicts, factory_totals, internal_flows, scenario, product_qty, aggregate_flows):
+        """formats factory data to datafames and outputs to excel file
+            used in self.balance() (above)
+        """                  
+        
+        # make time-specific Factory subdir    
+        outdir = f'{outdir}/{self.name}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
+            
+        filename = f'f_{self.name}_{scenario}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
+
+        meta_df = iof.metadata_df(user=dat.user_data, name=self.name, 
+                        level="Factory", scenario=scenario, product=self.main_product,
+                        product_qty=product_qty)
+
+        # make totals dataframe with segregated mass and energy flows
+        totals_dict = iof.nested_dicts(2)
+        totals_dict['factory inflows'] = factory_totals['i']
+        totals_dict['factory outflows'] = factory_totals['o']
+        totals_df = iof.make_df(totals_dict, drop_zero=True)
+        totals_df = iof.mass_energy_df(totals_df, aggregate_consumed=True)
+        
+        # aggregate flows that have a specified prefix 
+        if type(aggregate_flows) is list:
+            aggregated_inflows = defaultdict(float)
+            aggregated_outflows = defaultdict(float)
+            
+            for flow in aggregate_flows:
+                for inflow in factory_totals['i']:
+                    if inflow.lower().startswith(flow.lower()):
+                        aggregated_inflows[flow] += factory_totals['i'][inflow]
+
+                for outflow in factory_totals['o']:
+                    if outflow.lower().startswith(flow.lower()):
+                        aggregated_outflows[flow] += factory_totals['o'][outflow]
+            
+            # make aggregate flows dataframe with segregated mass and energy flows
+            aggregated_dict = iof.nested_dicts(2)
+            aggregated_dict['inflows'] = aggregated_inflows
+            aggregated_dict['outflows'] = aggregated_outflows
+            aggregated_df = iof.make_df(aggregated_dict, drop_zero=True)
+
+        # make dataframe for intra-factory flows                
+        internal_flows_header = ['origin chain', 'origin unit', 'flow product', 'quantity', 'destination chain', 'destination unit']
+        internal_flows_df = pan.DataFrame(internal_flows, columns=internal_flows_header)
+
+        # shorten factory names to prevent issue with Excel filename length limits
+        if len(self.name) > 17:
+            factory_name = self.name[:17]+'...'
+        else:
+            factory_name = self.name
+
+        # begin list of dataframes to write to Excel file
+        if type(aggregate_flows) is list:
+            df_list = [meta_df, totals_df, aggregated_df, internal_flows_df]
+            sheet_list = ['metadata', f'{factory_name} totals', 'aggregated flows', 'internal flows']
+        else:
+            df_list = [meta_df, totals_df, internal_flows_df]
+            sheet_list = ['metadata', f'{factory_name} totals', 'internal flows']
+
+        
+        all_inflows = defaultdict(lambda: defaultdict(float))
+        all_outflows = defaultdict(lambda: defaultdict(float))
+
+        # shortens chain names to prevent issue with Excel sheet length limits
+        for chain in io_dicts['i']:
+            if len(chain) > 17:
+                chain_name = chain[:17]+'...'
+            else:
+                chain_name = chain
+
+            # chain dataframe column headers (all unit process and totals)
+            columns = self.chain_dict[chain]['chain'].process_names + ['chain totals']
+
+            # create dataframe with inflow x unit process matrix for each chain
+            chain_inflow_df = iof.make_df(io_dicts['i'][chain], 
+                                            col_order=columns, 
+                                            drop_zero=True)
+            chain_inflow_df = iof.mass_energy_df(chain_inflow_df)
+            logger.debug(f"chain outflow dataframe created for {chain_name}")
+
+
+            # create dataframe with outflow x unit process matrix for each chain  
+            chain_outflow_df = iof.make_df(io_dicts['o'][chain], 
+                                            col_order=columns,
+                                            drop_zero=True)
+            chain_outflow_df = iof.mass_energy_df(chain_outflow_df)
+            logger.debug(f"chain outflow dataframe created for {chain_name}")
+
+            # append chain dataframes to write to excel list.
+            df_list.append(chain_inflow_df)
+            sheet_list.append(chain_name+" in")
+            df_list.append(chain_outflow_df)
+            sheet_list.append(chain_name+" out")
+
+            # add chain unit processes to all-inflows and all-outflow matrices
+            for process_dict in io_dicts['i'][chain]:
+                if 'total' not in process_dict:
+                    for substance, qty in io_dicts['i'][chain][process_dict].items():
+                        all_inflows[process_dict][substance] = qty
+                    for substance, qty in io_dicts['o'][chain][process_dict].items():
+                        all_outflows[process_dict][substance] = qty
+
+        # create matricies of in/out-flows x unit proces for whole Factory
+        all_outflows_df = iof.make_df(all_outflows, drop_zero=True)
+        all_outflows_df = iof.mass_energy_df(all_outflows_df, totals=False)
+        df_list.insert(3,all_outflows_df)
+        sheet_list.insert(3, "unit outflow matrix")
+
+        all_inflows_df = iof.make_df(all_inflows, drop_zero=True)
+        all_inflows_df = iof.mass_energy_df(all_inflows_df, totals=False)
+        df_list.insert(3, all_inflows_df)
+        sheet_list.insert(3, "unit inflow matrix")
+
+        # output to all Dataframes to single Excel file
+        iof.write_to_excel(df_list, sheet_list=sheet_list, 
+                            filedir=outdir, filename=filename)
+

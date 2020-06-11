@@ -174,9 +174,7 @@ def test_factories(factory_dict,
                                             upstream_inflows=upstream_inflows,
                                             downstream_outflows=downstream_outflows,
                                             downstream_inflows=downstream_inflows,
-                                            aggregate_flows=aggregate_flows,
-                                            mass_energy=True, 
-                                            energy_flows=dat.energy_flows,)
+                                            aggregate_flows=aggregate_flows)
 
         if save_diagrams is True or view_diagrams is True:
             factory.diagram(outdir=outdir, 
@@ -274,8 +272,7 @@ def test_factory_scenarios(factory_dict,
                             level="Multi Factory", 
                             scenario=" ,".join(scenario_list), 
                             product=productname,
-                            product_qty=qty, 
-                            energy_flows=dat.energy_flows)
+                            product_qty=qty)
 
     dfs = [meta_df, all_inflows, all_outflows, all_agg_inflows, all_agg_outflows]
     sheets = ["meta", "inflows", "outflows", "agg inflows", "agg outflows"]
@@ -370,8 +367,7 @@ def test_factory_sensitivity(factory_dict,
                                 level="Factory", 
                                 scenario=scenario, 
                                 product='default',
-                                product_qty=qty, 
-                                energy_flows=dat.energy_flows)
+                                product_qty=qty)
 
     dfs = [meta_df]
     sheets = ["meta"]

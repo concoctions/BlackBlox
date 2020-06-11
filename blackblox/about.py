@@ -6,7 +6,7 @@ of output spreadsheets in io_functions.py
 """
 
 about_blackblox = {"name": "blackblox.py",
-                   "version": "0.0.2 (unreleased)",
+                   "version": "0.1 (unreleased)",
                    "url": "OFFLINE",
                    "documentation_url": "OFFLINE",
                    "github_url": "OFFLINE",
