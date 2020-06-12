@@ -294,17 +294,23 @@ class ProductChain:
             inflows = iof.clean_str('\n'.join(unit['process'].inflows))
             outflows = iof.clean_str('\n'.join(unit['process'].outflows))
             product_flow.node(c+name, label=name)
-            line_style = 'solid'
-            connection_color = 'black'
+
+            # default line styling
+            connection_color = dat.mass_color
+            line_style = dat.mass_style
+
 
             if i == 0: # for first UnitProcess in chain
                 if outflows != unit['o']:
                     outflows = iof.clean_str(outflows, str_to_cut=unit['o'], cut_whole_line_only=True)
 
             elif i < len(self.process_list) - 1: # for intermediate UnitProcesses
+                
+                # line styling if energy flow
                 if iof.is_energy(unit['i']):
-                    line_style = 'dotted'
-                    connection_color = 'red'
+                    connection_color = dat.energy_color
+                    line_style = dat.energy_style
+
                 product_flow.edge(c+prevunit, c+name, label=unit['i'], color=connection_color, fontcolor=connection_color, style=line_style)
 
                 if inflows != unit['i']:

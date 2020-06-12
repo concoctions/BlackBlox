@@ -389,11 +389,16 @@ class Factory:
 
 
     def diagram(self, outdir=dat.outdir, view=False, save=True):
-        """ Outputs a diagram of the factory flows to file.
+        """ Outputs a diagram of factory flows to file using Graphviz
 
         Using Graphviz, takes the unit process names, sets of inflows and 
         outflows, and the specified linkages of the factory to generate a
         diagram of the chain as a png and svg.
+
+        Diagram subfunctions are at the end of this module.
+
+        NB: requires many subcases to achieve correct flow grouping and arrow
+            directionality
         
         Args:
             outdir(str): The output directory where to write the files.
@@ -405,79 +410,46 @@ class Factory:
                 (Defaults to True)
         """
 
-        if outdir == dat.outdir:
-            outdir = f'{outdir}/{self.name}_{datetime.now().strftime("%Y-%m-%d_%H%M")}/pfd'
+        outdir = f'{outdir}/{self.name}_{datetime.now().strftime("%Y-%m-%d_%H%M")}/pfd'
 
-        
         filename = f'{self.name}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
 
         factory_diagram = Digraph(name="factory")
         factory_diagram.attr('node', shape='box', color='black')
-        factory_diagrams = dict()
+ 
+        factory_subgraphs = dict() #for ProductChains
+
+        # Subgraph for Factory inflows and outflows (not intra-factory flows)
         io_diagram = Digraph(name=filename, directory=outdir, format='png',)
         io_diagram.attr('node', shape='box', color='white')
         
 
-        # gets product chains
+        # for each productChain, generate GraphViz object
         for c in self.chain_dict:
             d_kwargs = dict(view=False,
                             outdir=f'{outdir}/{self.name}')
+
             diagram_dict = dict(diagram=self.chain_dict[c]['chain'].diagram(**d_kwargs),
                                 process_list=self.chain_dict[c]['chain'].process_list, 
                                 name=self.chain_dict[c]['name'], connect=[])
+
+            # identify main chain
             if diagram_dict['name'] == self.main_chain:
                 diagram_dict['diagram'].attr(rank='min')
-            factory_diagrams[self.chain_dict[c]['name']] = diagram_dict
 
-        # connects chains on factory intermediate products
+            factory_subgraphs[self.chain_dict[c]['name']] = diagram_dict
+
+        # connect chain subgraphs using inter-chain flows
         if self.connections_df is not None:
-            for i, c in self.connections_df.iterrows():
-                product = c[dat.origin_product]
-                origin_chain = c[dat.origin_chain]
-              # o_io = iof.clean_str(c[dat.origin_io][0])  # currently unused
-                d_io = iof.clean_str(c[dat.dest_io][0])
+            factory_diagram = self.connect_subgraphs(factory_diagram, factory_subgraphs)
 
-                #set line style
-                connection_color = 'blue'
-                if dat.replace in c and type(c[dat.replace]) is str and c[dat.replace] not in dat.no_var:
-                    connection_color = 'green' # if recycle flow
+        # add Factory-level inflows and outflows
+        for d in factory_subgraphs:
+            chain = factory_subgraphs[d]['name']
+            diagram = factory_subgraphs[d]['diagram']
+            process_list = factory_subgraphs[d]['process_list']
 
-                line_style = 'solid'
-                if iof.is_energy(product):
-                    line_style = 'dotted'
-                    connection_color = 'orange'
-
-                # determines destination
-                if d_io == 'i':
-                    dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][0]['process'].name
-                elif d_io == 'o':
-                    dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][-1]['process'].name
-                if dat.dest_unit in c: # if there's a destination unit, get the process index in the process list and them the name from the process
-                    d_process_id_list = [u['process'].u_id for u in factory_diagrams[c[dat.dest_chain]]['process_list']]
-                    if c[dat.dest_unit] in [u['process'].u_id for u in factory_diagrams[c[dat.dest_chain]]['process_list']]:
-                        d_unit_index = d_process_id_list.index(c[dat.dest_unit])
-                        dest_chain = c[dat.dest_chain]+factory_diagrams[c[dat.dest_chain]]['process_list'][d_unit_index]['process'].name
-
-                #determines origin
-                if c[dat.origin_unit] == dat.connect_all:
-                    origin_list = [c[dat.origin_chain]+p['process'].name for p in factory_diagrams[origin_chain]['process_list']]
-                else:
-                    o_process_id_list = [u['process'].u_id for u in factory_diagrams[c[dat.origin_chain]]['process_list']]
-                    o_unit_index = o_process_id_list.index(c[dat.origin_unit])
-                    origin_list = [c[dat.origin_chain]+factory_diagrams[c[dat.origin_chain]]['process_list'][o_unit_index]['process'].name]
-
-                for origin in origin_list:
-                    if d_io == 'i':
-                        factory_diagram.edge(origin, dest_chain, label=product, color=connection_color, fontcolor=connection_color, style=line_style)
-                    elif d_io == 'o':
-                        factory_diagram.edge(dest_chain, origin, label=product, color=connection_color, fontcolor=connection_color, style=line_style)
-                    
-
-        # add inflows and outflows
-        for d in factory_diagrams:
-            chain = factory_diagrams[d]['name']
-            diagram = factory_diagrams[d]['diagram']
-            process_list = factory_diagrams[d]['process_list']
+            # for each UnitProcess in each ProductChain subgraph
             for i, unit in enumerate(process_list):
                 process = unit['process'].name
                 inflows = '\n'.join(unit['process'].inflows)
@@ -487,85 +459,53 @@ class Factory:
                     for dummy_index, c in self.connections_df.iterrows():
 
                         origin_product = c[dat.origin_product]
-                        if dat.dest_product in c and type(c[dat.dest_product]) is str and c[dat.dest_product] not in dat.no_var:
-                            product =c[dat.dest_product]
-                        else:
-                            product = c[dat.origin_product]
+                        product = self.check_for_value(col=dat.dest_product, row=c, ifyes=c[dat.dest_product], ifno=c[dat.origin_product])
                         
+                        # get inflows and outflows of each unit, using the correct product name
                         if chain == c[dat.origin_chain]:
                             if process == c[dat.origin_unit] or c[dat.origin_unit] == dat.connect_all:
                                 if iof.clean_str(c[dat.origin_io][0]) == 'i':
-                                    inflows = inflows.replace(f'{origin_product}\n', '')
-                                    inflows = inflows.replace(f'\n{origin_product}', '')
+                                    inflows = self.clean_str_in_list(origin_product, inflows)
                                 if iof.clean_str(c[dat.origin_io][0]) == 'o':
-                                    outflows = outflows.replace(f'{origin_product}\n', '')
-                                    outflows = outflows.replace(f'\n{origin_product}', '')
+                                    outflows =  self.clean_str_in_list(origin_product, outflows)
                             
                         if chain == c[dat.dest_chain]:
                             if iof.clean_str(c[dat.dest_io][0]) == 'i' and unit == process_list[0]:
-                                inflows = inflows.replace(f'{product}\n', '')
-                                inflows = inflows.replace(f'\n{product}', '')
+                                inflows =  self.clean_str_in_list(product, inflows)
                             if iof.clean_str(c[dat.dest_io][0]) == 'o' and unit == process_list[-1]:
-                                outflows = outflows.replace(f'{product}\n', '')
-                                outflows = outflows.replace(f'\n{product}', '')
+                                outflows =  self.clean_str_in_list(product, outflows)
 
-                if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
-                if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
-
-                if i == 0:
-                    if inflows and not inflows.isspace():
-                        io_diagram.node(chain+process+inflows, label=inflows)
-                        factory_diagram.edge(chain+process+inflows, chain+process, color='black')
+                if i == 0: # if first UnitProcess in ProductChain
+                    io_diagram, factory_diagram = self.add_flows_to_graph(inflows, 'i', chain, process, io_diagram, factory_diagram)
 
                     if len(process_list) == 1:
-                        if outflows and not outflows.isspace():
-                            io_diagram.node(chain+process+outflows, label=outflows)
-                            factory_diagram.edge(chain+process, chain+process+outflows)
+                        io_diagram, factory_diagram = self.add_flows_to_graph(outflows, 'o', chain, process, io_diagram, factory_diagram)
 
                     elif outflows != unit['o']:
-                        outflows = outflows.replace(f"{unit['o']}\n", '')
-                        outflows = outflows.replace(f"\n{unit['o']}", '')
-                        if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
-                        if outflows and not outflows.isspace():
-                            io_diagram.node(chain+process+outflows, label=outflows)
-                            factory_diagram.edge(chain+process, chain+process+outflows)
+                        outflows = self.clean_str_in_list(unit['o'], outflows)
+                        io_diagram, factory_diagram = self.add_flows_to_graph(outflows, 'o', chain, process, io_diagram, factory_diagram)
 
-
+                # if intermediate UnitProcess in ProductChain
                 elif i < len(process_list) - 1:
                     if inflows != unit['i']:
-                        inflows = inflows.replace(f"{unit['i']}\n", '')
-                        inflows = inflows.replace(f"\n{unit['i']}", '')
-                        if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
-                        if inflows and not inflows.isspace():
-                            io_diagram.node(chain+process+inflows, label=inflows)
-                            factory_diagram.edge(chain+process+inflows, chain+process)
+                        inflows = self.clean_str_in_list(unit['i'], inflows)
+                        io_diagram, factory_diagram = self.add_flows_to_graph(inflows, 'i', chain, process, io_diagram, factory_diagram)
 
                     if outflows != unit['o']:
-                        outflows = outflows.replace(f"{unit['o']}\n", '')
-                        outflows = outflows.replace(f"\n{unit['o']}", '')
-                        if '\n\n' in outflows: outflows = outflows.replace('\n\n', '\n')
-                        if outflows and not outflows.isspace():
-                            io_diagram.node(chain+process+outflows, label=outflows)
-                            factory_diagram.edge(chain+process, chain+process+outflows)
+                        outflows = self.clean_str_in_list(unit['o'], outflows)
+                        io_diagram, factory_diagram = self.add_flows_to_graph(outflows, 'o', chain, process, io_diagram, factory_diagram)
 
-                else:
+                else: #if last UnitProcess in ProductChain
                     if inflows != unit['i']:
-                        inflows = inflows.replace(f"{unit['i']}\n", '')
-                        inflows = inflows.replace(f"\n{unit['i']}", '')
-                        if '\n\n' in inflows: inflows = inflows.replace('\n\n', '\n')
-                        if inflows and not inflows.isspace():
-                            io_diagram.node(chain+process+inflows, label=inflows)
-                            factory_diagram.edge(chain+process+inflows, chain+process)
+                        inflows = self.clean_str_in_list(unit['i'], inflows)
+                        io_diagram, factory_diagram = self.add_flows_to_graph(inflows, 'i', chain, process, io_diagram, factory_diagram)
                     
-                    if outflows and not outflows.isspace():
-                        io_diagram.node(chain+process+outflows, label=outflows)
-                        factory_diagram.edge(chain+process, chain+process+outflows)
+                    io_diagram, factory_diagram = self.add_flows_to_graph(outflows, 'o', chain, process, io_diagram, factory_diagram)
 
-        i = 0
-        for diagram in factory_diagrams:
-            factory_diagrams[diagram]['diagram'].attr('graph', name='cluster'+str(i))
-            factory_diagram.subgraph(factory_diagrams[diagram]['diagram'])
-        i += 1
+
+        for diagram in factory_subgraphs:
+            factory_subgraphs[diagram]['diagram'].attr('graph', name='cluster')
+            factory_diagram.subgraph(factory_subgraphs[diagram]['diagram'])
 
         io_diagram.subgraph(factory_diagram)
 
@@ -575,9 +515,9 @@ class Factory:
             io_diagram.view()
 
         if save is True:
-            io_diagram.render()
+            io_diagram.render() # save as png
             io_diagram.format = 'svg'
-            io_diagram.render()
+            io_diagram.render() # save as svg
 
         logger.debug(f"created diagram for {self.name} factory")
 
@@ -591,27 +531,10 @@ class Factory:
         Outputs a file with total inflows and outflows for the factory for each scenario.
 
         Args:
+            all arguments from Factory.balance() except scenario  
             scenario_list (list[str]): List of scenario variable values to use, 
                 each corresponding to a matching row index in each unit 
                 process's var_df. 
-            product_qty (float): the quantity of the product to balance on.
-            product (str/bool): the product name. If False, uses the default
-                product in the chain object attributes.
-                (Defaults to False)
-            product_unit (str/bool): The unit process in the main factory chain 
-                where the product is located. If False, checks for the product 
-                as an inflow or outflow of the main product chain.
-                (Defaults to False)
-            product_io (str/bool): Whether the product is an inflow or outflow
-                of the specified unit process. If False,checks for the product 
-                as an inflow or outflow of the main product chain.
-            write_to_xls (bool): If True, outputs the balances of each scenario 
-                to an excel workbook, with sheets for factory totals, inflows 
-                and outflows for all unit processes, and inflows and outflows 
-                by chain.
-                (Defaults to False)
-            outdir (str): Filepath where to create the balance spreadsheets.
-                (Defaults to the outdir specified in dataconfig)  
             file_id (str): Additional text to add to filename.
                 (Defaults to an empty string)
 
@@ -864,7 +787,7 @@ class Factory:
     def check_for_value(self, col, row, ifyes=True, ifno=False):
         """check whether a value exists in a DataFrame, and return a specified
             value in either case. (Defaults to True/False)
-            Used in self.balance() (above)
+            Used in self.balance() and self.diagram() (above)
         """
 
         if col in row and type(row[col]) is str and row[col] not in dat.no_var:
@@ -1262,3 +1185,75 @@ class Factory:
         iof.write_to_excel(df_list, sheet_list=sheet_list, 
                             filedir=outdir, filename=filename)
 
+
+ # DIAGRAM SUBFUNCTIONS
+     
+    def clean_str_in_list(self, string, list):
+
+        list = list.replace(f'{string}\n', '')
+        list = list.replace(f'\n{string}', '')
+        if '\n\n' in list: 
+            list = list.replace('\n\n', '\n')
+
+        return list
+
+    
+    def connect_subgraphs(self, factory_diagram, factory_subgraphs):
+        for dummy_i, c in self.connections_df.iterrows():
+            product = c[dat.origin_product]
+            origin_chain = c[dat.origin_chain]
+            d_io = iof.clean_str(c[dat.dest_io][0])
+
+            # line style for mass flows
+            connection_color = dat.mass_color 
+            line_style = dat.mass_style
+
+            # line style energy flows
+            if iof.is_energy(product):
+                connection_color = dat.energy_color
+                line_style = dat.energy_style
+
+            # line style for recycled flows
+            if dat.replace in c and type(c[dat.replace]) is str and c[dat.replace] not in dat.no_var:
+                connection_color = dat.recycled_color # recycled energy flows will still have energy line style
+                product = product + "\n(recycled)"
+
+            # determine connection ends
+            if d_io == 'i':
+                dest_chain = c[dat.dest_chain]+factory_subgraphs[c[dat.dest_chain]]['process_list'][0]['process'].name
+            elif d_io == 'o':
+                dest_chain = c[dat.dest_chain]+factory_subgraphs[c[dat.dest_chain]]['process_list'][-1]['process'].name
+            
+            if dat.dest_unit in c: # if there's a destination unit, get the process index in the process list and them the name from the process
+                d_process_id_list = [u['process'].u_id for u in factory_subgraphs[c[dat.dest_chain]]['process_list']]
+                if c[dat.dest_unit] in [u['process'].u_id for u in factory_subgraphs[c[dat.dest_chain]]['process_list']]:
+                    d_unit_index = d_process_id_list.index(c[dat.dest_unit])
+                    dest_chain = c[dat.dest_chain]+factory_subgraphs[c[dat.dest_chain]]['process_list'][d_unit_index]['process'].name
+
+            if c[dat.origin_unit] == dat.connect_all:
+                origin_list = [c[dat.origin_chain]+p['process'].name for p in factory_subgraphs[origin_chain]['process_list']]
+            else:
+                o_process_id_list = [u['process'].u_id for u in factory_subgraphs[c[dat.origin_chain]]['process_list']]
+                o_unit_index = o_process_id_list.index(c[dat.origin_unit])
+                origin_list = [c[dat.origin_chain]+factory_subgraphs[c[dat.origin_chain]]['process_list'][o_unit_index]['process'].name]
+
+            # draw connection
+            for origin in origin_list:
+                if d_io == 'i':
+                    factory_diagram.edge(origin, dest_chain, label=product, color=connection_color, fontcolor=connection_color, style=line_style)
+                elif d_io == 'o':
+                    factory_diagram.edge(dest_chain, origin, label=product, color=connection_color, fontcolor=connection_color, style=line_style)
+                
+        return factory_diagram
+
+
+    def add_flows_to_graph(self, flows, io, chain, process, io_diagram, factory_diagram,):    
+        if flows and not flows.isspace():
+            io_diagram.node(chain+process+flows, label=flows)
+
+            if io == 'o':
+                factory_diagram.edge(chain+process, chain+process+flows, color=dat.mass_color)
+            else: 
+                factory_diagram.edge(chain+process+flows, chain+process, color=dat.mass_color)
+               
+        return io_diagram, factory_diagram

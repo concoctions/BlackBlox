@@ -12,8 +12,9 @@ lower case, to allow the input to be non case-sensitive
 Module Outline:
 
 - import statements and logger
-- module variables: default filepaths (str)
 - module variables: user data (dict)
+- module variables: float_tol (int)
+- module variables: default filepaths (str)
 - module variables: lookup variables (dict)
 - module variables: substance name variables
 - module variables: column headers (str)
@@ -223,6 +224,15 @@ each factory producing that product should specify their production quantity
 as a fraction of that total as a decimal between 0 and 1.
 """
 
+
+# DIAGRAM LINE STYLING 
+mass_color = 'black'
+mass_style = 'solid'
+
+energy_color = 'darkorange'
+energy_style = 'dashed'
+
+recycled_color = 'blue'
 
 # COLUMN HEADERS:
 # These should all be lower case here. In the file itself, case does not matter (though spaces do)
