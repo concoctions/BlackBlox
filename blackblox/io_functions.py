@@ -45,6 +45,20 @@ logger = get_logger("IO")
 # INPUT DATA VALIDATORS AND CLENAERS
 
 
+def check_type(thing, is_type=[], not_this=False, not_not=False):
+    if type(thing) not in is_type:
+        raise TypeError(f"{thing} ({type(thing)}) is not an accepted type ({is_type})")
+
+    if not_this is True:
+        if thing in not_this:
+            raise ValueError(f"{thing} cannot be any of {not_this}")
+
+    if not_not is True:
+        if not thing:
+            raise ValueError(f"{thing} must not have a Booleen value of False.")
+
+
+
 def clean_str(string_to_check, str_to_cut=False, lower=True, remove_dblnewline=True,
                 cut_whole_line_only=False):
     """Multipurpose function to clean user input strings
@@ -287,6 +301,8 @@ def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True, aggregate_c
             values for what the units used for each of those are
     """
     logger.debug(f"seperating mass and energy flows using {energy_strings} as energy flow markers")
+
+    df = make_df(df, drop_zero=True)
 
     cols = list(df)
 
