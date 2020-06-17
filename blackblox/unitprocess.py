@@ -31,6 +31,8 @@ Module Outline:
 from collections import defaultdict
 from copy import copy
 from math import isnan
+import numpy as np
+
 from blackblox.bb_log import get_logger
 import blackblox.io_functions as iof
 import blackblox.dataconfig as dat
@@ -162,14 +164,14 @@ class UnitProcess:
             
  
     def balance(self, 
-                qty, 
+                qty=1.0, 
                 product=False, 
                 i_o=False, 
                 scenario=dat.default_scenario,
                 product_alt_name=False,
-                energy_flows=dat.energy_flows,
                 balance_energy=True, 
-                raise_imbalance=False,):
+                raise_imbalance=False,
+                write_to_console=False):
         """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario, energy_flows=dat.energy_flows, balance_energy=True, raise_imbalance=False,)
         performs a mass (and/or energy) balance on the unit process.
 
@@ -219,6 +221,7 @@ class UnitProcess:
         """
 
         i_o = self.check_io(i_o)
+        product_qty = qty
         
         if scenario not in self.var_df.index.values:
             raise Exception(f'{self.name.upper()}: {scenario} not found in variables file')
@@ -230,7 +233,8 @@ class UnitProcess:
         else:
             lookup_product_key = False
 
-        io_dicts = self.make_io_dicts(product, qty, i_o, product_alt_name)
+        # create flow dictionaries and seed with product qty
+        io_dicts = self.make_io_dicts(product, product_qty, i_o, product_alt_name)
 
         calc_df = self.calc_df
         logger.info(f"{self.name.upper()}: Attempting to balance on {qty} of {product} (different name from origin: {product_alt_name}) ({i_o}) using {scenario} variables")
@@ -315,7 +319,7 @@ class UnitProcess:
         logger.debug(f"{self.name.upper()}: Balancing mass flows")
         total_mass_in, total_mass_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
                                                  raise_imbalance=raise_imbalance, 
-                                                 ignore_flows=energy_flows)
+                                                 ignore_flows=dat.energy_flows)
 
         if total_mass_in > total_mass_out:
             io_dicts['o']['UNKNOWN-mass'] = total_mass_in - total_mass_out
@@ -329,7 +333,7 @@ class UnitProcess:
             total_energy_in, total_energy_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
                                                  raise_imbalance=raise_imbalance, 
                                                  ignore_flows=[],
-                                                 only_these_flows=energy_flows)
+                                                 only_these_flows=dat.energy_flows)
             if total_energy_in > total_energy_out:
                 io_dicts['o']['UNKNOWN-energy'] = total_energy_in - total_energy_out
                 logger.info(f"{self.name.upper()}: energy imbalance found {total_energy_in - total_energy_out} of UNKOWN ENERGY added to outflows")
@@ -338,9 +342,22 @@ class UnitProcess:
                 logger.info(f"{self.name.upper()}:energy imbalance found {total_energy_in - total_energy_out} of UNKOWN ENERGY added to inflows")
 
         logger.info(f"{self.name} process balanced on {qty} of {product}")
+
+        if write_to_console is True:
+            self.write_to_console(io_dicts, scenario, product_qty, product)
+
         return io_dicts['i'], io_dicts['o']
 
 
+    def run_scenarios(self, scenario_list=[], qty=1.0, product=False, i_o=False, scenario=dat.default_scenario, product_alt_name=False, 
+                      balance_energy=True, raise_imbalance=False, write_to_console=False):
+        
+        iof.check_type(scenario_list, is_type=[list], not_not=True)
+        
+        for scenario in scenario_list:
+            pass
+
+    
     def recycle_1to1(self, 
                        original_inflows_dict,
                        original_outflows_dict,
@@ -350,6 +367,7 @@ class UnitProcess:
                        toBeReplaced_flow,
                        max_replace_fraction=1.0,
                        scenario=dat.default_scenario, 
+                       write_to_console=False,
                        **kwargs):
     
         """Replaces a calculated flow within a unit process with another flow, either wholly or partially
@@ -409,6 +427,9 @@ class UnitProcess:
 
         logger.info(f'{self.name.upper()}: {toBeReplaced_flow} replaced with {used_recyclate_qty} of {recyclate_flow}.')
 
+        if write_to_console is True:
+            self.write_to_console(rebalanced_flows, scenario, used_recyclate_qty, recyclate_flow, toBeReplaced_flow)       
+       
         return rebalanced_flows['i'], rebalanced_flows['o'], unused_recyclate_qty
 
 
@@ -422,7 +443,8 @@ class UnitProcess:
                        max_replace_fraction=1.0,
                        combustion_eff = dat.combustion_efficiency_var,
                        scenario=dat.default_scenario,
-                       emissions_list = dat.default_emissions, 
+                       emissions_list = dat.default_emissions,
+                       write_to_console=False, 
                        **kwargs):
         """recycle_energy_replacing_fuel(original_inflows_dict, original_outflows_dict, recycled_qty, recycle_io, recyclate_flow, toBeReplaced_flow, max_replace_fraction=1.0, combustion_eff = dat.combustion_efficiency_var, scenario=dat.default_scenario, emissions_list = ['CO2', 'H2O', 'SO2'], **kwargs)
         replaces fuel use and associated emissions with a recycled energy flow (e.g. waste heat to replace combusted coal)
@@ -532,6 +554,9 @@ class UnitProcess:
         if remaining_energy_qty < 0:
             raise ValueError(f"{self.name.upper()}: Something went wrong. remaining_recycle_qty < 0 {remaining_energy_qty}")
 
+        if write_to_console is True:
+            self.write_to_console(rebalanced_flows, scenario, str(used_equivelent_fuel_qty)+" (fuel eq)", recyclate_flow, toBeReplaced_flow)       
+       
         return rebalanced_flows['i'], rebalanced_flows['o'], remaining_energy_qty
 
 
@@ -606,6 +631,10 @@ class UnitProcess:
                 return iof.clean_str(var, lower=False)       # which is given as the var in the calc df
             else:                                               # otherwise looks up the variable in the var df
                 return self.var_df.at[scenario, iof.clean_str(var)] # from the relevant scenario
+        
+        elif isinstance(var, (float, int, complex, np.integer, np.floating)):
+            return var
+        
         else:
             return None
 
@@ -708,3 +737,16 @@ class UnitProcess:
                 return True, False, False, False
 
         return skip, invert, known2_qty, known2_proxy
+
+        
+    def write_to_console(self, io_dicts, scenario, qty, product, replacing=False):
+        if type(replacing) is str:
+            print(f"\n{str.upper(self.name)} rebalanced with {qty} of {product} replacing {replacing}.\n")
+        
+        else:
+            print(f"\n{str.upper(self.name)} balanced on {qty} of {product} using {scenario} values.\n")
+
+        flows = iof.make_df(dict(inflows=io_dicts['i'], outflows=io_dicts['o']))
+        flows = iof.mass_energy_df(flows)
+        print(flows)
+        print("\n")

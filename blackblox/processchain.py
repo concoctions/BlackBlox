@@ -102,7 +102,8 @@ class ProductChain:
 
     
     def balance(self, qty, product=False, i_o=False, unit_process=False, 
-                product_alt_name=False, scenario=dat.default_scenario):
+                product_alt_name=False, scenario=dat.default_scenario,
+                write_to_console=False):
         """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario)
         Calculates the mass balance of the product chain
 
@@ -141,6 +142,7 @@ class ProductChain:
         """
 
         chain = self.process_list.copy() # to avoid manipulating self.process_list directly
+        product_qty = qty
 
         # identify UnitProcess of balancing product (start) and divides chains into processes
         # before the start process (upstream) and after the start process (downstream)
@@ -250,6 +252,21 @@ class ProductChain:
         io_dicts['o']["chain totals"] = totals['o']
         
         logger.debug(f"{self.name.upper()}: successfully balanced {self.name} using {scenario} variables.")
+
+        if write_to_console is True:
+            chain_inflows = iof.make_df(io_dicts['i'])
+            chain_inflows = iof.mass_energy_df(chain_inflows)
+            chain_outflows = iof.make_df(io_dicts['o'])
+            chain_outflows = iof.mass_energy_df(chain_outflows)
+
+            print(f'\n{self.name.upper()}: balanced on {product_qty} of {product} using {scenario} values')
+            print("\ninflows:\n", chain_inflows)
+            print("\noutflows:\n", chain_outflows)
+
+            print("\nflows between Unit Processes")
+            for row in internal_flows:
+                print(row)
+                
         return io_dicts['i'], io_dicts['o'], intermediate_product_dict, internal_flows
 
 
