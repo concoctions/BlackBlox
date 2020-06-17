@@ -32,6 +32,7 @@ from collections import defaultdict
 from copy import copy
 from math import isnan
 import numpy as np
+from datetime import datetime
 
 from blackblox.bb_log import get_logger
 import blackblox.io_functions as iof
@@ -349,13 +350,58 @@ class UnitProcess:
         return io_dicts['i'], io_dicts['o']
 
 
-    def run_scenarios(self, scenario_list=[], qty=1.0, product=False, i_o=False, scenario=dat.default_scenario, product_alt_name=False, 
-                      balance_energy=True, raise_imbalance=False, write_to_console=False):
+    def run_scenarios(self, scenario_list=[], qty=1.0, product=False, i_o=False, product_alt_name=False, 
+        balance_energy=True, raise_imbalance=False, write_to_excel=True, outdir=dat.outdir, write_to_console=False):
+        """Runs UnitProcess.balance over multiple scenarions of varaibles. Outputs to Excel.
+
+        """
         
         iof.check_type(scenario_list, is_type=[list], not_not=True)
+        scenario_dict = iof.nested_dicts(3)
+
+        if product is False:
+            product = self.default_product
         
+        # balance UnitProcess on each scenario of variable values
         for scenario in scenario_list:
-            pass
+            u_in, u_out = self.balance(qty=qty, 
+                                               product=product,
+                                               scenario=scenario,
+                                               i_o=i_o,
+                                               product_alt_name=product_alt_name,
+                                               balance_energy=balance_energy, 
+                                               raise_imbalance=raise_imbalance, 
+                                               write_to_console=write_to_console)
+            
+            scenario_dict['i'][scenario] = u_in
+            scenario_dict['o'][scenario] = u_out
+
+        if write_to_excel is True:
+            inflows_df = iof.mass_energy_df(scenario_dict['i'])
+            outflows_df = iof.mass_energy_df(scenario_dict['o'])
+
+            meta_df = iof.metadata_df(user=dat.user_data, 
+                                        name=self.name, 
+                                        level="Unit", 
+                                        scenario=" ,".join(scenario_list), 
+                                        product=product,
+                                        product_qty=qty)
+
+            dfs = [meta_df, inflows_df, outflows_df]
+            sheets = ["meta", "inflows", "outflows"]
+
+            iof.write_to_excel(df_or_df_list=dfs,
+                                sheet_list=sheets, 
+                                filedir=outdir, 
+                                filename=f'{self.name}_multi_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+
+        
+        if write_to_console is True:
+            print(f"\n{str.upper(self.name)} balanced on {qty} of {product}.\n")
+            print("\nINFLOWS\n", inflows_df)
+            print("\nOUTFLOWS\n", outflows_df, "\n")
+        
+        return inflows_df, outflows_df
 
     
     def recycle_1to1(self, 
@@ -746,7 +792,7 @@ class UnitProcess:
         else:
             print(f"\n{str.upper(self.name)} balanced on {qty} of {product} using {scenario} values.\n")
 
-        flows = iof.make_df(dict(inflows=io_dicts['i'], outflows=io_dicts['o']))
-        flows = iof.mass_energy_df(flows)
+        flows = iof.mass_energy_df(dict(inflows=io_dicts['i'], outflows=io_dicts['o']))
+
         print(flows)
         print("\n")
