@@ -208,13 +208,15 @@ def ReturnValue(qty, **kwargs):
     return (qty)
 
 
-def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
+def MolMassRatio(known_substance, qty, unknown_substance, var=1.0, invert=False, **kwargs):
     """Calculates a quantity using the molar mass ratio to a substance with known quantity
     
     Args:
         known_substance (str): The chemical formula of the substance of known quantity, 
         qty: The quantity of the known substance
         unknown_substance (str): The chemical formula of the substance of unknown quantity.
+        var (float): The number of mols of the unknpwn substance per mol of known substance
+            (Defaults to 1.0)
 
     Returns:
         float: The qty of the unknown substance, determined by multiplying qty the ratio
@@ -230,8 +232,14 @@ def MolMassRatio(known_substance, qty, unknown_substance, **kwargs):
     """
     logger.debug("using {} of {} to determine qty of {}".format(qty, known_substance, unknown_substance))
 
+    if var is None or var in dat.no_var:
+        var = 1.0
+
+    if invert is True:
+        var = 1/var
+
     check_qty(qty)
-    return (qty) * (Formula(unknown_substance).mass / Formula(known_substance).mass)
+    return qty * (Formula(unknown_substance).mass / Formula(known_substance).mass) *  var
 
 
 def Subtraction(qty, qty2, invert = False, **kwargs):
