@@ -21,6 +21,7 @@ Module Outline:
 from collections import defaultdict
 from datetime import datetime
 from graphviz import Digraph
+import pandas as pan
 
 import blackblox.io_functions as iof
 import blackblox.dataconfig as dat
@@ -29,6 +30,8 @@ import blackblox.unitprocess as unit
 from blackblox.bb_log import get_logger
 logger = get_logger("Chain")
 
+today_path = f'{datetime.now().strftime("%b%d")}'
+today_string = f'{datetime.now().strftime("%b%d_%H%M")}'
 
 class ProductChain:
     """Linear chain of connected unit processes.
@@ -63,8 +66,14 @@ class ProductChain:
 
     """
 
-    def __init__(self, chain_data, name="Product Chain", xls_sheet=None):
+    def __init__(self, chain_data, name="Product Chain", xls_sheet=None, outdir=False):
         self.name = name
+        
+        if outdir is False:
+            self.outdir = f'{dat.outdir}/{self.name}-chain_{today_path}'
+        else:
+            self.outdir = outdir
+
         logger.info(f"PROCESS CHAIN INIT - chain name: {name}, chain data: {chain_data}, xls sheet: {xls_sheet}")
         self.process_chain_df = iof.make_df(chain_data, sheet=xls_sheet, index=None)
         self.default_product = False
@@ -103,7 +112,7 @@ class ProductChain:
     
     def balance(self, qty, product=False, i_o=False, unit_process=False, 
                 product_alt_name=False, scenario=dat.default_scenario,
-                write_to_console=False):
+                write_to_console=False, write_to_excel = False):
         """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario)
         Calculates the mass balance of the product chain
 
@@ -253,24 +262,114 @@ class ProductChain:
         
         logger.debug(f"{self.name.upper()}: successfully balanced {self.name} using {scenario} variables.")
 
-        if write_to_console is True:
-            chain_inflows = iof.make_df(io_dicts['i'])
-            chain_inflows = iof.mass_energy_df(chain_inflows)
-            chain_outflows = iof.make_df(io_dicts['o'])
-            chain_outflows = iof.mass_energy_df(chain_outflows)
+        if write_to_console or write_to_excel is True:
+            inflows_df = iof.mass_energy_df(io_dicts['i'])
+            outflows_df = iof.mass_energy_df(io_dicts['o'])
 
+        if write_to_console is True:
             print(f'\n{self.name.upper()}: balanced on {product_qty} of {product} using {scenario} values')
-            print("\ninflows:\n", chain_inflows)
-            print("\noutflows:\n", chain_outflows)
+            print("\ninflows:\n", inflows_df)
+            print("\noutflows:\n", outflows_df)
 
             print("\nflows between Unit Processes")
             for row in internal_flows:
                 print(row)
+
+        if write_to_excel is True:
+            internal_flows_header = ['origin unit', 'flow product', 'quantity', 'destination unit']
+            for i in internal_flows:
+                i.pop(4)
+                i.pop(0)
+            internal_flows_df = pan.DataFrame(internal_flows, columns=internal_flows_header)
+
+            meta_df = iof.metadata_df(user=dat.user_data, 
+                                        name=self.name, 
+                                        level="Chain", 
+                                        scenario=scenario, 
+                                        product=product,
+                                        product_qty=qty)
+
+            dfs = [meta_df, inflows_df, outflows_df, internal_flows_df]
+            sheets = ["meta", "inflows", "outflows", "internal_flows"]
+
+            iof.write_to_excel(df_or_df_list=dfs,
+                                sheet_list=sheets, 
+                                filedir=self.outdir, 
+                                filename=f'{self.name}_c_{scenario}_{today_string}')
                 
         return io_dicts['i'], io_dicts['o'], intermediate_product_dict, internal_flows
 
 
-    def diagram(self, view=True, save=True, outdir=f'{dat.outdir}/pfd'):
+    def run_scenarios(self, scenario_list=[], qty=1.0, product=False, i_o=False, product_alt_name=False, 
+        balance_energy=True, raise_imbalance=False, write_to_excel=True, write_to_console=False, outdir=False):
+        """Runs UnitProcess.balance over multiple scenarions of varaibles. Outputs to Excel.
+
+        """
+        
+        iof.check_type(scenario_list, is_type=[list], not_not=True)
+        scenario_dict = iof.nested_dicts(3)
+        chain_dfs = []
+        chain_sheets = []
+
+        if product is False:
+            product = self.default_product
+        
+        # balance UnitProcess on each scenario of variable values
+        for scenario in scenario_list:
+            c_in, c_out, dummy_intermediates, internal_flows = self.balance(qty=qty, 
+                                               product=product,
+                                               scenario=scenario,
+                                               i_o=i_o,
+                                               product_alt_name=product_alt_name,
+                                               write_to_console=write_to_console)
+            
+            scenario_dict['i'][scenario] = c_in['chain totals']
+            scenario_dict['o'][scenario] = c_out['chain totals']
+
+            chain_dfs.extend([iof.mass_energy_df(c_in), iof.mass_energy_df(c_out)])
+            chain_sheets.extend([f"IN - {scenario}", f"OUT - {scenario}"])
+
+        if write_to_excel is True or write_to_console is True:
+            inflows_df = iof.mass_energy_df(scenario_dict['i'])
+            outflows_df = iof.mass_energy_df(scenario_dict['o'])
+
+        if write_to_excel is True:
+            internal_flows_header = ['origin unit', 'flow product', 'quantity', 'destination unit']
+            for i in internal_flows:
+                i.pop(4)
+                i.pop(0)
+            internal_flows_df = pan.DataFrame(internal_flows, columns=internal_flows_header)
+
+            meta_df = iof.metadata_df(user=dat.user_data, 
+                                        name=self.name, 
+                                        level="Chain", 
+                                        scenario=" ,".join(scenario_list), 
+                                        product=product,
+                                        product_qty=qty)
+
+            dfs = [meta_df, inflows_df, outflows_df, internal_flows_df]
+            sheets = ["meta", "IN - multi", "OUT - multi", "internal_flows"]
+            dfs.extend(chain_dfs)
+            sheets.extend(chain_sheets)
+
+            if outdir is False:
+                outdir = self.outdir
+
+            iof.write_to_excel(df_or_df_list=dfs,
+                                sheet_list=sheets, 
+                                filedir=outdir,
+                                filename=f'{self.name}_c_multi_{today_string}')
+
+        
+        if write_to_console is True:
+            print(f"\n{str.upper(self.name)} balanced on {qty} of {product} for scenarios of {scenario_list}.\n")
+            print("\nINFLOWS\n", inflows_df)
+            print("\nOUTFLOWS\n", outflows_df, "\n")
+        
+        return inflows_df, outflows_df
+
+
+    def diagram(self, view=True, save=True, outdir=dat.outdir):
         """diagram(self, view_diagram=True, save=True, outdir=f'{dat.outdir}/pfd')
         Generates chain flow diagrams (png and svg) using Graphviz
         
@@ -298,9 +397,9 @@ class ProductChain:
    
         c = self.name # used for building identifiers
 
-        filename = f'{c}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
+        filename = f'{c}_{datetime.now().strftime("%b%d_%H%M")}'
 
-        chain_diagram = Digraph(name=filename, directory=outdir, format='png')
+        chain_diagram = Digraph(name=filename, directory=f'{outdir}/pfd', format='png')
         product_flow = Digraph('mainflow_'+self.name)
         product_flow.graph_attr.update(rank='same')
         product_flow.attr('node', shape='box')
