@@ -351,7 +351,7 @@ class UnitProcess:
 
 
     def run_scenarios(self, scenario_list=[], qty=1.0, product=False, i_o=False, product_alt_name=False, 
-        balance_energy=True, raise_imbalance=False, write_to_excel=True, outdir=dat.outdir, write_to_console=False):
+        balance_energy=True, raise_imbalance=False, write_to_excel=True, write_to_console=False):
         """Runs UnitProcess.balance over multiple scenarions of varaibles. Outputs to Excel.
 
         """
@@ -392,8 +392,7 @@ class UnitProcess:
 
             iof.write_to_excel(df_or_df_list=dfs,
                                 sheet_list=sheets, 
-                                filedir=outdir, 
-                                filename=f'{self.name}_multi_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+                                filename=f'{self.name}_u_multi_{datetime.now().strftime("%b%d_%H%M")}')
 
         
         if write_to_console is True:

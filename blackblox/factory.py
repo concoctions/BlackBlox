@@ -51,6 +51,9 @@ if platform.system() is 'Windows':
     os.environ["PATH"] += os.pathsep + dat.graphviz_path
 
 logger = get_logger("Factory")
+today_path = f'{datetime.now().strftime("%b%d")}'
+today_string = f'{datetime.now().strftime("%b%d_%H%M")}'
+
 
 class Factory:
     """Factories link together multiple ProductChains.
@@ -98,7 +101,7 @@ class Factory:
     """
 
     def __init__(self, chain_list_file, chain_list_sheet=None, connections_file=None, 
-                 connections_sheet=None, name="Factory", **kwargs):
+                 connections_sheet=None, name="Factory", outdir=False, **kwargs):
 
         logger.info(f"{name.upper()}: Initializing factory")
         self.name = name
@@ -156,13 +159,18 @@ class Factory:
         else:
             self.connections_df = None
 
+        if outdir is False:
+            self.outdir = f'{dat.outdir}/{self.name}-f_{today_path}'
+        else:
+            self.outdir = outdir
+
         logger.info(f"{self.name.upper()}: Initalization successful")
 
 
-    def balance(self, product_qty, product=False, product_unit=False, product_io=False, 
+    def balance(self, product_qty=1.0, product=False, product_unit=False, product_io=False, 
                 scenario=dat.default_scenario, upstream_outflows=False, upstream_inflows=False, 
                 downstream_outflows=False, downstream_inflows=False,
-                aggregate_flows=False, write_to_xls=True, outdir=dat.outdir):
+                aggregate_flows=False, write_to_xls=True, outdir=False):
         """Calculates the mass balance of the factory using qty of main product
 
         Balances all UnitProcesses and Chains in the factory
@@ -193,10 +201,8 @@ class Factory:
                 values to use when balancing each UnitProcess.
                 (Defaults to dat.default_scenario)
             write_to_xls (bool): If True, outputs the balance results to an Excel 
-                workbook.
+                workbook in dat.outdir.
                 (Defaults to True)
-            outdir (str): Filepath where to create the balance spreadsheets.
-                (Defaults to the dat.outdir)  
 
         Returns:
             dictionary of factory inflow substances and total quantities
@@ -380,7 +386,7 @@ class Factory:
                         
         # output to file
         if write_to_xls is True:
-            self.factory_to_excel(outdir, io_dicts, factory_totals, internal_flows, 
+            self.factory_to_excel(io_dicts, factory_totals, internal_flows, 
                             scenario, product_qty, aggregate_flows)
         
         logger.debug(f"successfully balanced factory on {product_qty} of {self.chain_dict[self.main_chain]['product']}")
@@ -388,7 +394,7 @@ class Factory:
         return factory_totals['i'], factory_totals['o']
 
 
-    def diagram(self, outdir=dat.outdir, view=False, save=True):
+    def diagram(self, view=False, save=True, outdir=False):
         """ Outputs a diagram of factory flows to file using Graphviz
 
         Using Graphviz, takes the unit process names, sets of inflows and 
@@ -401,18 +407,14 @@ class Factory:
             directionality
         
         Args:
-            outdir(str): The output directory where to write the files.
-                (Defaults to the output directory specified in dataconfig in
-                a 'pfd' subfolder.)
-
             view(bool): If True, displays the diagram in the system
                 viewer. 
                 (Defaults to True)
         """
+        if outdir is False:
+            outdir = f'{self.outdir}/pfd'
 
-        outdir = f'{outdir}/{self.name}_{datetime.now().strftime("%Y-%m-%d_%H%M")}/pfd'
-
-        filename = f'{self.name}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
+        filename = f'{self.name}_f_{today_string}'
 
         factory_diagram = Digraph(name="factory")
         factory_diagram.attr('node', shape='box', color='black')
@@ -523,30 +525,30 @@ class Factory:
 
 
     def run_scenarios(self, scenario_list, 
-                      product_qty, product=False, product_unit=False, product_io=False, 
+                      product_qty=1.0, product=False, product_unit=False, product_io=False, 
                       upstream_outflows=False, upstream_inflows=False, downstream_outflows=False,
-                      downstream_inflows=False, aggregate_flows=False,
-                      write_to_xls=True, outdir=dat.outdir, file_id=''):
-        """Balances the factory on the same quantity for a list of different scenarios.
-        Outputs a file with total inflows and outflows for the factory for each scenario.
+                      downstream_inflows=False, aggregate_flows=False,write_to_excel=True,
+                      factory_xls=True, outdir=False, file_id=''):
+        """Balances the Factory using different sets of variable values.
+        Creates a spreadsheet comparing inflows and outflows for the factory for each scenario.
 
         Args:
-            all arguments from Factory.balance() except scenario  
+            all arguments from Factory.balance() except scenario and write_to_xls 
             scenario_list (list[str]): List of scenario variable values to use, 
                 each corresponding to a matching row index in each unit 
                 process's var_df. 
             file_id (str): Additional text to add to filename.
                 (Defaults to an empty string)
 
+            factory_xls: 
+
         Returns:
             Dataframe of compared inflows
             Dataframe of compared outflows
 
         """
-
-        # outdir = iof.build_filedir(outdir, subfolder=self.name,
-        #                             file_id_list=['multiScenario', file_id],
-        #                             time=True)
+        if outdir is False:
+            outdir = self.outdir
 
         scenario_dict = iof.nested_dicts(3)
         
@@ -561,16 +563,14 @@ class Factory:
                                        downstream_outflows=downstream_outflows,
                                        downstream_inflows=downstream_inflows,
                                        aggregate_flows=aggregate_flows, 
-                                       write_to_xls=write_to_xls, 
-                                       outdir=dat.outdir)
+                                       write_to_xls=factory_xls,
+                                       outdir=self.outdir)
             
             scenario_dict['i'][scenario] = f_in
             scenario_dict['o'][scenario] = f_out
 
-        inflows_df = iof.make_df(scenario_dict['i'], drop_zero=True)
-        inflows_df = iof.mass_energy_df(inflows_df, aggregate_consumed=True)
-        outflows_df = iof.make_df(scenario_dict['o'], drop_zero=True)
-        outflows_df = iof.mass_energy_df(outflows_df, aggregate_consumed=True)
+        inflows_df = iof.mass_energy_df(scenario_dict['i'])
+        outflows_df = iof.mass_energy_df(scenario_dict['o'])
 
         if type(aggregate_flows) is list:
             aggregated_dict = iof.nested_dicts(3)
@@ -587,69 +587,50 @@ class Factory:
                             aggregated_dict['o'][scenario][flow] += scenario_dict['o'][scenario][outflow]
 
 
-        aggregated_inflows_df = iof.make_df(aggregated_dict['i'], drop_zero=True)
-        aggregated_outflows_df = iof.make_df(aggregated_dict['o'], drop_zero=True)
+        aggregated_inflows_df = iof.make_df(aggregated_dict['i'])
+        aggregated_outflows_df = iof.make_df(aggregated_dict['o'])
                 
+        if write_to_excel is True:
+            if product is False:
+                product= self.main_product
 
-        if product is False:
-            product= self.main_product
+            meta_df = iof.metadata_df(user=dat.user_data, 
+                                        name=self.name, 
+                                        level="Factory", 
+                                        scenario=" ,".join(scenario_list), 
+                                        product=product,
+                                        product_qty=product_qty)
 
-        meta_df = iof.metadata_df(user=dat.user_data, 
-                                    name=self.name, 
-                                    level="Factory", 
-                                    scenario=" ,".join(scenario_list), 
-                                    product=product,
-                                    product_qty=product_qty)
+            if type(aggregate_flows) is list:
+                dfs = [meta_df, inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df]
+                sheets = ["meta", "inflows", "outflows", "aggr inflows", "aggr outflows"]
+            else:
+                dfs = [meta_df, inflows_df, outflows_df]
+                sheets = ["meta", "inflows", "outflows"]
 
-        if type(aggregate_flows) is list:
-            dfs = [meta_df, inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df]
-            sheets = ["meta", "inflows", "outflows", "aggr inflows", "aggr outflows"]
-        else:
-            dfs = [meta_df, inflows_df, outflows_df]
-            sheets = ["meta", "inflows", "outflows"]
-
-        iof.write_to_excel(df_or_df_list=dfs,
-                            sheet_list=sheets, 
-                            filedir=outdir, 
-                            filename=f'{self.name}_multi_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+            iof.write_to_excel(df_or_df_list=dfs,
+                                sheet_list=sheets, 
+                                filedir=outdir,
+                                filename=f'{self.name}_f_multi_{today_string}')
 
         return inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df
 
 
-    def run_sensitivity(self, product_qty, base_scenario, chain_name, unit_name, variable, variable_options=[], fixed_vars=False,
+    def run_sensitivity(self, product_qty, scenario, chain_name, unit_name, variable, variable_options=[], fixed_vars=False,
                       product=False, product_unit=False, product_io=False, upstream_outflows=False, upstream_inflows=False,
-                      downstream_outflows=False, downstream_inflows=False, aggregate_flows=False, write_to_xls=True, 
-                      outdir=dat.outdir, file_id=''):
+                      downstream_outflows=False, downstream_inflows=False, aggregate_flows=False, 
+                      write_to_xls=True, individual_xls=False, outdir=False):
         """Balances the factory on the same quantity for a list of different scenarios.
         Outputs a file with total inflows and outflows for the factory for each scenario.
 
         Args:
-            scenario_list (list[str]): List of scenario variable values to use, 
-                each corresponding to a matching row index in each unit 
-                process's var_df. 
-            product_qty (float): the quantity of the product to balance on.
-            product (str/bool): the product name. If False, uses the default
-                product in the chain object attributes.
-                (Defaults to False)
-            product_unit (str/bool): The unit process in the main factory chain 
-                where the product is located. If False, checks for the product 
-                as an inflow or outflow of the main product chain.
-                (Defaults to False)
-            product_io (str/bool): Whether the product is an inflow or outflow
-                of the specified unit process. If False,checks for the product 
-                as an inflow or outflow of the main product chain.
-            mass_energy (bool): If true, seperates mass and energy flows within 
-                each excel sheet, adding rows for the respective totals.
-                (Defaults to True)
-            write_to_xls (bool): If True, outputs the balances of each scenario 
-                to an excel workbook, with sheets for factory totals, inflows 
-                and outflows for all unit processes, and inflows and outflows 
-                by chain.
-                (Defaults to False)
-            outdir (str): Filepath where to create the balance spreadsheets.
-                (Defaults to the outdir specified in dataconfig)  
-            file_id (str): Additional text to add to filename.
-                (Defaults to an empty string)
+            all arguments from Factory.balance() 
+            chain_name
+            unit_name
+            variable
+            variable_options
+            fixed_vars
+
 
         Returns:
             Dataframe of compared inflows
@@ -657,9 +638,8 @@ class Factory:
 
         """
 
-        # outdir = iof.build_filedir(outdir, subfolder=self.name,
-        #                             file_id_list=['multiScenario', file_id],
-        #                             time=True)
+        if outdir is False:
+            outdir = f"{self.outdir}/sensitivity/{variable}"
 
         scenario_dict = iof.nested_dicts(3)
         
@@ -669,31 +649,31 @@ class Factory:
 
         if type(fixed_vars) is list:
             for fixedvar, value in fixed_vars:
-                unit.var_df.loc[base_scenario, fixedvar.lower()] = value
-                logger.debug(f"{variable} for {unit} ({base_scenario} set to {value}) (fixed over all sensitivity analyses)")
+                unit.var_df.loc[scenario, fixedvar.lower()] = value
+                logger.debug(f"{variable} for {unit} ({scenario} set to {value}) (fixed over all sensitivity analyses)")
 
         original_var_df = unit.var_df.copy()
 
         # evaluate over varying variables
         for value in variable_options:
-            unit.var_df.loc[base_scenario, variable.lower()] = value
-            logger.debug(f"{variable} for {unit.name} ({base_scenario}) set to {value})")
+            unit.var_df.loc[scenario, variable.lower()] = value
+            logger.debug(f"{variable} for {unit.name} ({scenario}) set to {value})")
 
             f_in, f_out = self.balance(product_qty=product_qty, 
                                        product=product, 
                                        product_unit=product_unit, 
                                        product_io=product_io, 
-                                       scenario=base_scenario,
+                                       scenario=scenario,
                                        upstream_outflows=upstream_outflows,
                                        upstream_inflows=upstream_inflows,
                                        downstream_outflows=downstream_outflows,
                                        downstream_inflows=downstream_inflows, 
                                        aggregate_flows=aggregate_flows,
-                                       write_to_xls=write_to_xls, 
-                                       outdir=dat.outdir)
+                                       write_to_xls=
+                                       outdir=f"{outdir}/{value}")
             
-            scenario_dict['i'][f'{base_scenario}_{unit_name}-{variable}_{value}'] = f_in
-            scenario_dict['o'][f'{base_scenario}_{unit_name}-{variable}_{value}'] = f_out
+            scenario_dict['i'][f'{scenario}_{unit_name}-{variable}_{value}'] = f_in
+            scenario_dict['o'][f'{scenario}_{unit_name}-{variable}_{value}'] = f_out
 
         inflows_df = iof.make_df(scenario_dict['i'], drop_zero=True)
         inflows_df = iof.mass_energy_df(inflows_df, aggregate_consumed=True)
@@ -725,7 +705,7 @@ class Factory:
         meta_df = iof.metadata_df(user=dat.user_data, 
                                     name=self.name, 
                                     level="Factory", 
-                                    scenario=f'{base_scenario}-{unit_name}-{variable}-sensitivity', 
+                                    scenario=f'{scenario}-{unit_name}-{variable}-sensitivity', 
                                     product=product,
                                     product_qty=product_qty)
 
@@ -738,8 +718,8 @@ class Factory:
 
         iof.write_to_excel(df_or_df_list=dfs,
                             sheet_list=sheets, 
-                            filedir=outdir, 
-                            filename=f'{self.name}_sens_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+                            filedir=outdir,
+                            filename=f'{self.name}_f_sens_{today_string}')
 
         original_var_df_copy=original_var_df.copy()
         unit.var_df = original_var_df_copy
@@ -1068,15 +1048,15 @@ class Factory:
         return factory_totals
 
 
-    def factory_to_excel(self, outdir, io_dicts, factory_totals, internal_flows, scenario, product_qty, aggregate_flows):
+    def factory_to_excel(self, io_dicts, factory_totals, internal_flows, scenario, product_qty, aggregate_flows, outdir=False):
         """formats factory data to datafames and outputs to excel file
             used in self.balance() (above)
         """                  
-        
-        # make time-specific Factory subdir    
-        outdir = f'{outdir}/{self.name}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
-            
-        filename = f'f_{self.name}_{scenario}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
+  
+        if outdir is False:
+            outdir = self.outdir
+
+        filename = f'{self.name}_f_{scenario}_{today_string}'
 
         meta_df = iof.metadata_df(user=dat.user_data, name=self.name, 
                         level="Factory", scenario=scenario, product=self.main_product,
