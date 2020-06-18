@@ -10,10 +10,12 @@ import blackblox.processchain as cha
 import blackblox.factory as fac
 import blackblox.industry as ind
 
+factory_file = "data/demo/factories/cementFactory_withCCS.xlsx"
+scenario_list = ['EU-1990', 'EU-2000', 'EU-2010']
+
 
 # USER DATA CONFIG
-dat.outdir = "output/demo"
-
+dat.outdir = 'output/demo'
 dat.user_data = {"name": "S.E. Tanzer",
              "affiliation": "TU Delft",
              "project": f"BlackBlox Demo - {datetime.now().strftime('%d %B %Y')}",
@@ -64,16 +66,7 @@ print(f"and outputting any files to {dat.outdir}")
 #     scenarios = kiln.var_df.index.tolist()
 #     s = 'EU-2010' # random.choice(scenarios)
 
-#     print(f"\nbalacing {kiln.name} on {qty}  of {product} ({kiln.default_io}) using {s} values")
-
-
-#     u_in, u_out = kiln.balance(qty, scenario=s)
-#     print("\ncalculated inflow quantities:")
-#     for k, v in u_in.items():
-#         print(f'  {k}: {round(v,3)}')
-#     print("\ncalculated outflow quantities:")
-#     for k, v in u_out.items():
-#         print(f'  {k}: {round(v,3)}')
+#     u_in, u_out = kiln.balance(qty, scenario=s, write_to_console=True)
 
 #     stop = True
 
@@ -90,22 +83,17 @@ print(f"and outputting any files to {dat.outdir}")
 #         qty = u_in[product]
 #     print(f"\nnow balacing {kiln.name} on {qty} {dat.default_units['mass']} of {product} ({'inflow'}) using {s} values")
 
-#     u1_in, u1_out = kiln.balance(qty, product, 'i', s) 
+#     u1_in, u1_out = kiln.balance(qty, product, 'i', s, write_to_console=True) 
         
-#     rounded_u_in = {k:round(v, 6) for k, v in u_in.items()}
-#     rounded_u_out = {k:round(v, 6) for k, v in u_out.items()}
-#     rounded_u1_in = {k:round(v, 6) for k, v in u1_in.items()}
-#     rounded_u1_out = {k:round(v, 6) for k, v in u1_out.items()}
+#     rounded_u_in = {k:round(v, dat.float_tol) for k, v in u_in.items()}
+#     rounded_u_out = {k:round(v, dat.float_tol) for k, v in u_out.items()}
+#     rounded_u1_in = {k:round(v, dat.float_tol) for k, v in u1_in.items()}
+#     rounded_u1_out = {k:round(v, dat.float_tol) for k, v in u1_out.items()}
 #     if rounded_u1_in == rounded_u_in and rounded_u1_out == rounded_u_out:
-#         print("\nSame input/output as above, rounded to 6 decimal places")
+#         print(f"\nSame input/output as above, rounded to {dat.float_tol} decimal places")
 #     else:
-#         print("\n [!] not equivelent to above [!]\n")
-#         print("recalculated inflow quantities:")
-#         for k, v in u1_in.items():
-#             print(f'  {k}: {v}')
-#         print("\ncalculated outflow quantities:")
-#         for k, v in u1_out.items():
-#             print(f'  {k}: {v}')
+#         print("\n [!] Rebalanced input/output not equivelent to above [!]\n")
+
 
 # # BALANCE UNIT PROCESS - Recycle inflow  
 #     stop = input(f"\n\n\nPress enter to test 1-to-1 recycle on {product} (inflow): ")
@@ -123,19 +111,15 @@ print(f"and outputting any files to {dat.outdir}")
 #                                                        recyclate_flow='RECYCLED FLOW',
 #                                                        toBeReplaced_flow=product,
 #                                                        max_replace_fraction=max_replace_fraction,
-#                                                        scenario=s)
+#                                                        scenario=s,
+#                                                        write_to_console=True)
     
-#     print("\nrecalculated inflow quantities:")
-#     for k, v in r1_in.items():
-#         print(f'  {k}: {round(v,3)}')
-#     rounded_r1_out = {k:round(v, 6) for k, v in r1_out.items()}
+
+#     rounded_r1_out = {k:round(v, dat.float_tol) for k, v in r1_out.items()}
 #     if rounded_r1_out == rounded_u_out:
-#         print("\nSame outflow as above, rounded to 6 decimal places")
+#         print(f"\nSame input/output as above, rounded to {dat.float_tol} decimal places")
 #     else:
-#         print("\n [!] outflows not equivelent to above [!]\n")
-#         print("recalculated outflow quantities:")
-#         for k, v in r1_out.items():
-#             print(f'  {k}: {round(v,6)}')
+#         print("\n [!] Rebalanced input/output not equivelent to above [!]\n")
 #     print(f"\nRECYCLE FLOW leftover: {leftover}")
 
 # # BALANCE UNIT PROCESS - Random Outflow            
@@ -154,22 +138,14 @@ print(f"and outputting any files to {dat.outdir}")
 #     qty = u_out[product]
 #     print(f"\nnow balacing {kiln.name} on {qty} of {product} ({'outflow'}) using {s} values")
 
-#     u1_in, u1_out = kiln.balance(qty, product, 'o', s) 
+#     u1_in, u1_out = kiln.balance(qty, product, 'o', s, write_to_console=True) 
         
-#     rounded_u1_in = {k:round(v, 6) for k, v in u1_in.items()}
-#     rounded_u1_out = {k:round(v, 6) for k, v in u1_out.items()}
+#     rounded_u1_in = {k:round(v, dat.float_tol) for k, v in u1_in.items()}
+#     rounded_u1_out = {k:round(v, dat.float_tol) for k, v in u1_out.items()}
 #     if rounded_u1_in == rounded_u_in and rounded_u1_out == rounded_u_out:
-#         print("\nSame input/output as above, rounded to 6 decimal places")
+#         print(f"\nSame input/output as above, rounded to {dat.float_tol} decimal places")
 #     else:
-#         print("\n [!] not equivelent to above [!]\n")
-#         print("\ncalculated inflow quantities:")
-#         for k, v in r1_in.items():
-#             print(f'  {k}: {round(v,3)}')
-#         print("\ncalculated outflow quantities:")
-#         for k, v in r1_out.items():
-#             print(f'  {k}: {round(v,3)}')
-#         if product in dat.default_emissions or product == 'waste heat':
-#             print(f"\n(Since this was {product}, which has multiple sources, this was expected.)")
+#         print("\n [!] Rebalanced input/output not equivelent to above [!]\n")
 
 
 # # BALANCE UNIT PROCESS - Recycle Outflow    
@@ -188,19 +164,14 @@ print(f"and outputting any files to {dat.outdir}")
 #                                                            recyclate_flow='RECYCLED FLOW',
 #                                                            toBeReplaced_flow=product,
 #                                                            max_replace_fraction=max_replace_fraction,
-#                                                            scenario=s)
+#                                                            scenario=s,
+#                                                            write_to_console=True)
 
-#         rounded_r1_in = {k:round(v, 6) for k, v in r1_in.items()}
+#         rounded_r1_in = {k:round(v, dat.float_tol) for k, v in r1_in.items()}
 #         if rounded_r1_in == rounded_u_in:
-#             print("\nSame inflows as above, rounded to 6 decimal places")
+#             print(f"\nSame input/output as above, rounded to {dat.float_tol} decimal places")
 #         else:
-#             print("\n [!] inflows not equivelent to above [!]\n")
-#             print("recalculated inflows quantities:")
-#             for k, v in r1_in.items():
-#                 print(f'{k}: {v}')    
-#         print("\nrecalculated outflow quantities:")
-#         for k, v in r1_out.items():
-#             print(f'  {k}: {v}')
+#             print("\n [!] Rebalanced input/output not equivelent to above [!]\n")
 #         print(f"\nRECYCLE FLOW leftover: {leftover}")
 
 #     fuel_type = kiln.var_df.at[s, 'fueltype']
@@ -221,169 +192,142 @@ print(f"and outputting any files to {dat.outdir}")
 #                                                                         max_replace_fraction=max_replace_fraction,
 #                                                                         combustion_eff = dat.combustion_efficiency_var,
 #                                                                         scenario=s,
-#                                                                         emissions_list = dat.default_emissions)
+#                                                                         emissions_list = dat.default_emissions,
+#                                                                         write_to_console=True)
 
-#     print("\nrecalculated inflow quantities:")
-#     for k, v in r1_in.items():
-#         print(f'  {k}: {round(v,3)}')
-#     print("\nrecalculated outflow quantities:")
-#     for k, v in r1_out.items():
-#         print(f'  {k}: {round(v,3)}')
-#     print(f"\nRECYCLE FLOW leftover: {leftover}")
+
+#    print(f"\nRECYCLE FLOW leftover: {leftover}")
+
+# # BALANCE UNIT PROCESS - run scenarios   
+#     stop = input(f"\n\n\nPress enter to test unit process multiple scenarios: ")
+#     if stop != '':
+#         break
+
+#     kiln.run_scenarios(scenario_list=scenario_list,write_to_console=True)
 
 #     stop = 'stop'
     
 # stop = input('\n\n\nPress enter to continue: ')  
 
-#############################################################################
-# PROCESS CHAIN TEST
-#############################################################################
-factory_file = "data/demo/factories/cementFactory_withCCS.xlsx"
-df_cols = ['mixer', 'kiln', 'blender', 'chain totals']
+# #############################################################################
+# # PROCESS CHAIN TEST
+# #############################################################################
 
-print("\n\n\nPROCESS CHAIN TEST - outputs to console. ")
+print("\n\n\nPROCESS CHAIN TEST - outputs to console and file. ")
 stop = input('\nPress enter to create a CEMENT production chain object or type any character to skip: ')
 while stop == '':
     if stop != '':
         break
 
     cement_chain = cha.ProductChain(chain_data=factory_file, 
-                                    name= "Cement Production", 
+                                    name= "Cement", 
                                     xls_sheet='Cement Chain')
 
-    print('\nCEMENT Chain Data:')
-    pprint(cement_chain.process_chain_df)
 
-    stop = input("\n\n\nPress enter to generate CEMENT chain proces diagram: ")
-    if stop != '':
-        break
-    cement_chain.diagram(view=True, save=False)
-    print("\nDiagram sent to system viewer.")
+#     print('\nCEMENT Chain Data:')
+#     pprint(cement_chain.process_chain_df)
 
-    stop = input("\n\n\nPress enter to balance the cement chain on 1.0 tonnes of cement out: ")
-    if stop != '':
-        break    
+    # stop = input("\n\n\nPress enter to generate CEMENT chain proces diagram: ")
+    # if stop != '':
+    #     break
+    # cement_chain.diagram(view=True, save=False)
+    # print("\nDiagram sent to system viewer.")
 
-    chain_inflows, chain_outflows, int_flows, int_rows = cement_chain.balance(1.0)
-    chain_inflows = pan.DataFrame(chain_inflows)
-    chain_inflows = chain_inflows[df_cols]
-    chain_inflows = iof.mass_energy_df(chain_inflows)
-    chain_outflows = pan.DataFrame(chain_outflows)
-    chain_outflows = chain_outflows[df_cols]
-    chain_outflows = iof.mass_energy_df(chain_outflows)
+    # stop = input("\n\n\nPress enter to balance the cement chain on 1.0 tonnes of cement out: ")
+    # if stop != '':
+    #     break    
 
-    print("\ncement chain inflows:\n", chain_inflows)
-    print("\ncement chain outflows:\n", chain_outflows)
+    # chain_inflows, chain_outflows, int_flows, int_rows = cement_chain.balance(1.0, write_to_console=True)
 
-    print("\ncement chain intermediate flows:")
-    for row in int_rows:
-        print(row)
+    # stop = input("\n\n\nPress enter to balance the cement chain on 1.070880 of CaCO3 in: ")
+    # if stop != '':
+    #     break  
+    # inflows, outflows, int_flows, int_rows = cement_chain.balance(1.070880, product="CaCO3", scenario="default", write_to_console=True)
 
-    stop = input("\n\n\nPress enter to balance the cement chain on 1.070880 of CaCO3 in: ")
-    if stop != '':
-        break  
-    inflows, outflows, int_flows, int_rows = cement_chain.balance(1.070880, product="CaCO3", scenario="default")
-    inflows = pan.DataFrame(inflows)
-    inflows = inflows[df_cols]
-    inflows = iof.mass_energy_df(inflows)
+    # stop = input("\n\n\nPress enter to balance the cement chain on 0.8 of clinker out of the kiln: ")
+    # if stop != '':
+    #     break  
 
-    outflows = pan.DataFrame(outflows)
-    outflows = outflows[df_cols]
-    outflows = iof.mass_energy_df(outflows)
+    # inflows, outflows, int_flows, int_rows = cement_chain.balance(0.8, product="clinker", i_o='outflow', unit_process='demo_kiln', scenario="default", write_to_console=True)
 
-    print("\ncement chain inflows:\n", inflows)
-    print("\ncement chain outflows:\n", outflows)
-
-    stop = input("\n\n\nPress enter to balance the cement chain on 0.8 of clinker out of the kiln: ")
+    stop = input("\n\n\nPress enter to balance the cement chain on 1.0 of cement out for scenarios {scenario_list} ")
     if stop != '':
         break  
 
-    inflows, outflows, int_flows, int_rows = cement_chain.balance(0.8, product="clinker", i_o='outflow', unit_process='demo_kiln', scenario="default")
-    inflows = pan.DataFrame(inflows)
-    inflows = inflows[df_cols]
-    outflows = pan.DataFrame(outflows)
-    outflows = outflows[df_cols]
-
-    print("\n")
-    print("\ncement chain inflows:\n", inflows)
-    print("\ncement chain outflows:\n", outflows)
-
+    cement_chain.run_scenarios(scenario_list=scenario_list,write_to_console=True, write_to_excel=True)
 
     stop = 'stop'
 
 input('\n\n\nPress enter to continue: ')  
 
-# ##############################################################################
-# ## FACTORY TEST
-# ##############################################################################
-# print('\n\n\nINTERLINKED FACTORY TEST - outputs to console and file.')
-# stop = input('\nPress enter to proceed or type any character to skip: ')
-# while stop == '':
-#     if stop != '':
-#         break
+##############################################################################
+## FACTORY TEST
+##############################################################################
+print('\n\n\nINTERLINKED FACTORY TEST - outputs to console and file.')
+stop = input('\nPress enter to proceed or type any character to skip: ')
+while stop == '':
+    if stop != '':
+        break
 
-#     cement_factory = fac.Factory(chain_list_file=factory_file,
-#                                  chain_list_sheet='Chain List', 
-#                                  connections_sheet='Connections', 
-#                                  name="Cement with CCS")
+    cement_factory = fac.Factory(chain_list_file=factory_file,
+                                 chain_list_sheet='Chain List', 
+                                 connections_sheet='Connections', 
+                                 name="Demo")
 
-#     print(f"\n{cement_factory.name} factory")
-#     print(f"\nchains in this factory:")
-#     # print(cement_factory.chains_df)
-#     # print("\n connections in this factory:")
-#     # print(cement_factory.connections_df[['o product', 'o chain', 'o unit', ' d chain', 'd unit', 'r replacing']])
+    # print(f"\n{cement_factory.name} factory")
+    # print(f"\nchains in this factory:")
+    # for chain in cement_factory.chain_dict:
+    #     print(cement_factory.chain_dict[chain]['name'])
+
+    # print("\n connections in this factory:")
+    # print(cement_factory.connections_df[[dat.origin_chain, dat.origin_unit, dat.origin_product, \
+    #     dat.dest_unit, dat.dest_chain, dat.replace]])
     
-#     # stop = input("\n\n\nPress enter to see all connection data for waste heat recycling: ")
-#     # if stop != '':
-#     #     break
-#     # print("\n",cement_factory.connections_df.iloc[3, :])
+    # stop = input("\n\n\nPress enter to see all connection data for waste heat recycling: ")
+    # if stop != '':
+    #     break
+    # print("\n",cement_factory.connections_df.iloc[3, :])
     
-#     stop = input("\n\n\nPress enter to generate a diagram of the cement factory: ")
-#     if stop != '':
-#         break
-#     cement_factory.diagram(view=True, save=False)
-#     print("\nDiagram sent to system viewer.")
+    # stop = input("\n\n\nPress enter to generate a diagram of the cement factory: ")
+    # if stop != '':
+    #     break
+    # cement_factory.diagram(view=True, save=False)
+    # print("\nDiagram sent to system viewer.")
 
-#     stop = input("\n\n\nPress enter to balance the factory on 100.0 tonnes of cement (outputs to file): ")
-#     if stop != '':
-#         break
-#     inflows, outflows = cement_factory.balance(product_qty = 100, 
-#                                                 scenario=dat.default_scenario, 
-#                                                 write_to_xls=True, 
-#                                                 outdir=dat.outdir, 
-#                                                 mass_energy=True, 
-#                                                 energy_flows=dat.energy_flows)
+    stop = input("\n\n\nPress enter to balance the factory on 100.0 tonnes of cement (outputs to file): ")
+    if stop != '':
+        break
+    inflows, outflows = cement_factory.balance(product_qty = 100, 
+                                                scenario=dat.default_scenario, 
+                                                write_to_xls=False)
 
-#     totals = {'factory inflows': inflows, 'factory outflows': outflows}
-#     totals = pan.DataFrame(totals)
-#     totals = iof.mass_energy_df(totals)
-#     print(f"\n{cement_factory.name} total inflows and outflows")
-#     print(totals)
-#     print("\n Full results available in demo_output directory.")
+    totals = {'factory inflows': inflows, 'factory outflows': outflows}
+    totals = pan.DataFrame(totals)
+    totals = iof.mass_energy_df(totals)
+    print(f"\n{cement_factory.name} total inflows and outflows")
+    print(totals)
+    print("\n Full results available in demo_output directory.")
 
 
-#     stop = input("\n\n\nPress enter to balance the factory on 10.68249258 tonnes of fuel inflow to kiln (outputs to file): ")
-#     inflows, outflows = cement_factory.balance(product_qty = 10.68249258, 
-#                                                 product = 'fuel',
-#                                                 product_io = 'inflow',
-#                                                 product_unit = 'demo_kiln',
-#                                                 scenario=dat.default_scenario, 
-#                                                 write_to_xls=True, 
-#                                                 outdir=dat.outdir, 
-#                                                 mass_energy=True, 
-#                                                 energy_flows=dat.energy_flows)
+    stop = input("\n\n\nPress enter to balance the factory on 13.9535 tonnes of fuel inflow to kiln (outputs to file): ")
+    inflows, outflows = cement_factory.balance(product_qty = 13.9535, 
+                                                product = 'fuel',
+                                                product_io = 'inflow',
+                                                product_unit = 'demo_kiln',
+                                                scenario=dat.default_scenario, 
+                                                write_to_xls=True)
 
-#     totals = {'factory inflows': inflows, 'factory outflows': outflows}
-#     totals = pan.DataFrame(totals)
-#     totals = iof.mass_energy_df(totals)
+    totals = {'factory inflows': inflows, 'factory outflows': outflows}
+    totals = pan.DataFrame(totals)
+    totals = iof.mass_energy_df(totals)
     
-#     print(f"\n{cement_factory.name} total inflows and outflows")
-#     print(totals, "\n")
-#     print("\n Full results available in demo_output directory")
+    print(f"\n{cement_factory.name} total inflows and outflows")
+    print(totals, "\n")
+    print("\n Full results available in demo_output directory")
 
-#     stop = 'stop'
+    stop = 'stop'
 
-# input('\n\n\nPress enter to continue: ')  
+input('\n\n\nPress enter to continue: ')  
 
 # ###############################################################################
 # ## INDUSTRY TEST

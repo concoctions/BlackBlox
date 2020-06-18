@@ -133,7 +133,7 @@ def build_factories(factory_dict):
         built_factories[f] = factory
 
         if view_diagrams is True or save_diagrams is True:
-            factory.diagram(view=view_diagrams, save=save_diagrams)
+            factory.diagram(view=view_diagrams, save=save_diagrams, outdir=f"{outdir}/pfd")
 
     print("Factories successfully built:")
     for factory in built_factories:
@@ -148,18 +148,15 @@ def test_factories(factory_dict,
                 write_to_xls=write_to_xls,
                 view_diagrams=view_diagrams,
                 save_diagrams=save_diagrams,
-                outdir=dat.outdir,
+                outdir=False,
                 upstream_outflows=False, 
                 upstream_inflows=False,
                 downstream_outflows=False,
                 downstream_inflows=False,
-                aggregate_flows=False,
-                prebuilt=False):
+                aggregate_flows=False):
 
-    if prebuilt is not False:
-        built_factories = prebuilt
-    else:
-        built_factories = build_factories(factory_dict)
+    
+    built_factories = build_factories(factory_dict)
         
     print(f'\nbalancing factories on {qty} of main product... \n')
     for f in factory_dict:
@@ -177,7 +174,7 @@ def test_factories(factory_dict,
                                             aggregate_flows=aggregate_flows)
 
         if save_diagrams is True or view_diagrams is True:
-            factory.diagram(outdir=outdir, 
+            factory.diagram(outdir=f'{factory.outdir}/pfd', 
                             view=view_diagrams, 
                             save=save_diagrams)
 
@@ -190,7 +187,7 @@ def test_factories(factory_dict,
             print(totals)
 
         if write_to_xls is True:
-            print(f"\n FACTORY: Full results available in {dat.outdir} directory.")
+            print(f"\n FACTORY: Full results available in {outdir} directory.")
 
 
 def test_factory_scenarios(factory_dict,
@@ -207,10 +204,11 @@ def test_factory_scenarios(factory_dict,
                             scenario_list=[dat.default_scenario], 
                             write_to_console=write_to_console, 
                             write_to_xls=write_to_xls,
-                            view_diagrams=view_diagrams,
-                            save_diagrams=save_diagrams,
+                            individual_xls=True,
+                            view_diagrams=False,
+                            save_diagrams=False,
                             outdir=dat.outdir,
-                            filename='multiscenario',
+                            filename='multifac_multiscenario',
                             productname='product'):
 
     print(f'\ncomparing factory outputs for {scenario_list}. for {qty} of product... \n')
@@ -232,7 +230,8 @@ def test_factory_scenarios(factory_dict,
                                                   downstream_outflows=downstream_outflows,
                                                   downstream_inflows=downstream_inflows,
                                                   aggregate_flows=aggregate_flows,
-                                                  write_to_xls=individual_xls,
+                                                  write_to_excel=False,
+                                                  factory_xls=individual_xls,
                                                   outdir=outdir)
 
         if write_to_console is True:
@@ -243,7 +242,7 @@ def test_factory_scenarios(factory_dict,
             print(outflows)
 
         if save_diagrams is True or view_diagrams is True:
-            factory.diagram(outdir=outdir, 
+            factory.diagram(outdir=f'{factory.outdir}/pfd', 
                             view=view_diagrams, 
                             save=save_diagrams)
 
@@ -316,7 +315,7 @@ def test_factory_sensitivity(factory_dict,
         print(f"\n{str.upper(factory.name)} factory - sensitivity")
 
         inflows, outflows, aggregate_dict = factory.run_sensitivity(product_qty=qty, 
-                                                    base_scenario=scenario, 
+                                                    scenario=scenario, 
                                                     chain_name=chain_name, 
                                                     unit_name=unit_name, 
                                                     variable=variable, 
@@ -394,136 +393,3 @@ def test_factory_sensitivity(factory_dict,
 # INDUSTRY TEST
 
 
-def build_industries(industry_dict):
-    built_industries = dict()
-    for i in industry_dict:
-        industry = ind.Industry(**industry_dict[i])
-        built_industries[i] = industry
-
-    return built_industries
-
-def test_industries(industry_dict,
-                industry_name='industry',
-                scenario_id=scenario, 
-                write_to_console=write_to_console, 
-                upstream_outflows=False, 
-                upstream_inflows=False,
-                aggregate_flows=False,
-                write_to_xls=write_to_xls,
-                view_diagrams=view_diagrams,
-                save_diagrams=save_diagrams,
-                outdir=dat.outdir):
-
-    built_industries = build_industries(industry_dict)
-
-    ind_total = iof.nested_dicts(3) #[i_o][industry name][substance]
-    for i in industry_dict:
-        industry = built_industries[i]
-
-        ind_flows = industry.balance(outdir=outdir, **industry_dict[i], 
-                                    upstream_outflows=upstream_outflows, 
-                                    upstream_inflows=upstream_inflows, 
-                                    aggregate_flows=aggregate_flows)
-
-        ind_total['i'][i] = ind_flows['inflows']['industry totals']
-        ind_total['o'][i] = ind_flows['outflows']['industry totals']
-    
-        filename = f'i_{industry_name}_comparison_{scenario_id}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
-        
-        infows_df = iof.make_df(ind_total['i'], drop_zero=True, metaprefix=None)
-        infows_df = iof.mass_energy_df(infows_df, aggregate_consumed=True)
-        outflows_df = iof.make_df(ind_total['o'], drop_zero=True, metaprefix=None)
-        outflows_df = iof.mass_energy_df(outflows_df, aggregate_consumed=True)
-
-        meta_df = iof.metadata_df(user=dat.user_data, name=f'{industry_name}_comparison', 
-                        level="Industry", scenario="n/a", product="n/a",
-                        product_qty="n/a", energy_flows=dat.energy_flows)
-
-        df_list = [meta_df, infows_df, outflows_df]
-        sheet_list = ["meta", "inflows", "outflows"]
-        
-        iof.write_to_excel(df_list, sheet_list=sheet_list, filedir=dat.outdir, filename=filename)
-    
-        print(f"\n STATIC INDUSTRY COMPARISON - Full results available in {dat.outdir} directory.")
-
-
-def test_industry_evolve(
-                industry_dict,
-                qty, 
-                compare_steps,
-                compare_step_sheets,
-                compare_industry_name='Industry',
-                compare_evolved_industres=True,
-                compare_outflows=False,
-                compare_inflows=False,
-                write_to_console=write_to_console, 
-                write_to_xls=write_to_xls,
-                view_diagrams=view_diagrams,
-                save_diagrams=save_diagrams,
-                outdir=dat.outdir):
-
-    built_industries = build_industries(industry_dict)
-
-    ind_annual = iof.nested_dicts(4) #[i_o][industry name][substance][time step]
-    ind_cumulative = iof.nested_dicts(3) #[i_o][industry name][substance]
-    for i in industry_dict:
-        industry = built_industries[i]
-        if compare_evolved_industres is True and compare_steps is not False:
-            industry_dict[i]['steps'] = compare_steps
-        if compare_evolved_industres is True and compare_step_sheets is not False:
-            industry_dict[i]['step sheets'] = compare_step_sheets
-        annual, cumulative = industry.evolve_multistep(outdir=outdir, **industry_dict[i])
-
-        ind_annual['i'][i] = annual['inflows']['industry totals']
-        ind_annual['o'][i] = annual['outflows']['industry totals']
-
-        ind_cumulative['i'][i] = cumulative['inflows']['industry totals']
-        ind_cumulative['o'][i] = cumulative['outflows']['industry totals']
-    
-    if compare_evolved_industres is True and compare_steps is not False:
-
-        filename = (f'i_{compare_industry_name}_comparison_{compare_steps[0]}-{compare_steps[-1]}'
-                    f'_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
-
-        cumulative_infows_df = iof.make_df(ind_cumulative['i'], drop_zero=True, metaprefix=None)
-        cumulative_infows_df = iof.mass_energy_df(cumulative_infows_df, aggregate_consumed=True)
-        cumulative_outflows_df = iof.make_df(ind_cumulative['o'], drop_zero=True, metaprefix=None)
-        cumulative_outflows_df = iof.mass_energy_df(cumulative_outflows_df, aggregate_consumed=True)
-
-        meta_df = iof.metadata_df(user=dat.user_data, name=f'{compare_industry_name}_comparison', 
-                        level="Industry", scenario="n/a", product="n/a",
-                        product_qty="n/a", energy_flows=dat.energy_flows)
-
-        df_list = [meta_df, cumulative_infows_df, cumulative_outflows_df]
-        sheet_list = ["meta", "inflows (cumulative)", "outflows (cumulative)"]
-
-        df_dict = iof.nested_dicts(2)
-
-        for flow in ind_annual:
-            for factory in ind_annual[flow]:
-                df = iof.make_df(ind_annual[flow][factory], drop_zero=False, sort=True, metaprefix=None)
-                sheet_name = f'{factory} {flow}'
-                df_dict[flow[0]][factory] = df
-                df_list.append(df)
-                sheet_list.append(sheet_name)
-        
-        iof.write_to_excel(df_list, sheet_list=sheet_list, filedir=dat.outdir, filename=filename)
-
-        if type(compare_outflows) is list:
-            for flow in compare_outflows:
-                iof.plot_annual_flows(df_dict['o'], flow, dat.outdir, file_id=f"_{compare_industry_name}-comparison")
-
-        if type(compare_inflows) is list:
-            for flow in compare_outflows:
-                iof.plot_annual_flows(df_dict['i'], flow, dat.outdir, file_id=f"_{compare_industry_name}-comparison")
-
-    
-        print(f"\n INDUSTRY COMPARISON - Full results available in {dat.outdir} directory.")
-
-
-
-def main():
-    pass
-
-if __name__ == "__main__":
-    main()

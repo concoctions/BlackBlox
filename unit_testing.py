@@ -68,7 +68,7 @@ import blackblox.factory as fac
 import blackblox.industry as ind
 
 
-#------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # UNIT TESTS
 
 for unit_id in unit_list:
