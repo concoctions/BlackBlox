@@ -237,8 +237,10 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
 
     if isinstance(data, pan.DataFrame):
         df = data
+        if df.empty:
+            return df
     elif bool(data) is True:
-        if isinstance(data, dict): 
+        if isinstance(data, (dict,list)): 
             df = pan.DataFrame(data)
         elif data.endswith(('.xls', 'xlsx')):
             df = pan.read_excel(data, sheet_name=sheet, index_col=index)
