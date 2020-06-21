@@ -336,7 +336,7 @@ if electricity is True:
         elec_dfs.append(df)
         elec_sheets.append(f"OUT {flow}")
 
-    iof.write_to_excel(df_or_df_list=elec_dfs,
+    iof.write_to_xls(df_or_df_list=elec_dfs,
                         sheet_list=elec_sheets, 
                         filedir=f"{outdir}/sensitivity", 
                         filename=f'Electricity_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
@@ -402,7 +402,7 @@ if hisarna_eff is True:
         his_dfs.append(df)
         his_sheets.append(f"OUT {flow}")
 
-    iof.write_to_excel(df_or_df_list=his_dfs,
+    iof.write_to_xls(df_or_df_list=his_dfs,
                         sheet_list=his_sheets, 
                         filedir=f"{outdir}/sensitivity",
                         filename=f'HIsarna_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
@@ -503,7 +503,7 @@ if biomass_co2 is True:
         bio_dfs.append(df)
         bio_sheets.append(f"OUT {flow}")
 
-    iof.write_to_excel(df_or_df_list=bio_dfs,
+    iof.write_to_xls(df_or_df_list=bio_dfs,
                         sheet_list=bio_sheets, 
                         filedir=f"{outdir}/sensitivity", 
                         filename=f'biomass_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
@@ -567,7 +567,7 @@ if syngas is True:
         gas_dfs.append(df)
         gas_sheets.append(f"OUT {flow}")
 
-    iof.write_to_excel(df_or_df_list=gas_dfs,
+    iof.write_to_xls(df_or_df_list=gas_dfs,
                         sheet_list=gas_sheets, 
                         filedir=f"{outdir}/sensitivity", 
                         filename=f'syngas_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
@@ -667,7 +667,7 @@ if alloy is True:
         loy_dfs.append(df)
         loy_sheets.append(f"OUT {flow}")
 
-    iof.write_to_excel(df_or_df_list=loy_dfs,
+    iof.write_to_xls(df_or_df_list=loy_dfs,
                         sheet_list=loy_sheets, 
                         filedir=f"{outdir}/sensitivity", 
                         filename=f'alloy_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
@@ -767,7 +767,7 @@ if carbon_debt is True:
         ghg_dfs.append(df)
         ghg_sheets.append(f"OUT {flow}")
 
-    iof.write_to_excel(df_or_df_list=ghg_dfs,
+    iof.write_to_xls(df_or_df_list=ghg_dfs,
                         sheet_list=ghg_sheets, 
                         filedir=f"{outdir}/sensitivity", 
                         filename=f'bioghg_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
@@ -868,7 +868,7 @@ if CO2_transport is True:
         transport_dfs.append(df)
         transport_sheets.append(f"OUT {flow}")
 
-    iof.write_to_excel(df_or_df_list=transport_dfs,
+    iof.write_to_xls(df_or_df_list=transport_dfs,
                         sheet_list=transport_sheets, 
                         filedir=f"{outdir}/sensitivity", 
                         filename=f'CO2transport_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
@@ -968,7 +968,7 @@ if boiler_eff is True:
         ghg_dfs.append(df)
         ghg_sheets.append(f"OUT {flow}")
 
-    iof.write_to_excel(df_or_df_list=ghg_dfs,
+    iof.write_to_xls(df_or_df_list=ghg_dfs,
                         sheet_list=ghg_sheets, 
                         filedir=f"{outdir}/sensitivity", 
                         filename=f'boiler_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')

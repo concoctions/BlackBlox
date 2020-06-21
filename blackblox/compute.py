@@ -133,7 +133,7 @@ def build_factories(factory_dict):
         built_factories[f] = factory
 
         if view_diagrams is True or save_diagrams is True:
-            factory.diagram(view=view_diagrams, save=save_diagrams, outdir=f"{outdir}/pfd")
+            factory.diagram(view=view_diagrams, save=save_diagrams)
 
     print("Factories successfully built:")
     for factory in built_factories:
@@ -153,7 +153,8 @@ def test_factories(factory_dict,
                 upstream_inflows=False,
                 downstream_outflows=False,
                 downstream_inflows=False,
-                aggregate_flows=False):
+                aggregate_flows=False,
+                net_flows=False):
 
     
     built_factories = build_factories(factory_dict)
@@ -171,7 +172,8 @@ def test_factories(factory_dict,
                                             upstream_inflows=upstream_inflows,
                                             downstream_outflows=downstream_outflows,
                                             downstream_inflows=downstream_inflows,
-                                            aggregate_flows=aggregate_flows)
+                                            aggregate_flows=aggregate_flows,
+                                            net_flows=net_flows)
 
         if save_diagrams is True or view_diagrams is True:
             factory.diagram(outdir=f'{factory.outdir}/pfd', 
@@ -201,6 +203,7 @@ def test_factory_scenarios(factory_dict,
                             downstream_outflows=False,
                             downstream_inflows=False,
                             aggregate_flows=False,
+                            net_flows=False,
                             scenario_list=[dat.default_scenario], 
                             write_to_console=write_to_console, 
                             write_to_xls=write_to_xls,
@@ -220,7 +223,7 @@ def test_factory_scenarios(factory_dict,
         factory = built_factories[f]
         print(f"\n{str.upper(factory.name)} factory - multiscenario")
 
-        inflows, outflows, agg_inflows, agg_outflows = factory.run_scenarios(scenario_list=scenario_list, 
+        inflows, outflows, agg_inflows, agg_outflows, net_df = factory.run_scenarios(scenario_list=scenario_list, 
                                                   product_qty=qty, 
                                                   product=scenario_product, 
                                                   product_unit=scenario_unit, 
@@ -230,7 +233,8 @@ def test_factory_scenarios(factory_dict,
                                                   downstream_outflows=downstream_outflows,
                                                   downstream_inflows=downstream_inflows,
                                                   aggregate_flows=aggregate_flows,
-                                                  write_to_excel=False,
+                                                  net_flows=net_flows,
+                                                  write_to_xls=True,
                                                   factory_xls=individual_xls,
                                                   outdir=outdir)
 
@@ -242,7 +246,7 @@ def test_factory_scenarios(factory_dict,
             print(outflows)
 
         if save_diagrams is True or view_diagrams is True:
-            factory.diagram(outdir=f'{factory.outdir}/pfd', 
+            factory.diagram(outdir=f'{outdir}/pfd', 
                             view=view_diagrams, 
                             save=save_diagrams)
 
@@ -250,18 +254,22 @@ def test_factory_scenarios(factory_dict,
         outflows = outflows.rename(columns=lambda x: f+"_"+x)
         agg_inflows = agg_inflows.rename(columns=lambda x: f+"_"+x)
         agg_outflows = agg_outflows.rename(columns=lambda x: f+"_"+x)
+        net_df = net_df.rename(columns=lambda x: f+"_"+x)
 
         if first is True:
             all_inflows = inflows.copy()
             all_outflows = outflows.copy()
             all_agg_inflows = agg_inflows.copy()
             all_agg_outflows = agg_outflows.copy()
+            all_net_flows = net_df.copy()
         else:
             all_inflows = pan.concat([all_inflows, inflows], ignore_index=False, sort=False, axis=1)
             all_outflows = pan.concat([all_outflows, outflows], ignore_index=False, sort=False, axis=1)
 
             all_agg_inflows = pan.concat([all_agg_inflows, agg_inflows], ignore_index=False, sort=False, axis=1)
             all_agg_outflows = pan.concat([all_agg_outflows, agg_outflows], ignore_index=False, sort=False, axis=1)
+
+            all_net_flows = pan.concat([all_net_flows, net_df], ignore_index=False, sort=False, axis=1)
 
         print(f"\n FACTORY (multi-scenario): Full results available in {outdir} directory.")
         first = False
@@ -273,120 +281,143 @@ def test_factory_scenarios(factory_dict,
                             product=productname,
                             product_qty=qty)
 
-    dfs = [meta_df, all_inflows, all_outflows, all_agg_inflows, all_agg_outflows]
-    sheets = ["meta", "inflows", "outflows", "agg inflows", "agg outflows"]
+    dfs = [meta_df, all_inflows, all_outflows, all_agg_inflows.T, all_agg_outflows.T, all_net_flows.T]
+    sheets = ["meta", "inflows", "outflows", "agg inflows", "agg outflows", "net flows"]
 
-    iof.write_to_excel(df_or_df_list=dfs,
+    iof.write_to_xls(df_or_df_list=dfs,
                         sheet_list=sheets, 
                         filedir=outdir, 
                         filename=f'{filename}_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 
 
-def test_factory_sensitivity(factory_dict,
-                            scenario_factories, 
-                            scenario,
-                            chain_name, 
-                            unit_name, 
-                            variable, 
-                            variable_options,
-                            fixed_vars=False,
-                            scenario_product=False,
-                            scenario_unit=False,
-                            scenario_io=False,
-                            qty=qty, 
-                            upstream_outflows=False, 
-                            upstream_inflows=False,
-                            downstream_outflows=False,
-                            downstream_inflows=False,
-                            aggregate_flows=False,
-                            write_to_console=write_to_console, 
-                            write_to_xls=write_to_xls,
-                            view_diagrams=view_diagrams,
-                            save_diagrams=save_diagrams,
-                            outdir=dat.outdir):
+# def test_factory_sensitivity(factory_dict,
+#                             scenario_factories, 
+#                             scenario,
+#                             chain_name, 
+#                             unit_name, 
+#                             variable, 
+#                             variable_options,
+#                             fixed_vars=False,
+#                             scenario_product=False,
+#                             scenario_unit=False,
+#                             scenario_io=False,
+#                             qty=qty, 
+#                             upstream_outflows=False, 
+#                             upstream_inflows=False,
+#                             downstream_outflows=False,
+#                             downstream_inflows=False,
+#                             aggregate_flows=False,
+#                             write_to_console=write_to_console, 
+#                             write_to_xls=write_to_xls,
+#                             view_diagrams=view_diagrams,
+#                             save_diagrams=save_diagrams,
+#                             outdir=dat.outdir):
 
-    print(f'\ncomparing factory outputs for {scenario} for {variable} in {unit_name}. for {qty} of product... \n')
+#     print(f'\ncomparing factory outputs for {scenario} for {variable} in {unit_name}. for {qty} of product... \n')
     
-    built_factories = build_factories(factory_dict)
-    sensitivity_dict = iof.nested_dicts(4) #dict[factory][io][scenario][flow] = qty
+#     built_factories = build_factories(factory_dict)
+#     sensitivity_dict = iof.nested_dicts(4) #dict[factory][io][scenario][flow] = qty
+#     total_agg_in = False
+#     total_agg_out = False
 
-    for f in scenario_factories:
-        factory = built_factories[f]
-        print(f"\n{str.upper(factory.name)} factory - sensitivity")
+#     for f in scenario_factories:
+#         factory = built_factories[f]
+#         print(f"\n{str.upper(factory.name)} factory - sensitivity")
 
-        inflows, outflows, aggregate_dict = factory.run_sensitivity(product_qty=qty, 
-                                                    scenario=scenario, 
-                                                    chain_name=chain_name, 
-                                                    unit_name=unit_name, 
-                                                    variable=variable, 
-                                                    variable_options=variable_options,
-                                                    fixed_vars=fixed_vars,
-                                                    product=scenario_product, 
-                                                    product_unit=scenario_unit, 
-                                                    product_io=scenario_io,
-                                                    upstream_outflows=upstream_outflows, 
-                                                    upstream_inflows=upstream_inflows,                                     
-                                                    downstream_outflows=downstream_outflows,
-                                                    downstream_inflows=downstream_inflows,
-                                                    aggregate_flows=aggregate_flows,
-                                                    write_to_xls=individual_xls,
-                                                    outdir=outdir)
+#         inflows, outflows, agg_in, agg_out, net_df = factory.run_sensitivity(product_qty=qty, 
+#                                                     scenario=scenario, 
+#                                                     chain_name=chain_name, 
+#                                                     unit_name=unit_name, 
+#                                                     variable=variable, 
+#                                                     variable_options=variable_options,
+#                                                     fixed_vars=fixed_vars,
+#                                                     product=scenario_product, 
+#                                                     product_unit=scenario_unit, 
+#                                                     product_io=scenario_io,
+#                                                     upstream_outflows=upstream_outflows, 
+#                                                     upstream_inflows=upstream_inflows,                                     
+#                                                     downstream_outflows=downstream_outflows,
+#                                                     downstream_inflows=downstream_inflows,
+#                                                     aggregate_flows=aggregate_flows,
+#                                                     net_flows=net_flows,
+#                                                     write_to_xls=individual_xls,
+#                                                     outdir=outdir)
 
-        sensitivity_dict[f"{f}_{scenario}"] = aggregate_dict
 
-        if write_to_console is True:
-            print(f"\n{factory.name} inflows")
-            print(inflows)
+#         # sensitivity_dict[f"{f}_{scenario}"] = aggregate_dict
 
-            print(f"\n{factory.name} outflows")
-            print(outflows)
+#         # inflow_dict = iof.nested_dicts(3)
+#         # outflow_dict = iof.nested_dicts(3)
+#         # for f in sensitivity_dict:
+#         #     for scen in sensitivity_dict[f]['i']:
+#         #         scen_short = scen.lstrip(f"{scenario}_")
+#         #         scen_short = scen_short.lstrip(f"{unit_name}-")
+#         #         scen_short = scen_short.lstrip(f"{variable}_")
+#         #         for flow in sensitivity_dict[f]['i'][scen]:
+#         #             inflow_dict[flow][scen_short][f] = sensitivity_dict[f]['i'][scen][flow]
 
-        print(f"\n FACTORY (sensitivity): Full results available in {outdir} directory.")
+#         #     for scen in sensitivity_dict[f]['o']:
+#         #         scen_short = scen.lstrip(f"{scenario}_")
+#         #         scen_short = scen_short.lstrip(f"{unit_name}-")
+#         #         scen_short = scen_short.lstrip(f"{variable}_")
+#         #         for flow in sensitivity_dict[f]['o'][scen]:
+#         #             outflow_dict[flow][scen_short][f] = sensitivity_dict[f]['o'][scen][flow]
+
+#         if total_agg_in = False:
+#             total_agg_in = defaultdict()
+#             for flow in  agg_in.index():
+#                 total_agg_in[flow] = pan.DataFrame(columns=factory.name)
+
+            
+#         agg_in_dict[f"{f}_{scenario}"] = agg_in
+#         agg_out_dict[f"{f}_{scenario}"] = agg_out
+#         net_dict[f"{f}_{scenario}"] = net_df
+
+#         for factory in agg_in_dict:
+#             for col in agg_in_dict[f].columns():
+#                 scen_short = scen.lstrip(f"{scenario}_")
+#                 scen_short = scen_short.lstrip(f"{unit_name}-")
+#                 scen_short = scen_short.lstrip(f"{variable}_")
+#                 col = col.rename("scen_short")
+
+#         if write_to_console is True:
+#             print(f"\n{factory.name} inflows")
+#             print(inflows)
+
+#             print(f"\n{factory.name} outflows")
+#             print(outflows)
+
+#         print(f"\n FACTORY (sensitivity): Full results available in {outdir} directory.")
     
-    inflow_dict = iof.nested_dicts(3)
-    outflow_dict = iof.nested_dicts(3)
-    for f in sensitivity_dict:
-        for scen in sensitivity_dict[f]['i']:
-            scen_short = scen.lstrip(f"{scenario}_")
-            scen_short = scen_short.lstrip(f"{unit_name}-")
-            scen_short = scen_short.lstrip(f"{variable}_")
-            for flow in sensitivity_dict[f]['i'][scen]:
-                inflow_dict[flow][scen_short][f] = sensitivity_dict[f]['i'][scen][flow]
-
-        for scen in sensitivity_dict[f]['o']:
-            scen_short = scen.lstrip(f"{scenario}_")
-            scen_short = scen_short.lstrip(f"{unit_name}-")
-            scen_short = scen_short.lstrip(f"{variable}_")
-            for flow in sensitivity_dict[f]['o'][scen]:
-                outflow_dict[flow][scen_short][f] = sensitivity_dict[f]['o'][scen][flow]
 
 
-    meta_df = iof.metadata_df(user=dat.user_data, 
-                                name=f"{unit_name} {variable} sens", 
-                                level="Factory", 
-                                scenario=scenario, 
-                                product='default',
-                                product_qty=qty)
 
-    dfs = [meta_df]
-    sheets = ["meta"]
+    # meta_df = iof.metadata_df(user=dat.user_data, 
+    #                             name=f"{unit_name} {variable} sens", 
+    #                             level="Factory", 
+    #                             scenario=scenario, 
+    #                             product='default',
+    #                             product_qty=qty)
 
-    for flow in inflow_dict:
-        df = iof.make_df(inflow_dict[flow])
-        dfs.append(df)
-        sheets.append(f"IN {flow}")
+    # dfs = [meta_df]
+    # sheets = ["meta"]
 
-    for flow in outflow_dict:
-        df = iof.make_df(outflow_dict[flow])
-        dfs.append(df)
-        sheets.append(f"OUT {flow}")
+    # for flow in inflow_dict:
+    #     df = iof.make_df(inflow_dict[flow])
+    #     dfs.append(df)
+    #     sheets.append(f"IN {flow}")
 
-    iof.write_to_excel(df_or_df_list=dfs,
-                        sheet_list=sheets, 
-                        filedir=outdir, 
-                        filename=f'{unit_name}_{variable}_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+    # for flow in outflow_dict:
+    #     df = iof.make_df(outflow_dict[flow])
+    #     dfs.append(df)
+    #     sheets.append(f"OUT {flow}")
 
-    return inflow_dict, outflow_dict
+    # iof.write_to_xls(df_or_df_list=dfs,
+    #                     sheet_list=sheets, 
+    #                     filedir=outdir, 
+    #                     filename=f'{unit_name}_{variable}_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+
+    # return inflow_dict, outflow_dict
 
 
 #------------------------------------------------------------------------------

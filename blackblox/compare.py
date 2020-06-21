@@ -1,34 +1,52 @@
-"""TESTING FUNCTIONS
+"""Functions to compare multiple ProductChains or Factories.
 """
 
 from datetime import datetime
 from collections import defaultdict
 import pandas as pan
 
+from blackblox.bb_log import get_logger
 import blackblox.dataconfig as dat
-
-
-
-
-
-import pandas as pan
 import blackblox.io_functions as iof
 import blackblox.unitprocess as uni
 import blackblox.processchain as cha
 import blackblox.factory as fac
 import blackblox.industry as ind
 
+logger = get_logger("Compare")
+
+
+def multiple_units(unit_id_list, 
+                   qty=1.0, 
+                   scenario=dat.default_scenario, 
+                   write_to_console=True):
+
+    for unit_id in unit_id_list:
+        unit = uni.UnitProcess(unit_id)
+        unit.balance(qty, scenario=scenario, write_to_console=write_to_console)
 
 
 
 #------------------------------------------------------------------------------
 # CHAIN TESTS
 
-def test_chains(chain_dict, 
+dummy_chain_dict = {
+                'chain1': dict(chain_data='filepath', 
+                                    name='chain name', 
+                                    xls_sheet='chain sheet',
+                                    scenario='scenario'),
+                'chain2': dict(chain_data='filepath', 
+                                    name='chain name', 
+                                    xls_sheet='chain sheet',
+                                    scenario='scenario'),
+}
+
+def multiple_chains(chain_dict, 
                 qty=1.0, 
                 scenario=dat.default_scenario, 
                 write_to_console=True,
-                write_to_excel=False, 
+                write_to_xls=False, 
+                outdir=False, 
                 view_diagrams=False,
                 save_diagrams=True):
                 
@@ -37,25 +55,16 @@ def test_chains(chain_dict,
         print(f"\n{str.upper(chain.name)} chain")
 
         if view_diagrams is True or save_diagrams is True:
-            chain.diagram(view=view_diagrams, save=save_diagrams)
+            chain.diagram(view=view_diagrams, save=save_diagrams, outdir=outdir)
         
         print(chain.process_dict)
 
-        chain_inflows, chain_outflows, dummy_int_flows, int_rows = chain.balance(qty, scenario=scenario)
+        chain.balance(qty, 
+                      scenario=scenario, 
+                      write_to_console=write-to_console, 
+                      write_to_xls=write_to_xls,
+                      outdir=outdir)
 
-        if write_to_console is True:
-            chain_inflows = iof.make_df(chain_inflows)
-            chain_inflows = iof.mass_energy_df(chain_inflows)
-            chain_outflows = iof.make_df(chain_outflows)
-            chain_outflows = iof.mass_energy_df(chain_outflows)
-
-            print(f'\nusing {scenario} values')
-            print("\ninflows:\n", chain_inflows)
-            print("\noutflows:\n", chain_outflows)
-
-            print("\nintermediate flows:")
-            for row in int_rows:
-                print(row)
 
 
 #------------------------------------------------------------------------------
@@ -64,7 +73,7 @@ def test_chains(chain_dict,
 
 
 def test_factories(factory_dict,
-                qty=qty, 
+                qty=1.0, 
                 write_to_console=False, 
                 write_to_xls=True,
                 view_diagrams=False,
@@ -123,15 +132,18 @@ def test_factory_scenarios(factory_dict,
                             scenario_product=False,
                             scenario_unit=False,
                             scenario_io=False,
-                            qty=qty, 
+                            qty=1.0, 
                             upstream_outflows=False, 
                             upstream_inflows=False,
                             downstream_outflows=False,
                             downstream_inflows=False,
                             aggregate_flows=False,
+                            net_flows=False,
                             scenario_list=[dat.default_scenario], 
                             write_to_console=False, 
                             write_to_xls=True,
+                            individual_xls=True,
+                            factory_scenario_xls=True,
                             view_diagrams=False,
                             save_diagrams=True,
                             outdir=False,
@@ -140,14 +152,18 @@ def test_factory_scenarios(factory_dict,
 
     print(f'\ncomparing factory outputs for {scenario_list}. for {qty} of product... \n')
     
-    built_factories = build_factories(factory_dict)
+    built_factories = dict()
+
+    for f in factory_dict:
+        factory = fac.Factory(**factory_dict[f])
+        built_factories[f] = factory
 
     first = True
     for f in scenario_factories:
         factory = built_factories[f]
         print(f"\n{str.upper(factory.name)} factory - multiscenario")
 
-        inflows, outflows, agg_inflows, agg_outflows = factory.run_scenarios(scenario_list=scenario_list, 
+        inflows, outflows, agg_inflows, agg_outflows, net_df = factory.run_scenarios(scenario_list=scenario_list, 
                                                   product_qty=qty, 
                                                   product=scenario_product, 
                                                   product_unit=scenario_unit, 
@@ -157,7 +173,9 @@ def test_factory_scenarios(factory_dict,
                                                   downstream_outflows=downstream_outflows,
                                                   downstream_inflows=downstream_inflows,
                                                   aggregate_flows=aggregate_flows,
-                                                  write_to_xls=individual_xls,
+                                                  net_flows=net_flows,
+                                                  write_to_xls=factory_scenario_xls,
+                                                  factory_xls=individual_xls,
                                                   outdir=outdir)
 
         if write_to_console is True:
@@ -168,7 +186,7 @@ def test_factory_scenarios(factory_dict,
             print(outflows)
 
         if save_diagrams is True or view_diagrams is True:
-            factory.diagram(outdir=outdir, 
+            factory.diagram(outdir=f'{outdir}/pfd', 
                             view=view_diagrams, 
                             save=save_diagrams)
 
@@ -176,12 +194,14 @@ def test_factory_scenarios(factory_dict,
         outflows = outflows.rename(columns=lambda x: f+"_"+x)
         agg_inflows = agg_inflows.rename(columns=lambda x: f+"_"+x)
         agg_outflows = agg_outflows.rename(columns=lambda x: f+"_"+x)
+        net_df = net_df.rename(columns=lambda x: f+"_"+x)
 
         if first is True:
             all_inflows = inflows.copy()
             all_outflows = outflows.copy()
             all_agg_inflows = agg_inflows.copy()
             all_agg_outflows = agg_outflows.copy()
+            all_net_flows = net_df.copy()
         else:
             all_inflows = pan.concat([all_inflows, inflows], ignore_index=False, sort=False, axis=1)
             all_outflows = pan.concat([all_outflows, outflows], ignore_index=False, sort=False, axis=1)
@@ -189,24 +209,28 @@ def test_factory_scenarios(factory_dict,
             all_agg_inflows = pan.concat([all_agg_inflows, agg_inflows], ignore_index=False, sort=False, axis=1)
             all_agg_outflows = pan.concat([all_agg_outflows, agg_outflows], ignore_index=False, sort=False, axis=1)
 
-        print(f"\n FACTORY (multi-scenario): Full results available in {outdir} directory.")
+            all_net_flows = pan.concat([all_net_flows, net_df], ignore_index=False, sort=False, axis=1)
+
+        
         first = False
 
-    meta_df = iof.metadata_df(user=dat.user_data, 
-                            name=filename, 
-                            level="Multi Factory", 
-                            scenario=" ,".join(scenario_list), 
-                            product=productname,
-                            product_qty=qty)
+    if write_to_xls is True:
+        meta_df = iof.metadata_df(user=dat.user_data, 
+                                name=filename, 
+                                level="Multi Factory", 
+                                scenario=" ,".join(scenario_list), 
+                                product=productname,
+                                product_qty=qty)
 
-    dfs = [meta_df, all_inflows, all_outflows, all_agg_inflows, all_agg_outflows]
-    sheets = ["meta", "inflows", "outflows", "agg inflows", "agg outflows"]
+        dfs = [meta_df, all_inflows, all_outflows, all_agg_inflows.T, all_agg_outflows.T, all_net_flows.T]
+        sheets = ["meta", "inflows", "outflows", "agg inflows", "agg outflows", "net flows"]
 
-    iof.write_to_excel(df_or_df_list=dfs,
-                        sheet_list=sheets, 
-                        filedir=outdir, 
-                        filename=f'{filename}_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+        iof.write_to_xls(df_or_df_list=dfs,
+                            sheet_list=sheets, 
+                            filedir=outdir, 
+                            filename=f'{filename}_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
 
+        print(f"\n FACTORY (multi-scenario): Full results available in {outdir} directory.")
 
 def test_factory_sensitivity(factory_dict,
                             scenario_factories, 
@@ -307,7 +331,7 @@ def test_factory_sensitivity(factory_dict,
         dfs.append(df)
         sheets.append(f"OUT {flow}")
 
-    iof.write_to_excel(df_or_df_list=dfs,
+    iof.write_to_xls(df_or_df_list=dfs,
                         sheet_list=sheets, 
                         filedir=outdir, 
                         filename=f'{unit_name}_{variable}_sens{datetime.now().strftime("%Y-%m-%d_%H%M")}')
@@ -367,7 +391,7 @@ def test_factory_sensitivity(factory_dict,
 #         df_list = [meta_df, infows_df, outflows_df]
 #         sheet_list = ["meta", "inflows", "outflows"]
         
-#         iof.write_to_excel(df_list, sheet_list=sheet_list, filedir=dat.outdir, filename=filename)
+#         iof.write_to_xls(df_list, sheet_list=sheet_list, filedir=dat.outdir, filename=filename)
     
 #         print(f"\n STATIC INDUSTRY COMPARISON - Full results available in {dat.outdir} directory.")
 
@@ -432,7 +456,7 @@ def test_factory_sensitivity(factory_dict,
 #                 df_list.append(df)
 #                 sheet_list.append(sheet_name)
         
-#         iof.write_to_excel(df_list, sheet_list=sheet_list, filedir=dat.outdir, filename=filename)
+#         iof.write_to_xls(df_list, sheet_list=sheet_list, filedir=dat.outdir, filename=filename)
 
 #         if type(compare_outflows) is list:
 #             for flow in compare_outflows:
