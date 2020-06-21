@@ -233,7 +233,7 @@ class Industry:
             df_list = [meta_df, inflows_df, outflows_df]
             sheet_list = ["meta", f'{self.name} inflows', f'{self.name} outflows']
             
-            iof.write_to_excel(df_list, sheet_list=sheet_list, 
+            iof.write_to_xls(df_list, sheet_list=sheet_list, 
                                filedir=outdir, filename=filename)
 
         logger.debug(f"successfully balanced {self.name }industry")
@@ -298,7 +298,7 @@ class Industry:
                                     energy_flows=dat.energy_flows)
 
         if write_to_xls is True:
-            iof.write_to_excel(df_or_df_list=[meta_df, inflows_df, outflows_df],
+            iof.write_to_xls(df_or_df_list=[meta_df, inflows_df, outflows_df],
                                 sheet_list=["meta", "inflows", "outflows"], 
                                 filedir=outdir, 
                                 filename=f'{self.name}_multiscenario_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
@@ -428,7 +428,7 @@ class Industry:
                         df_list.append(df)
                         sheet_list.append(sheet_name)
             
-            iof.write_to_excel(df_list, sheet_list=sheet_list, 
+            iof.write_to_xls(df_list, sheet_list=sheet_list, 
                                filedir=outdir, filename=filename)
 
         
@@ -556,7 +556,7 @@ class Industry:
                         df_list.append(df)
                         sheet_list.append(sheet_name)
             
-            iof.write_to_excel(df_list, sheet_list=sheet_list, 
+            iof.write_to_xls(df_list, sheet_list=sheet_list, 
                                 filedir=outdir, filename=filename)
 
         

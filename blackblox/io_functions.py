@@ -20,7 +20,7 @@ Data Frame Constructors
 
 Writers to Files
 - function: build_filedir
-- function: write_to_excel
+- function: write_to_xls
 - function: format_and_save_plot
 - function: plot_annual_flows
 
@@ -46,6 +46,9 @@ logger = get_logger("IO")
 
 
 def check_type(thing, is_type=[], not_this=False, not_not=False):
+    if type(is_type) is not list:
+        is_type = [is_type]
+    
     if type(thing) not in is_type:
         raise TypeError(f"{thing} ({type(thing)}) is not an accepted type ({is_type})")
 
@@ -442,7 +445,7 @@ def build_filedir(filedir, subfolder=None, file_id_list=[], time=True):
     return filedir
 
 
-def write_to_excel(df_or_df_list, sheet_list=None, filedir=dat.outdir, 
+def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir, 
                    filename='output'):
     """Writes one or more data frames to a single excel workbook.
 
@@ -473,7 +476,7 @@ def write_to_excel(df_or_df_list, sheet_list=None, filedir=dat.outdir,
         df_or_df_list.to_excel(filedir+'/'+filename+'.xlsx')
     
     else:
-        with pan.ExcelWriter(filedir+'/'+filename+'.xlsx') as writer:
+        with pan.ExcelWriter(filedir+'/'+filename+'.xlsx') as writer: # pylint: disable=abstract-class-instantiated 
             for i, df in enumerate(df_or_df_list):
                 if sheet_list:
                     sheet = sheet_list[i]

@@ -112,7 +112,7 @@ class ProductChain:
     
     def balance(self, qty, product=False, i_o=False, unit_process=False, 
                 product_alt_name=False, scenario=dat.default_scenario,
-                write_to_console=False, write_to_excel = False):
+                write_to_console=False, write_to_xls = False):
         """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario)
         Calculates the mass balance of the product chain
 
@@ -262,7 +262,7 @@ class ProductChain:
         
         logger.debug(f"{self.name.upper()}: successfully balanced {self.name} using {scenario} variables.")
 
-        if write_to_console or write_to_excel is True:
+        if write_to_console or write_to_xls is True:
             inflows_df = iof.mass_energy_df(io_dicts['i'])
             outflows_df = iof.mass_energy_df(io_dicts['o'])
 
@@ -275,7 +275,7 @@ class ProductChain:
             for row in internal_flows:
                 print(row)
 
-        if write_to_excel is True:
+        if write_to_xls is True:
             internal_flows_header = ['origin unit', 'flow product', 'quantity', 'destination unit']
             for i in internal_flows:
                 i.pop(4)
@@ -292,7 +292,7 @@ class ProductChain:
             dfs = [meta_df, inflows_df, outflows_df, internal_flows_df]
             sheets = ["meta", "inflows", "outflows", "internal_flows"]
 
-            iof.write_to_excel(df_or_df_list=dfs,
+            iof.write_to_xls(df_or_df_list=dfs,
                                 sheet_list=sheets, 
                                 filedir=self.outdir, 
                                 filename=f'{self.name}_c_{scenario}_{today_string}')
@@ -301,7 +301,7 @@ class ProductChain:
 
 
     def run_scenarios(self, scenario_list=[], qty=1.0, product=False, i_o=False, product_alt_name=False, 
-        balance_energy=True, raise_imbalance=False, write_to_excel=True, write_to_console=False, outdir=False):
+        balance_energy=True, raise_imbalance=False, write_to_xls=True, write_to_console=False, outdir=False):
         """Runs UnitProcess.balance over multiple scenarions of varaibles. Outputs to Excel.
 
         """
@@ -329,11 +329,11 @@ class ProductChain:
             chain_dfs.extend([iof.mass_energy_df(c_in), iof.mass_energy_df(c_out)])
             chain_sheets.extend([f"IN - {scenario}", f"OUT - {scenario}"])
 
-        if write_to_excel is True or write_to_console is True:
+        if write_to_xls is True or write_to_console is True:
             inflows_df = iof.mass_energy_df(scenario_dict['i'])
             outflows_df = iof.mass_energy_df(scenario_dict['o'])
 
-        if write_to_excel is True:
+        if write_to_xls is True:
             internal_flows_header = ['origin unit', 'flow product', 'quantity', 'destination unit']
             for i in internal_flows:
                 i.pop(4)
@@ -355,7 +355,7 @@ class ProductChain:
             if outdir is False:
                 outdir = self.outdir
 
-            iof.write_to_excel(df_or_df_list=dfs,
+            iof.write_to_xls(df_or_df_list=dfs,
                                 sheet_list=sheets, 
                                 filedir=outdir,
                                 filename=f'{self.name}_c_multi_{today_string}')
