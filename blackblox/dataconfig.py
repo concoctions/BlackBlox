@@ -126,7 +126,8 @@ lookup_var_dict = {
     #NO FURTHER DATA (only used to pass flowname from var_df)
     'biomass': dict(lookup_var='biomass type'),
     'feedstock': dict(lookup_var='feedstock type'),
-    'alloy': dict(lookup_var='alloy type')
+    'alloy': dict(lookup_var='alloy type'),
+    'solvent': dict(lookup_var='solvent type')
 } 
 """dictionary of special lookup substance names
 Lookup_var_dict is a dictionary with the names of substance, that when used
