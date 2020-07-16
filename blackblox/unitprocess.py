@@ -376,10 +376,11 @@ class UnitProcess:
             scenario_dict['i'][scenario] = u_in
             scenario_dict['o'][scenario] = u_out
 
-        if write_to_xls is True:
+        if write_to_xls is True or write_to_console is True:
             inflows_df = iof.mass_energy_df(scenario_dict['i'])
             outflows_df = iof.mass_energy_df(scenario_dict['o'])
 
+        if write_to_xls is True:
             meta_df = iof.metadata_df(user=dat.user_data, 
                                         name=self.name, 
                                         level="Unit", 
@@ -661,7 +662,7 @@ class UnitProcess:
         """checks that the calculation attempt is valid
         """
         if attempt >= len(calc_df): 
-            raise Exception(f"{self.name.upper()}: Cannot process {calc_df.iloc[i]}. Try checking flow location and remember that substance names are case sensitive.")
+            raise Exception(f"{self.name.upper()}: Cannot process {calc_df.iloc[i-1]}. Try checking flow location and remember that substance names are case sensitive.")
         if i >= len(calc_df):
             return 0   # if at end of list, loop around
         else:
