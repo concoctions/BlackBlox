@@ -446,7 +446,7 @@ def build_filedir(filedir, subfolder=None, file_id_list=[], time=True):
 
 
 def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir, 
-                   filename='output'):
+                   filename='output', subdir=None):
     """Writes one or more data frames to a single excel workbook.
 
     Each data frame appears on its own worksheet. Automatically creates the
@@ -463,7 +463,10 @@ def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir,
         filename (optional, str): desired excel file name, without extension.
             (Defaults to 'output')
     """
-    Path(filedir).mkdir(parents=True, exist_ok=True) 
+    if subdir:
+        Path(filedir+'/'+subdir).mkdir(parents=True, exist_ok=True) 
+    else:
+        Path(filedir).mkdir(parents=True, exist_ok=True) 
 
     logger.debug(f"attempting to create {filename} in {filedir}")
 
@@ -472,11 +475,16 @@ def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir,
                     '02': 'and rows with all zeros were dropped when the data frame was created.'}
     empty_df = pan.DataFrame.from_dict(empty_notice, orient='index', columns=['Empty Dataframe'])
 
+    if subdir:
+        filepath = filedir+'/'+subdir+'/'+filename+'.xlsx'
+    else: 
+        filepath = filedir+'/'+filename+'.xlsx'
+
     if isinstance(df_or_df_list, pan.DataFrame):
-        df_or_df_list.to_excel(filedir+'/'+filename+'.xlsx')
+        df_or_df_list.to_excel(filepath)
     
     else:
-        with pan.ExcelWriter(filedir+'/'+filename+'.xlsx') as writer: # pylint: disable=abstract-class-instantiated 
+        with pan.ExcelWriter(filepath) as writer: # pylint: disable=abstract-class-instantiated 
             for i, df in enumerate(df_or_df_list):
                 if sheet_list:
                     sheet = sheet_list[i]

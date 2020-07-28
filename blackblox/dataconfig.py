@@ -29,6 +29,7 @@ Module Outline:
 
 from blackblox.bb_log import get_logger
 logger = get_logger("config")
+from datetime import datetime
 
 
 # USER DATA
@@ -54,7 +55,7 @@ unit_process_library_sheet = "Unit Processes"
 If not an excel worksheet, this variable should be None.
 """
 
-outdir = 'output/' 
+outdir = 'output'+'/'+datetime.now().strftime("%b%d")
 """str: The file output directory.
 
 Unless an absolute path is specified, BlackBlox will create the directory 

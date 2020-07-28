@@ -51,8 +51,8 @@ if platform.system() is 'Windows':
     os.environ["PATH"] += os.pathsep + dat.graphviz_path
 
 logger = get_logger("Factory")
-today_path = f'{datetime.now().strftime("%b%d")}'
-today_string = f'{datetime.now().strftime("%b%d_%H%M")}'
+today_path = datetime.now().strftime("%H%M")
+today_string = datetime.now().strftime("%b%d_%H%M")
 
 
 class Factory:
@@ -170,7 +170,7 @@ class Factory:
     def balance(self, product_qty=1.0, product=False, product_unit=False, product_io=False, 
                 scenario=dat.default_scenario, upstream_outflows=False, upstream_inflows=False, 
                 downstream_outflows=False, downstream_inflows=False,
-                aggregate_flows=False, net_flows=False, write_to_xls=True, outdir=False):
+                aggregate_flows=False, net_flows=False, write_to_xls=True, outdir=False, subdir=False):
         """Calculates the mass balance of the factory using qty of main product
 
         Balances all UnitProcesses and Chains in the factory
@@ -394,7 +394,7 @@ class Factory:
         # output to file
         if write_to_xls is True:
             self.factory_to_excel(io_dicts, factory_totals, internal_flows, 
-                            scenario, product_qty, aggregated_df, net_df, outdir)
+                            scenario, product_qty, aggregated_df, net_df, outdir, subdir)
         
         logger.debug(f"successfully balanced factory on {product_qty} of {self.chain_dict[self.main_chain]['product']}")
 
@@ -535,7 +535,7 @@ class Factory:
                       product_qty=1.0, product=False, product_unit=False, product_io=False, 
                       upstream_outflows=False, upstream_inflows=False, downstream_outflows=False,
                       downstream_inflows=False, aggregate_flows=False, net_flows=False, write_to_xls=True,
-                      factory_xls=True, outdir=False, file_id=''):
+                      factory_xls=True, outdir=False, file_id='', subdir='scenario factories'):
         """Balances the Factory using different sets of variable values.
         Creates a spreadsheet comparing inflows and outflows for the factory for each scenario.
 
@@ -572,13 +572,18 @@ class Factory:
                                             aggregate_flows=aggregate_flows, 
                                             net_flows=net_flows,
                                             write_to_xls=factory_xls,
-                                            outdir=self.outdir)
+                                            outdir=outdir,
+                                            subdir=subdir)
             
             scenario_dict['i'][scenario] = f_in
             scenario_dict['o'][scenario] = f_out
-            scenario_dict['agg_i'][scenario] = agg_df['inflows'].rename(scenario)
-            scenario_dict['agg_o'][scenario] = agg_df['outflows'].rename(scenario)
-            scenario_dict['net'][scenario] = net_df['difference'].rename(scenario)
+
+            if type(aggregate_flows) is list:
+                scenario_dict['agg_i'][scenario] = agg_df['inflows'].rename(scenario)
+                scenario_dict['agg_o'][scenario] = agg_df['outflows'].rename(scenario)
+            
+            if type(net_flows) is list:
+                scenario_dict['net'][scenario] = net_df['difference'].rename(scenario)
 
         inflows_df = iof.mass_energy_df(scenario_dict['i'])
         outflows_df = iof.mass_energy_df(scenario_dict['o'])
@@ -594,6 +599,9 @@ class Factory:
                 else:
                     aggregated_inflows_df = pan.concat([aggregated_inflows_df, scenario_dict['agg_i'][scenario]], ignore_index=False, sort=False, axis=1)
                     aggregated_outflows_df = pan.concat([aggregated_outflows_df, scenario_dict['agg_o'][scenario]], ignore_index=False, sort=False, axis=1)
+        else:
+            aggregated_inflows_df = pan.DataFrame()
+            aggregated_outflows_df = pan.DataFrame()
 
         if type(net_flows) is list:
             first = True
@@ -603,7 +611,9 @@ class Factory:
                     first = False
                 else:
                     net_df = pan.concat([net_df, scenario_dict['net'][scenario]], ignore_index=False, sort=False, axis=1)
-                
+        else:
+            net_df = pan.DataFrame()
+
         if write_to_xls is True:
             if product is False:
                 product= self.main_product
@@ -1099,7 +1109,7 @@ class Factory:
         return factory_totals
 
 
-    def factory_to_excel(self, io_dicts, factory_totals, internal_flows, scenario, product_qty, aggregated_df, net_df, outdir=False):
+    def factory_to_excel(self, io_dicts, factory_totals, internal_flows, scenario, product_qty, aggregated_df, net_df, outdir=False, subdir=False):
         """formats factory data to datafames and outputs to excel file
             used in self.balance() (above)
         """                  
@@ -1184,14 +1194,14 @@ class Factory:
 
         # output to all Dataframes to single Excel file
         iof.write_to_xls(df_list, sheet_list=sheet_list, 
-                            filedir=outdir, filename=filename)
+                            filedir=outdir, filename=filename, subdir=subdir)
 
 
     def aggregate_flows(self, aggregate_flows, inflow_dict, outflow_dict):
         """Creates dataframe of specified aggregated flows
         """
         if not aggregate_flows or type(aggregate_flows) is not list:
-            return None
+            return pan.DataFrame()
 
         aggregated_dict = iof.nested_dicts(2)
         
@@ -1214,7 +1224,7 @@ class Factory:
         minuend - subtrahend = difference
         """
         if not net_tuples or type(net_tuples) is not list:
-            return None
+            return pan.DataFrame()
 
         
         else:
