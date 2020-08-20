@@ -213,15 +213,15 @@ print(f"and outputting any files to {dat.outdir}")
 # # PROCESS CHAIN TEST
 # #############################################################################
 
-print("\n\n\nPROCESS CHAIN TEST - outputs to console and file. ")
-stop = input('\nPress enter to create a CEMENT production chain object or type any character to skip: ')
-while stop == '':
-    if stop != '':
-        break
+# print("\n\n\nPROCESS CHAIN TEST - outputs to console and file. ")
+# stop = input('\nPress enter to create a CEMENT production chain object or type any character to skip: ')
+# while stop == '':
+#     if stop != '':
+#         break
 
-    cement_chain = cha.ProductChain(chain_data=factory_file, 
-                                    name= "Cement", 
-                                    xls_sheet='Cement Chain')
+#     cement_chain = cha.ProductChain(chain_data=factory_file, 
+#                                     name= "Cement", 
+#                                     xls_sheet='Cement Chain')
 
 
 #     print('\nCEMENT Chain Data:')
@@ -250,15 +250,15 @@ while stop == '':
 
     # inflows, outflows, int_flows, int_rows = cement_chain.balance(0.8, product="clinker", i_o='outflow', unit_process='demo_kiln', scenario="default", write_to_console=True)
 
-    stop = input("\n\n\nPress enter to balance the cement chain on 1.0 of cement out for scenarios {scenario_list} ")
-    if stop != '':
-        break  
+    # stop = input("\n\n\nPress enter to balance the cement chain on 1.0 of cement out for scenarios {scenario_list} ")
+    # if stop != '':
+    #     break  
 
-    cement_chain.run_scenarios(scenario_list=scenario_list,write_to_console=True, write_to_excel=True)
+    # cement_chain.run_scenarios(scenario_list=scenario_list,write_to_console=True, write_to_xls=True)
 
-    stop = 'stop'
+    # stop = 'stop'
 
-input('\n\n\nPress enter to continue: ')  
+# input('\n\n\nPress enter to continue: ')  
 
 ##############################################################################
 ## FACTORY TEST
@@ -288,11 +288,11 @@ while stop == '':
     #     break
     # print("\n",cement_factory.connections_df.iloc[3, :])
     
-    # stop = input("\n\n\nPress enter to generate a diagram of the cement factory: ")
-    # if stop != '':
-    #     break
-    # cement_factory.diagram(view=True, save=False)
-    # print("\nDiagram sent to system viewer.")
+    stop = input("\n\n\nPress enter to generate a diagram of the cement factory: ")
+    if stop != '':
+        break
+    cement_factory.diagram(view=True, save=False)
+    print("\nDiagram sent to system viewer.")
 
     stop = input("\n\n\nPress enter to balance the factory on 100.0 tonnes of cement (outputs to file): ")
     if stop != '':

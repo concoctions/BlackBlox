@@ -64,7 +64,7 @@ def check_qty(qty, fraction = False):
     if not isinstance(qty, (float, int, complex, np.integer, np.floating)):
         raise ValueError(f'quantity should be an int or float. Currently: {type(qty)}')
 
-    if qty < 0:
+    if round(qty, dat.float_tol) < 0:
         raise ValueError(f'quantity should be > 0. Currently: {qty}')
     
     if fraction is True:
@@ -464,7 +464,7 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
                 inflows_dict[f'energy in combusted {fuel_type}'] = energy_qty
                 logger.debug(f"{energy_qty} of inflow energy added to inflow dict")
 
-        combustion_emissions['waste_heat'] = (energy_qty) * (1 - combust_eff) 
+        combustion_emissions['waste heat'] = (energy_qty) * (1 - combust_eff) 
         for emission in combustion_emissions:
             emissions_dict[emission] += combustion_emissions[emission]
 

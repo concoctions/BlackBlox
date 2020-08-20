@@ -41,6 +41,8 @@ user_data = {"name": "Mysterious Stranger",
 # FlOAT TOLERANCE
 float_tol = 5
 """The number of decimal places after which (floating point) differences should be ignored.
+If a number is calculated to be less than zero, it will be rounded to the number of decimal places
+in the float tolerance. An error will only be raised if it is stil less than zero.
 """
 
 
@@ -127,6 +129,8 @@ lookup_var_dict = {
     #NO FURTHER DATA (only used to pass flowname from var_df)
     'biomass': dict(lookup_var='biomass type'),
     'feedstock': dict(lookup_var='feedstock type'),
+    'fossil feedstock': dict(lookup_var='fossil feedstock type'),
+    'biofeedstock': dict(lookup_var='biofeedstock type'),
     'alloy': dict(lookup_var='alloy type'),
     'solvent': dict(lookup_var='solvent type')
 } 

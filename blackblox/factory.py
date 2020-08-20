@@ -259,7 +259,7 @@ class Factory:
                 orig_chain = self.chain_dict[row[dat.origin_chain]]['chain']
                 if not io_dicts[orig_product_io][orig_chain.name]:
                     raise KeyError(f"{[orig_chain.name]} has not been balanced yet. Please check the order of your connections.")
-                
+
                 dest_chain = self.chain_dict[row[dat.dest_chain]]['chain'] 
                 if dat.dest_unit in row:
                     if row[dat.dest_unit] in dest_chain.process_dict:
@@ -283,7 +283,7 @@ class Factory:
                     qty = self.check_product_qty(orig_product, orig_product_io, orig_chain.name, \
                         orig_unit.name, io_dicts, remaining_product_dict)
                 
-                if qty < 0:
+                if round(qty, dat.float_tol) < 0:
                     raise ValueError(f"{qty} of {orig_product}  from {orig_unit.name} in {orig_chain.name} < 0.")
                 
                 # For Recycle Connections
@@ -579,9 +579,15 @@ class Factory:
             scenario_dict['o'][scenario] = f_out
 
             if type(aggregate_flows) is list:
-                scenario_dict['agg_i'][scenario] = agg_df['inflows'].rename(scenario)
-                scenario_dict['agg_o'][scenario] = agg_df['outflows'].rename(scenario)
-            
+                if 'inflows' in agg_df:
+                    scenario_dict['agg_i'][scenario] = agg_df['inflows'].rename(scenario)
+                else:
+                    scenario_dict['agg_i'][scenario] = pan.DataFrame()
+                if 'outflows' in agg_df:
+                    scenario_dict['agg_o'][scenario] = agg_df['outflows'].rename(scenario)
+                else:
+                    scenario_dict['agg_o'][scenario] = pan.DataFrame()
+
             if type(net_flows) is list:
                 scenario_dict['net'][scenario] = net_df['difference'].rename(scenario)
 
@@ -788,6 +794,10 @@ class Factory:
         return inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df, net_df #aggregated_dict 
 
 
+    def capex(self, product_qty=1.0, product=False, product_unit=False, product_io=False, 
+                scenario=dat.default_scenario, upstream_outflows=False, upstream_inflows=False, 
+                downstream_outflows=False, downstream_inflows=False,
+                aggregate_flows=False, net_flows=False, write_to_xls=True, outdir=False, subdir=False)
 
 ###############################################################################
 # SUBFUNCTIONS
@@ -1040,6 +1050,10 @@ class Factory:
         """          
         if io not in ['i', 'o']:
             raise ValueError("io must be i (for inflows) or o (for outflows)")
+        if io == 'i':
+            loc = 'up'
+        else:
+            loc='down'
 
         # initalize dicts for up/downstream flows to be added to factory totals
         additional_inflows = defaultdict(float)   
@@ -1064,7 +1078,7 @@ class Factory:
                     logger.debug(f"checking for upstream {emission} for {factory_flow}")
                     if factory_flow in df_outflows.index: # if factory flow not found, then skip
                         logger.debug(f"{factory_flow} found")
-                        emission_flow = f'{e}{dat.ignore_sep}upstream ({factory_flow})'
+                        emission_flow = f'{e}{dat.ignore_sep}{loc}stream ({factory_flow})'
                         emission_qty = factory_flow_qty * df_outflows.at[factory_flow, emission]
                         logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(factory_flow_qty,4)} of {factory_flow} using factor of {round(df_outflows.at[factory_flow, emission],4)}")
                         total_e_qty += emission_qty
@@ -1084,7 +1098,7 @@ class Factory:
                     logger.debug(f"checking for upstream {emission} for {factory_flow}")
                     if factory_flow in df_inflows.index: # if factory flow not found, then skip
                         logger.debug(f"{factory_flow} found")
-                        emission_flow = f'{e}{dat.ignore_sep}upstream ({factory_flow})'
+                        emission_flow = f'{e}{dat.ignore_sep}{loc}stream ({factory_flow})'
                         emission_qty = factory_flow_qty * df_inflows.at[factory_flow, emission]
                         logger.debug(f"{round(emission_qty,4)} of {emission} calculated for {round(factory_flow_qty,4)} of {factory_flow} using factor of {round(df_inflows.at[factory_flow, emission],4)}")
                         total_e_qty += emission_qty

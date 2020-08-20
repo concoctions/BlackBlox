@@ -294,6 +294,8 @@ class UnitProcess:
             logger.debug(f"{self.name.upper()}: Attempting {calc_type} calculation for {unknown_substance} using {qty_known} of {known_substance}")
             qty_calculated = calc.calcs_dict[calc_type]['function'](**kwargs)
             qty_calculated = calc.no_nan(qty_calculated)
+            if qty_calculated < 0:
+                qty_calculated = round(qty_calculated, dat.float_tol) #to avoid propogating floating point errors
             calc.check_qty(qty_calculated)
             
             # write qty calculated to dictionary
@@ -461,15 +463,21 @@ class UnitProcess:
 
         if unused_recyclate_qty >= 0:
             used_recyclate_qty = recycled_qty - unused_recyclate_qty
+            calc.check_qty(used_recyclate_qty)
         else:
             used_recyclate_qty = recycled_qty
             unused_recyclate_qty = 0
 
         rebalanced_flows[i_o][toBeReplaced_flow] -= used_recyclate_qty
+        if rebalanced_flows[i_o][toBeReplaced_flow] <0:
+            rebalanced_flows[i_o][toBeReplaced_flow] = round(rebalanced_flows[i_o][toBeReplaced_flow], dat.float_tol)
+            calc.check_qty(rebalanced_flows[i_o][toBeReplaced_flow])
         rebalanced_flows[i_o][recyclate_flow] += used_recyclate_qty
+        if rebalanced_flows[i_o][recyclate_flow] <0:
+            rebalanced_flows[i_o][recyclate_flow] = round(rebalanced_flows[i_o][recyclate_flow], dat.float_tol)
+            calc.check_qty(rebalanced_flows[i_o][recyclate_flow])
 
-        if unused_recyclate_qty < 0:
-            raise ValueError(f"{self.name.upper()}: Something went wrong. remaining_recycle_qty < 0 {unused_recyclate_qty}")
+        calc.check_qty(unused_recyclate_qty)
 
         logger.info(f'{self.name.upper()}: {toBeReplaced_flow} replaced with {used_recyclate_qty} of {recyclate_flow}.')
 
