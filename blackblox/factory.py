@@ -391,14 +391,26 @@ class Factory:
         # calculate net flows
         net_df = self.net_flows(net_flows, factory_totals, aggregated_df)
 
+        # calculate matricies
+        in_matrix_df, out_matrix_df = self.factory_matricies(io_dicts)
+
+
         # output to file
         if write_to_xls is True:
-            self.factory_to_excel(io_dicts, factory_totals, internal_flows, 
-                            scenario, product_qty, aggregated_df, net_df, outdir, subdir)
+            self.factory_to_excel(io_dicts, factory_totals, internal_flows, scenario, product_qty, 
+                                    aggregated_df, net_df, in_matrix_df, out_matrix_df, outdir, subdir)
         
         logger.debug(f"successfully balanced factory on {product_qty} of {self.chain_dict[self.main_chain]['product']}")
 
-        return factory_totals['i'], factory_totals['o'], aggregated_df, net_df
+        return_dict = dict(totals_in=factory_totals['i'],
+                       totals_out=factory_totals['o'],
+                       aggregate=aggregated_df,
+                       net = net_df,
+                       in_matrix = in_matrix_df,
+                       out_matrix = out_matrix_df
+                       )
+
+        return return_dict #factory_totals['i'], factory_totals['o'], aggregated_df, net_df
 
 
     def diagram(self, view=False, save=True, outdir=False):
@@ -560,24 +572,26 @@ class Factory:
         scenario_dict = iof.nested_dicts(3)
         
         for scenario in scenario_list:
-            f_in, f_out, agg_df, net_df = self.balance(product_qty=product_qty, 
-                                            product=product, 
-                                            product_unit=product_unit, 
-                                            product_io=product_io, 
-                                            scenario=scenario,
-                                            upstream_outflows=upstream_outflows, 
-                                            upstream_inflows=upstream_inflows,
-                                            downstream_outflows=downstream_outflows,
-                                            downstream_inflows=downstream_inflows,
-                                            aggregate_flows=aggregate_flows, 
-                                            net_flows=net_flows,
-                                            write_to_xls=factory_xls,
-                                            outdir=outdir,
-                                            subdir=subdir)
+            # f_in, f_out, agg_df, net_df
+            f_dict = self.balance(product_qty=product_qty, 
+                                        product=product, 
+                                        product_unit=product_unit, 
+                                        product_io=product_io, 
+                                        scenario=scenario,
+                                        upstream_outflows=upstream_outflows, 
+                                        upstream_inflows=upstream_inflows,
+                                        downstream_outflows=downstream_outflows,
+                                        downstream_inflows=downstream_inflows,
+                                        aggregate_flows=aggregate_flows, 
+                                        net_flows=net_flows,
+                                        write_to_xls=factory_xls,
+                                        outdir=outdir,
+                                        subdir=subdir)
             
-            scenario_dict['i'][scenario] = f_in
-            scenario_dict['o'][scenario] = f_out
+            scenario_dict['i'][scenario] = f_dict['totals_in']
+            scenario_dict['o'][scenario] = f_dict['totals_out']
 
+            agg_df = f_dict['aggregate']
             if type(aggregate_flows) is list:
                 if 'inflows' in agg_df:
                     scenario_dict['agg_i'][scenario] = agg_df['inflows'].rename(scenario)
@@ -588,6 +602,7 @@ class Factory:
                 else:
                     scenario_dict['agg_o'][scenario] = pan.DataFrame()
 
+            net_df = f_dict['net']
             if type(net_flows) is list:
                 scenario_dict['net'][scenario] = net_df['difference'].rename(scenario)
 
@@ -695,7 +710,8 @@ class Factory:
             unit.var_df.loc[scenario, variable.lower()] = value
             logger.debug(f"{variable} for {unit.name} ({scenario}) set to {value})")
 
-            f_in, f_out, agg_df, net_df = self.balance(product_qty=product_qty, 
+           # f_in, f_out, agg_df, net_df 
+            f_dict = self.balance(product_qty=product_qty, 
                                        product=product, 
                                        product_unit=product_unit, 
                                        product_io=product_io, 
@@ -735,11 +751,11 @@ class Factory:
         # aggregated_inflows_df = iof.make_df(aggregated_dict['i'], drop_zero=True)
         # aggregated_outflows_df = iof.make_df(aggregated_dict['o'], drop_zero=True)
 
-            scenario_dict['i'][f'{scenario}_{unit_name}-{variable}_{value}'] = f_in
-            scenario_dict['o'][f'{scenario}_{unit_name}-{variable}_{value}'] = f_out
-            scenario_dict['agg_i'][f'{scenario}_{unit_name}-{variable}_{value}'] = agg_df['inflows'].rename(f'{scenario}_{unit_name}-{variable}_{value}')
-            scenario_dict['agg_o'][f'{scenario}_{unit_name}-{variable}_{value}'] = agg_df['outflows'].rename(f'{scenario}_{unit_name}-{variable}_{value}')
-            scenario_dict['net'][f'{scenario}_{unit_name}-{variable}_{value}'] = net_df['difference'].rename(f'{scenario}_{unit_name}-{variable}_{value}')
+            scenario_dict['i'][f'{scenario}_{unit_name}-{variable}_{value}'] = f_dict['totals_in']
+            scenario_dict['o'][f'{scenario}_{unit_name}-{variable}_{value}'] = f_dict['totals_out']
+            scenario_dict['agg_i'][f'{scenario}_{unit_name}-{variable}_{value}'] = f_dict['aggregate']['inflows'].rename(f'{scenario}_{unit_name}-{variable}_{value}')
+            scenario_dict['agg_o'][f'{scenario}_{unit_name}-{variable}_{value}'] = f_dict['aggregate']['outflows'].rename(f'{scenario}_{unit_name}-{variable}_{value}')
+            scenario_dict['net'][f'{scenario}_{unit_name}-{variable}_{value}'] = f_dict['net']['difference'].rename(f'{scenario}_{unit_name}-{variable}_{value}')
 
         inflows_df = iof.mass_energy_df(scenario_dict['i'])
         outflows_df = iof.mass_energy_df(scenario_dict['o'])
@@ -797,7 +813,8 @@ class Factory:
     def capex(self, product_qty=1.0, product=False, product_unit=False, product_io=False, 
                 scenario=dat.default_scenario, upstream_outflows=False, upstream_inflows=False, 
                 downstream_outflows=False, downstream_inflows=False,
-                aggregate_flows=False, net_flows=False, write_to_xls=True, outdir=False, subdir=False)
+                aggregate_flows=False, net_flows=False, write_to_xls=True, outdir=False, subdir=False):
+                pass
 
 ###############################################################################
 # SUBFUNCTIONS
@@ -1123,7 +1140,29 @@ class Factory:
         return factory_totals
 
 
-    def factory_to_excel(self, io_dicts, factory_totals, internal_flows, scenario, product_qty, aggregated_df, net_df, outdir=False, subdir=False):
+    def factory_matricies(self, io_dicts):
+        # intalizes matricies for all flows per unit processes
+        all_inflows = defaultdict(lambda: defaultdict(float))
+        all_outflows = defaultdict(lambda: defaultdict(float))
+
+        for chain in io_dicts['i']:
+            for process_dict in io_dicts['i'][chain]:
+                if 'total' not in process_dict:
+                    for substance, qty in io_dicts['i'][chain][process_dict].items():
+                        all_inflows[process_dict][substance] = qty
+                    for substance, qty in io_dicts['o'][chain][process_dict].items():
+                        all_outflows[process_dict][substance] = qty
+
+        all_inflows_df = iof.make_df(all_inflows, drop_zero=True)
+        all_inflows_df = iof.mass_energy_df(all_inflows_df, totals=False)
+
+        all_outflows_df = iof.make_df(all_outflows, drop_zero=True)
+        all_outflows_df = iof.mass_energy_df(all_outflows_df, totals=False)
+        
+        return all_inflows_df, all_outflows_df
+
+
+    def factory_to_excel(self, io_dicts, factory_totals, internal_flows, scenario, product_qty, aggregated_df, net_df, all_inflows_df, all_outflows_df,outdir=False, subdir=False):
         """formats factory data to datafames and outputs to excel file
             used in self.balance() (above)
         """                  
@@ -1143,7 +1182,7 @@ class Factory:
         totals_dict['factory outflows'] = factory_totals['o']
         totals_df = iof.make_df(totals_dict, drop_zero=True)
         totals_df = iof.mass_energy_df(totals_df, aggregate_consumed=True)
-        
+
 
         # make dataframe for intra-factory flows                
         internal_flows_header = ['origin chain', 'origin unit', 'flow product', 'quantity', 'destination chain', 'destination unit']
@@ -1170,10 +1209,9 @@ class Factory:
         df_list.append(internal_flows_df)
         sheet_list.append('internal flows')
 
-        # intalizes matricies for all flows per unit processes
-        all_inflows = defaultdict(lambda: defaultdict(float))
-        all_outflows = defaultdict(lambda: defaultdict(float))
-
+        # # intalizes matricies for all flows per unit processes
+        # all_inflows = defaultdict(lambda: defaultdict(float))
+        # all_outflows = defaultdict(lambda: defaultdict(float))
 
         # create chain inflows/outflows spreadsheets
         chain_inflows_dict = iof.nested_dicts(2)
@@ -1183,21 +1221,21 @@ class Factory:
             chain_inflows_dict[chain] = io_dicts['i'][chain]['chain totals']
             chain_outflows_dict[chain] = io_dicts['o'][chain]['chain totals']
 
-            for process_dict in io_dicts['i'][chain]:
-                if 'total' not in process_dict:
-                    for substance, qty in io_dicts['i'][chain][process_dict].items():
-                        all_inflows[process_dict][substance] = qty
-                    for substance, qty in io_dicts['o'][chain][process_dict].items():
-                        all_outflows[process_dict][substance] = qty
+        #     for process_dict in io_dicts['i'][chain]:
+        #         if 'total' not in process_dict:
+        #             for substance, qty in io_dicts['i'][chain][process_dict].items():
+        #                 all_inflows[process_dict][substance] = qty
+        #             for substance, qty in io_dicts['o'][chain][process_dict].items():
+        #                 all_outflows[process_dict][substance] = qty
 
-        # generate and append new dataframes to file
-        all_inflows_df = iof.make_df(all_inflows, drop_zero=True)
-        all_inflows_df = iof.mass_energy_df(all_inflows_df, totals=False)
+        # # generate and append new dataframes to file
+        # all_inflows_df = iof.make_df(all_inflows, drop_zero=True)
+        # all_inflows_df = iof.mass_energy_df(all_inflows_df, totals=False)
         df_list.append(all_inflows_df)
         sheet_list.append("unit inflow matrix")
 
-        all_outflows_df = iof.make_df(all_outflows, drop_zero=True)
-        all_outflows_df = iof.mass_energy_df(all_outflows_df, totals=False)
+        # all_outflows_df = iof.make_df(all_outflows, drop_zero=True)
+        # all_outflows_df = iof.mass_energy_df(all_outflows_df, totals=False)
         df_list.append(all_outflows_df)
         sheet_list.append("unit outflow matrix")
 

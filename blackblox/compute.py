@@ -164,7 +164,7 @@ def test_factories(factory_dict,
         factory = built_factories[f]
         print(f"\n{str.upper(factory.name)} factory")
         
-        inflows, outflows = factory.balance(product_qty = qty, 
+        f_dict = factory.balance(product_qty = qty, 
                                             scenario=factory_dict[f]['scenario'], 
                                             write_to_xls=write_to_xls, 
                                             outdir=outdir, 
@@ -183,7 +183,7 @@ def test_factories(factory_dict,
         if write_to_console is True:
             print(f"\nusing {scenario} values and {qty} of {factory.main_product}:")
             totals = {'factory inflows': inflows, 'facto    ry outflows': outflows}
-            totals = pan.DataFrame(totals)
+            totals = pan.DataFrame(f_dict[totals_in])
             totals = iof.mass_energy_df(totals)
             print(f"\n{factory.name} total inflows and outflows")
             print(totals)
