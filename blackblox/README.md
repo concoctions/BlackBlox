@@ -24,6 +24,14 @@ e.g.
 | energyFuel | tmp       | fuel        | input   | Combustion   | combustEff  |
 | clinker    | output    | electricity | input   | Ratio        | elecDemand  |
 
+**Some Calculation Types**
+
+  - **Ratio:** Multiplies the known quantity by a ratio (specified in the variables table)
+  - **Remainder:** Multiples the known quantity by 1/ratio (requires 0 ≤ ratio ≤ 1)
+  - **MolMassRatio:** Multiples the known quantity by the ratio of the molar mass of the unknown quantity to the known quantity. Both known and unknown substance names must be valid chemical formulas.
+  - **Addition & Subtraction:** Which require that the second substance has a calculated quantity before this calculation can occur.
+  - **Combustion:** A special calculation that uses additionally specified data to calculate the energy provided from fuel combustion as well as emissions of combustion gases.
+
 #### Variables Table 
 The second provides the values of the variables named in the calculations table. Separating the values into their own table allows for the same unit process to be run in different configurations(e.g. different efficiencies or fuel types). 
 

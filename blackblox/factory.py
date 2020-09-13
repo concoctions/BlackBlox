@@ -794,10 +794,7 @@ class Factory:
         return inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df, net_df #aggregated_dict 
 
 
-    def capex(self, product_qty=1.0, product=False, product_unit=False, product_io=False, 
-                scenario=dat.default_scenario, upstream_outflows=False, upstream_inflows=False, 
-                downstream_outflows=False, downstream_inflows=False,
-                aggregate_flows=False, net_flows=False, write_to_xls=True, outdir=False, subdir=False)
+
 
 ###############################################################################
 # SUBFUNCTIONS
