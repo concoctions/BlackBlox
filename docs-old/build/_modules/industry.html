@@ -1,0 +1,574 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>industry &mdash; blackblox.py 0.2.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/logo150.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                blackblox v0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">NOTE: This introductory document still must be updated with the latest feature set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html#what-is-blackblox-py">What is blackblox.py?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../unit.html">The Unit Process Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chain.html">The Process Chain Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../factory.html">The Factory Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../industry.html">The Industry Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../calculators.html">The Calculators Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io_functions.html">The IO Functions Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dataconfig.html">The dataconfig Module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">blackblox.py</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>industry</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for industry</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pan</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+
+<span class="kn">from</span> <span class="nn">bb_log</span> <span class="k">import</span> <span class="n">get_logger</span>
+
+<span class="kn">import</span> <span class="nn">io_functions</span> <span class="k">as</span> <span class="nn">iof</span>
+<span class="kn">import</span> <span class="nn">dataconfig</span> <span class="k">as</span> <span class="nn">dat</span>
+<span class="kn">import</span> <span class="nn">factory</span> <span class="k">as</span> <span class="nn">fac</span>
+<span class="kn">import</span> <span class="nn">calculators</span> <span class="k">as</span> <span class="nn">calc</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;Industry&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Industry"><a class="viewcode-back" href="../industry.html#industry.Industry">[docs]</a><span class="k">class</span> <span class="nc">Industry</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Industries are made up of one or more factories, and are balanced on one or more</span>
+<span class="sd">    factory products. Factories within an industry can run with different scenario</span>
+<span class="sd">    data. Industries can change over time.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factory_list_file</span><span class="p">,</span> <span class="n">factory_list_sheet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Industry&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">factory_file</span> <span class="o">=</span> <span class="n">factory_list_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">factories_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">factory_list_file</span><span class="p">,</span> <span class="n">factory_list_sheet</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">product_list</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">factory_dict</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Industry.build"><a class="viewcode-back" href="../industry.html#industry.Industry.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; generates the factory, chain, and process objects in the industry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;initializing industry for </span><span class="si">{self.name}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">factory_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+        <span class="n">product_list</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">factories_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">factory_name</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">dat</span><span class="o">.</span><span class="n">factory_filepath</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">factories_df</span><span class="p">:</span>
+                <span class="n">f_chains_file</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">factory_filepath</span><span class="p">]</span>
+                <span class="n">f_connections_file</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">factory_filepath</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">f_chains_file</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">f_chain_list_file</span><span class="p">]</span>
+                <span class="n">f_connections_file</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">f_connections_file</span><span class="p">]</span>
+
+            <span class="n">f_chains_sheet</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">check_for_col</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">factories_df</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">f_chains_sheet</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">f_connections_sheet</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">check_for_col</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">factories_df</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">f_connections_sheet</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+            <span class="n">f_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">chain_list_file</span><span class="o">=</span><span class="n">f_chains_file</span><span class="p">,</span>
+                            <span class="n">connections_file</span><span class="o">=</span><span class="n">f_connections_file</span><span class="p">,</span> 
+                            <span class="n">chain_list_sheet</span><span class="o">=</span><span class="n">f_chains_sheet</span><span class="p">,</span> 
+                            <span class="n">connections_sheet</span><span class="o">=</span><span class="n">f_connections_sheet</span><span class="p">,</span> 
+                            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="n">factory</span> <span class="o">=</span> <span class="n">fac</span><span class="o">.</span><span class="n">Factory</span><span class="p">(</span><span class="o">**</span><span class="n">f_kwargs</span><span class="p">)</span>
+            <span class="n">factory</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+            <span class="n">factory_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">factory</span><span class="o">=</span><span class="n">factory</span><span class="p">,</span>
+                                      <span class="n">product</span><span class="o">=</span><span class="n">factory</span><span class="o">.</span><span class="n">main_product</span><span class="p">,</span>
+                                      <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="n">product_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">factory</span><span class="o">.</span><span class="n">main_product</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">factory_dict</span> <span class="o">=</span> <span class="n">factory_dict</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">product_list</span> <span class="o">=</span> <span class="n">product_list</span></div>
+    
+<div class="viewcode-block" id="Industry.balance"><a class="viewcode-back" href="../industry.html#industry.Industry.balance">[docs]</a>    <span class="k">def</span> <span class="nf">balance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">products_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">products_sheet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mass_energy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                <span class="n">energy_flows</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">energy_flows</span><span class="p">,</span> <span class="n">force_scenario</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                <span class="n">write_to_xls</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="n">subfolder</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                <span class="n">foldertime</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">file_id</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">diagrams</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Balances an industry using one scenario for each factory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;attempting to balance {self.name }industry&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">subfolder</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">subfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="n">outdir</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">build_filedir</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">subfolder</span><span class="o">=</span><span class="n">subfolder</span><span class="p">,</span>
+                                        <span class="n">file_id_list</span><span class="o">=</span><span class="p">[</span><span class="n">file_id</span><span class="p">],</span>
+                                        <span class="n">time</span><span class="o">=</span><span class="n">foldertime</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="n">products_data</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">products_sheet</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Neither data file path nor data sheet provided&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">products_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">products_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory_file</span>
+
+        <span class="n">product_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">products_data</span><span class="p">,</span> <span class="n">sheet</span><span class="o">=</span><span class="n">products_sheet</span><span class="p">)</span>
+        <span class="n">f_production_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+
+        <span class="n">fractions</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> 
+        <span class="n">product_scenario</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">io_dicts</span><span class="o">=</span>  <span class="n">iof</span><span class="o">.</span><span class="n">nested_dicts</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">product_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">product</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">f_product</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">dat</span><span class="o">.</span><span class="n">all_factories</span><span class="p">:</span> 
+                <span class="k">if</span> <span class="n">product</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dat</span><span class="o">.</span><span class="n">no_var</span><span class="p">:</span>
+                    <span class="n">fractions</span><span class="p">[</span><span class="n">product</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">f_product_qty</span><span class="p">]</span> <span class="c1"># industry-wide product total</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">f_scenario</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">f_scenario</span><span class="p">])</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dat</span><span class="o">.</span><span class="n">no_var</span><span class="p">:</span>
+                    <span class="n">product_scenario</span><span class="p">[</span><span class="n">product</span><span class="p">]</span><span class="o">=</span><span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">f_scenario</span><span class="p">]</span> <span class="c1">#scenario for all factories producing that product</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">fractions</span><span class="p">:</span> <span class="c1"># product qty should be decimal fraction of total</span>
+                    <span class="n">calc</span><span class="o">.</span><span class="n">check_qty</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">f_product_qty</span><span class="p">],</span> <span class="n">fraction</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">product_qty</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">f_product_qty</span><span class="p">]</span> <span class="o">*</span> <span class="n">fractions</span><span class="p">[</span><span class="n">product</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">product_qty</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">f_product_qty</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">force_scenario</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">scenario</span> <span class="o">=</span> <span class="n">force_scenario</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">product_scenario</span><span class="p">:</span>
+                        <span class="n">scenario</span> <span class="o">=</span> <span class="n">product_scenario</span><span class="p">[</span><span class="n">product</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">scenario</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">f_scenario</span><span class="p">]</span>
+                
+
+                <span class="n">f_production_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">main_product_qty</span><span class="o">=</span><span class="n">product_qty</span><span class="p">,</span>
+                                    <span class="n">scenario</span><span class="o">=</span><span class="n">scenario</span><span class="p">,</span>
+                                    <span class="n">write_to_xls</span><span class="o">=</span><span class="n">write_to_xls</span><span class="p">,</span>
+                                    <span class="n">outdir</span><span class="o">=</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{outdir}</span><span class="s1">/factories&#39;</span><span class="p">,</span>
+                                    <span class="n">mass_energy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                                    <span class="n">energy_flows</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">energy_flows</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">f_production_dict</span><span class="p">:</span>
+            <span class="n">factory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory_dict</span><span class="p">[</span><span class="n">f</span><span class="p">][</span><span class="s1">&#39;factory&#39;</span><span class="p">]</span>
+            <span class="n">f_kwargs</span> <span class="o">=</span> <span class="n">f_production_dict</span><span class="p">[</span><span class="n">f</span><span class="p">]</span>
+            <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;inflows&#39;</span><span class="p">][</span><span class="n">f</span><span class="p">],</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;outflows&#39;</span><span class="p">][</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">balance</span><span class="p">(</span><span class="o">**</span><span class="n">f_kwargs</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">diagrams</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">factory</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="n">outdir</span><span class="o">=</span><span class="n">outdir</span><span class="o">+</span><span class="s1">&#39;/pfd&#39;</span><span class="p">)</span>
+
+        <span class="n">totals_in</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">totals_out</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;inflows&#39;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">substance</span><span class="p">,</span> <span class="n">qty</span> <span class="ow">in</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;inflows&#39;</span><span class="p">][</span><span class="n">factory</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">totals_in</span><span class="p">[</span><span class="n">substance</span><span class="p">]</span> <span class="o">+=</span> <span class="n">qty</span>
+            <span class="k">for</span> <span class="n">substance</span><span class="p">,</span> <span class="n">qty</span> <span class="ow">in</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;outflows&#39;</span><span class="p">][</span><span class="n">factory</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">totals_out</span><span class="p">[</span><span class="n">substance</span><span class="p">]</span> <span class="o">+=</span> <span class="n">qty</span>
+
+        <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;inflows&#39;</span><span class="p">][</span><span class="s1">&#39;industry totals&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">totals_in</span>
+        <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;outflows&#39;</span><span class="p">][</span><span class="s1">&#39;industry totals&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">totals_out</span>
+
+        <span class="k">if</span> <span class="n">write_to_xls</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;i_</span><span class="si">{self.name}</span><span class="s1">_</span><span class="si">{file_id}</span><span class="s1">_{datetime.now().strftime(&quot;%Y-%m-</span><span class="si">%d</span><span class="s1">_%H%M&quot;)}&#39;</span>
+
+            <span class="n">meta_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">metadata_df</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">user_data</span><span class="p">,</span> 
+                                      <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> 
+                                      <span class="n">level</span><span class="o">=</span><span class="s2">&quot;Industry&quot;</span><span class="p">,</span> 
+                                      <span class="n">scenario</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> 
+                                      <span class="n">product</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product_list</span><span class="p">),</span>
+                                      <span class="n">product_qty</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> 
+                                      <span class="n">energy_flows</span><span class="o">=</span><span class="n">energy_flows</span><span class="p">)</span>
+
+            <span class="n">inflows_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;inflows&#39;</span><span class="p">],</span> <span class="n">drop_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">inflows_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">mass_energy_df</span><span class="p">(</span><span class="n">inflows_df</span><span class="p">)</span>
+            <span class="n">outflows_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;outflows&#39;</span><span class="p">],</span> <span class="n">drop_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">outflows_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">mass_energy_df</span><span class="p">(</span><span class="n">outflows_df</span><span class="p">)</span>
+        
+
+            <span class="n">df_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">meta_df</span><span class="p">,</span> <span class="n">inflows_df</span><span class="p">,</span> <span class="n">outflows_df</span><span class="p">]</span>
+            <span class="n">sheet_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{self.name}</span><span class="s1"> inflows&#39;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{self.name}</span><span class="s1"> outflows&#39;</span><span class="p">]</span>
+            
+            <span class="n">iof</span><span class="o">.</span><span class="n">write_to_excel</span><span class="p">(</span><span class="n">df_list</span><span class="p">,</span> <span class="n">sheet_list</span><span class="o">=</span><span class="n">sheet_list</span><span class="p">,</span> 
+                               <span class="n">filedir</span><span class="o">=</span><span class="n">outdir</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;successfully balanced {self.name }industry&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">io_dicts</span> <span class="c1">#io_dicts[flow i_o][factory][substance] = qty</span></div>
+
+
+
+<div class="viewcode-block" id="Industry.run_scenarios"><a class="viewcode-back" href="../industry.html#industry.Industry.run_scenarios">[docs]</a>    <span class="k">def</span> <span class="nf">run_scenarios</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scenario_list</span><span class="p">,</span> <span class="n">products_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">products_sheet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                <span class="n">write_to_xls</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="n">file_id</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">diagrams</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Balances the industry on a set of forced industry-wide scenarios</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">outdir</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">build_filedir</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">subfolder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                    <span class="n">file_id_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;multiScenario&#39;</span><span class="p">,</span> <span class="n">file_id</span><span class="p">],</span>
+                                    <span class="n">time</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">scenario_dict</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">nested_dicts</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">scenario</span> <span class="ow">in</span> <span class="n">scenario_list</span><span class="p">:</span>
+            <span class="n">s_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">balance</span><span class="p">(</span><span class="n">products_data</span><span class="o">=</span><span class="n">products_data</span><span class="p">,</span> 
+                                  <span class="n">products_sheet</span><span class="o">=</span><span class="n">products_sheet</span><span class="p">,</span> 
+                                  <span class="n">force_scenario</span><span class="o">=</span><span class="n">scenario</span><span class="p">,</span> 
+                                  <span class="n">write_to_xls</span><span class="o">=</span><span class="n">write_to_xls</span><span class="p">,</span> 
+                                  <span class="n">outdir</span><span class="o">=</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{outdir}</span><span class="s1">/</span><span class="si">{scenario}</span><span class="s1">&#39;</span><span class="p">,</span> 
+                                  <span class="n">file_id</span><span class="o">=</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{file_id}</span><span class="s1">_</span><span class="si">{scenario}</span><span class="s1">&#39;</span><span class="p">,</span> 
+                                  <span class="n">diagrams</span><span class="o">=</span><span class="n">diagrams</span><span class="p">)</span>
+            <span class="n">scenario_dict</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="n">scenario</span><span class="p">]</span> <span class="o">=</span> <span class="n">s_dict</span><span class="p">[</span><span class="s1">&#39;inflows&#39;</span><span class="p">][</span><span class="s1">&#39;industry totals&#39;</span><span class="p">]</span> 
+            <span class="n">scenario_dict</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="n">scenario</span><span class="p">]</span> <span class="o">=</span> <span class="n">s_dict</span><span class="p">[</span><span class="s1">&#39;outflows&#39;</span><span class="p">][</span><span class="s1">&#39;industry totals&#39;</span><span class="p">]</span> 
+
+            <span class="n">inflows_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">scenario_dict</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">],</span> <span class="n">drop_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">inflows_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">mass_energy_df</span><span class="p">(</span><span class="n">inflows_df</span><span class="p">)</span>
+            <span class="n">outflows_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">scenario_dict</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">],</span> <span class="n">drop_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">outflows_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">mass_energy_df</span><span class="p">(</span><span class="n">outflows_df</span><span class="p">)</span>
+
+            <span class="n">meta_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">metadata_df</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">user_data</span><span class="p">,</span> 
+                                      <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> 
+                                      <span class="n">level</span><span class="o">=</span><span class="s2">&quot;Industry&quot;</span><span class="p">,</span> 
+                                      <span class="n">scenario</span><span class="o">=</span><span class="s2">&quot; ,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scenario_list</span><span class="p">),</span> 
+                                      <span class="n">product</span><span class="o">=</span><span class="s2">&quot; ,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product_list</span><span class="p">),</span>
+                                      <span class="n">product_qty</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> 
+                                      <span class="n">energy_flows</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">energy_flows</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">write_to_xls</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">iof</span><span class="o">.</span><span class="n">write_to_excel</span><span class="p">(</span><span class="n">df_or_df_list</span><span class="o">=</span><span class="p">[</span><span class="n">meta_df</span><span class="p">,</span> <span class="n">inflows_df</span><span class="p">,</span> <span class="n">outflows_df</span><span class="p">],</span>
+                                    <span class="n">sheet_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">,</span> <span class="s2">&quot;inflows&quot;</span><span class="p">,</span> <span class="s2">&quot;outflows&quot;</span><span class="p">],</span> 
+                                    <span class="n">filedir</span><span class="o">=</span><span class="n">outdir</span><span class="p">,</span> 
+                                    <span class="n">filename</span><span class="o">=</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{self.name}</span><span class="s1">_multiscenario_{datetime.now().strftime(&quot;%Y-%m-</span><span class="si">%d</span><span class="s1">_%H%M&quot;)}&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Industry.evolve"><a class="viewcode-back" href="../industry.html#industry.Industry.evolve">[docs]</a>    <span class="k">def</span> <span class="nf">evolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_sheet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end_sheet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">start_step</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mass_energy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">energy_flows</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">energy_flows</span><span class="p">,</span> 
+                <span class="n">write_to_xls</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="n">file_id</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">diagrams</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">graph_outflows</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">graph_inflows</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>  
+        <span class="sd">&quot;&quot;&quot;Calculates timestep and cumulative inflows and outflows of an industry</span>
+<span class="sd">        using a specified starting scenario and end scenario</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">outdir</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">build_filedir</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">subfolder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                    <span class="n">file_id_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;evolve&#39;</span><span class="p">,</span> <span class="n">start_step</span><span class="p">,</span> <span class="n">end_step</span><span class="p">,</span> <span class="n">file_id</span><span class="p">],</span>
+                                    <span class="n">time</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">write_to_xls</span><span class="o">=</span><span class="n">write_to_xls</span><span class="p">,</span>
+                      <span class="n">diagrams</span><span class="o">=</span><span class="n">diagrams</span><span class="p">,</span>
+                      <span class="n">file_id</span><span class="o">=</span><span class="n">file_id</span><span class="p">,</span>
+                      <span class="n">mass_energy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                      <span class="n">energy_flows</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">energy_flows</span><span class="p">,</span> 
+                      <span class="n">subfolder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">foldertime</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">start_io</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">balance</span><span class="p">(</span><span class="n">products_data</span><span class="o">=</span><span class="n">start_data</span><span class="p">,</span> 
+                                <span class="n">products_sheet</span><span class="o">=</span><span class="n">start_sheet</span><span class="p">,</span> 
+                                <span class="n">outdir</span><span class="o">=</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{outdir}</span><span class="s1">/start_</span><span class="si">{start_step}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">end_io</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">balance</span><span class="p">(</span><span class="n">products_data</span><span class="o">=</span><span class="n">end_data</span><span class="p">,</span> 
+                              <span class="n">products_sheet</span><span class="o">=</span><span class="n">end_sheet</span><span class="p">,</span> 
+                              <span class="n">outdir</span><span class="o">=</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{outdir}</span><span class="s1">/end_</span><span class="si">{end_step}</span><span class="s1">&#39;</span><span class="p">,</span>
+                              <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1">#io_dicts are in the form of:</span>
+        <span class="c1"># io_dict[&#39;factory name&#39; or &#39;industry totals&#39;][&#39;inflows&#39; or &#39;outflows&#39;][&#39;substance&#39;] = qty</span>
+
+        <span class="c1">#harmonize start_io and end_io dict keys:</span>
+
+        <span class="n">to_harmonize</span> <span class="o">=</span> <span class="p">[(</span><span class="n">start_io</span><span class="p">,</span> <span class="n">end_io</span><span class="p">),</span> <span class="p">(</span><span class="n">end_io</span><span class="p">,</span> <span class="n">start_io</span><span class="p">)]</span>
+
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">to_harmonize</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">flow</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">substance</span> <span class="ow">in</span> <span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">flow</span><span class="p">][</span><span class="n">factory</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">substance</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">flow</span><span class="p">][</span><span class="n">factory</span><span class="p">]:</span>
+                            <span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">flow</span><span class="p">][</span><span class="n">factory</span><span class="p">][</span><span class="n">substance</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+        <span class="n">stepcount</span> <span class="o">=</span> <span class="n">end_step</span> <span class="o">-</span> <span class="n">start_step</span>
+        <span class="n">slope_dict</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">nested_dicts</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">end_io</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">end_io</span><span class="p">[</span><span class="n">flow</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">substance</span> <span class="ow">in</span> <span class="n">end_io</span><span class="p">[</span><span class="n">flow</span><span class="p">][</span><span class="n">factory</span><span class="p">]:</span>
+                    <span class="n">end_qty</span> <span class="o">=</span> <span class="n">end_io</span><span class="p">[</span><span class="n">flow</span><span class="p">][</span><span class="n">factory</span><span class="p">][</span><span class="n">substance</span><span class="p">]</span>
+                    <span class="n">start_qty</span> <span class="o">=</span> <span class="n">start_io</span><span class="p">[</span><span class="n">flow</span><span class="p">][</span><span class="n">factory</span><span class="p">][</span><span class="n">substance</span><span class="p">]</span>
+                    <span class="n">slope</span> <span class="o">=</span> <span class="p">((</span><span class="n">end_qty</span> <span class="o">-</span> <span class="n">start_qty</span><span class="p">)</span><span class="o">/</span><span class="n">stepcount</span><span class="p">)</span>    <span class="c1"># m = (y-b)/x</span>
+                    <span class="n">slope_dict</span><span class="p">[</span><span class="n">flow</span><span class="p">][</span><span class="n">factory</span><span class="p">][</span><span class="n">substance</span><span class="p">]</span> <span class="o">=</span> <span class="n">slope</span>
+
+        <span class="n">annual_flows</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">nested_dicts</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="c1">#[flow i_o][factory][substance][timestep] = float</span>
+        <span class="n">cumulative_dict</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">nested_dicts</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="c1">#[flow i_o][factory][substance] = float</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">stepcount</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">start_step</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">start_io</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">start_io</span><span class="p">[</span><span class="n">flow</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">substance</span><span class="p">,</span> <span class="n">qty</span> <span class="ow">in</span> <span class="n">start_io</span><span class="p">[</span><span class="n">flow</span><span class="p">][</span><span class="n">factory</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">slope</span> <span class="o">=</span> <span class="n">slope_dict</span><span class="p">[</span><span class="n">flow</span><span class="p">][</span><span class="n">factory</span><span class="p">][</span><span class="n">substance</span><span class="p">]</span> 
+                        <span class="n">step_qty</span> <span class="o">=</span> <span class="n">qty</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">slope</span><span class="p">)</span>  <span class="c1"># y = mx + b</span>
+                        <span class="n">annual_flows</span><span class="p">[</span><span class="n">flow</span><span class="p">][</span><span class="n">factory</span><span class="p">][</span><span class="n">substance</span><span class="p">][</span><span class="n">step</span><span class="p">]</span> <span class="o">=</span> <span class="n">step_qty</span>
+                        <span class="n">cumulative_dict</span><span class="p">[</span><span class="n">flow</span><span class="p">][</span><span class="n">factory</span><span class="p">][</span><span class="n">substance</span><span class="p">]</span> <span class="o">+=</span> <span class="n">step_qty</span>
+
+        <span class="k">if</span> <span class="n">write_to_xls</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+
+            <span class="n">filename</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;i_</span><span class="si">{self.name}</span><span class="s1">_</span><span class="si">{start_step}</span><span class="s1">-</span><span class="si">{end_step}</span><span class="s1">_</span><span class="si">{file_id}</span><span class="s1">&#39;</span>
+                        <span class="n">f</span><span class="s1">&#39;_{datetime.now().strftime(&quot;%Y-%m-</span><span class="si">%d</span><span class="s1">_%H%M&quot;)}&#39;</span><span class="p">)</span>
+
+            <span class="n">cumulative_infows_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">cumulative_dict</span><span class="p">[</span><span class="s1">&#39;inflows&#39;</span><span class="p">],</span> <span class="n">drop_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">cumulative_infows_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">mass_energy_df</span><span class="p">(</span><span class="n">cumulative_infows_df</span><span class="p">)</span>
+            <span class="n">cumulative_outflows_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">cumulative_dict</span><span class="p">[</span><span class="s1">&#39;outflows&#39;</span><span class="p">],</span> <span class="n">drop_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">cumulative_outflows_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">mass_energy_df</span><span class="p">(</span><span class="n">cumulative_outflows_df</span><span class="p">)</span>
+
+            <span class="n">meta_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">metadata_df</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">user_data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> 
+                          <span class="n">level</span><span class="o">=</span><span class="s2">&quot;Industry&quot;</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="s2">&quot;n/a&quot;</span><span class="p">,</span> <span class="n">product</span><span class="o">=</span><span class="s2">&quot; ,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product_list</span><span class="p">),</span>
+                          <span class="n">product_qty</span><span class="o">=</span><span class="s2">&quot;n/a&quot;</span><span class="p">,</span> <span class="n">energy_flows</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">energy_flows</span><span class="p">)</span>
+
+            <span class="n">df_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">meta_df</span><span class="p">,</span> <span class="n">cumulative_infows_df</span><span class="p">,</span> <span class="n">cumulative_outflows_df</span><span class="p">]</span>
+            <span class="n">sheet_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">,</span> <span class="s2">&quot;cum inflows&quot;</span><span class="p">,</span> <span class="s2">&quot;cum outflows&quot;</span><span class="p">]</span>
+            <span class="n">df_dict</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">nested_dicts</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">df_dict</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="s1">&#39;culmulative&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cumulative_infows_df</span>
+            <span class="n">df_dict</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="s1">&#39;culmulative&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cumulative_outflows_df</span>
+
+
+            <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">annual_flows</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">factory</span> <span class="ow">in</span> <span class="n">annual_flows</span><span class="p">[</span><span class="n">flow</span><span class="p">]:</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">annual_flows</span><span class="p">[</span><span class="n">flow</span><span class="p">][</span><span class="n">factory</span><span class="p">],</span> <span class="n">drop_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">sheet_name</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{factory}</span><span class="s1"> </span><span class="si">{flow}</span><span class="s1">&#39;</span>
+                    <span class="n">df_dict</span><span class="p">[</span><span class="n">flow</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">factory</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span>
+                    <span class="k">if</span> <span class="s1">&#39;total&#39;</span> <span class="ow">in</span> <span class="n">factory</span><span class="p">:</span> 
+                        <span class="n">df_list</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+                        <span class="n">sheet_list</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">sheet_name</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">df_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+                        <span class="n">sheet_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">)</span>
+            
+            <span class="n">iof</span><span class="o">.</span><span class="n">write_to_excel</span><span class="p">(</span><span class="n">df_list</span><span class="p">,</span> <span class="n">sheet_list</span><span class="o">=</span><span class="n">sheet_list</span><span class="p">,</span> 
+                               <span class="n">filedir</span><span class="o">=</span><span class="n">outdir</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+
+        
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">graph_outflows</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">graph_outflows</span><span class="p">:</span>
+                <span class="n">iof</span><span class="o">.</span><span class="n">plot_annual_flows</span><span class="p">(</span><span class="n">df_dict</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">],</span> <span class="n">flow</span><span class="p">,</span> <span class="n">outdir</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">graph_inflows</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">graph_outflows</span><span class="p">:</span>
+                <span class="n">iof</span><span class="o">.</span><span class="n">plot_annual_flows</span><span class="p">(</span><span class="n">df_dict</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">],</span> <span class="n">flow</span><span class="p">,</span> <span class="n">outdir</span><span class="p">)</span>
+
+        
+        <span class="k">return</span> <span class="n">annual_flows</span><span class="p">,</span> <span class="n">cumulative_dict</span></div></div>
+
+    
+    <span class="c1"># def evolve_multistep(self, start_data, step_data, start_sheet=None, step_sheets=None, outdir=dat.outdir):</span>
+    <span class="c1">#     step_annual_flows = []</span>
+    <span class="c1">#     step_cumulative_flows = [] </span>
+    <span class="c1">#     for step in step_data:</span>
+    <span class="c1">#         start_step = False</span>
+    <span class="c1">#         end_step = False</span>
+    <span class="c1">#         s_kwargs = dict(start_data=None, </span>
+    <span class="c1">#                         start_sheet=None, </span>
+    <span class="c1">#                         end_data=None, </span>
+    <span class="c1">#                         end_sheet=None,</span>
+    <span class="c1">#                         start_step=start_step, </span>
+    <span class="c1">#                         end_step=end_step, </span>
+    <span class="c1">#                         mass_energy=True, </span>
+    <span class="c1">#                         energy_flows=dat.energy_flows, </span>
+    <span class="c1">#                         write_to_xls=False, </span>
+    <span class="c1">#                         diagrams=False)</span>
+    <span class="c1">#         annual, cumulative = self.evolve(**s_kwargs)</span>
+    <span class="c1">#         step_annual_flows.append(annual)</span>
+    <span class="c1">#         step_cumulative_flows.append(cumulative)</span>
+
+    <span class="c1">#     merged_annual_flows = iof.nested_dicts(4) #[flow i_o][factory][substance][timestep] = float</span>
+    <span class="c1">#     for step_dict in step_annual_flows:</span>
+    <span class="c1">#         for i_o, factory_dict in step_dict.items():</span>
+    <span class="c1">#             for factory, substance_dict in factory_dict.items():</span>
+    <span class="c1">#                 for substance, timestep_dict in substance_dict.items():</span>
+    <span class="c1">#                     for timestep, qty in substance_dict.items:</span>
+    <span class="c1">#                         merged_annual_flows[i_o][factory][substance][timestep] = qty</span>
+
+    <span class="c1">#     merged_cumulative_flows = iof.nested_dicts(3) #[flow i_o][factory][substance] = float</span>
+    <span class="c1">#     for step_dict in step_cumulative_flows:</span>
+    <span class="c1">#         for i_o, factory_dict in step_dict.items():</span>
+    <span class="c1">#             for factory, substance_dict in factory_dict.items():</span>
+    <span class="c1">#                 for substance, qty in substance_dict.items():</span>
+    <span class="c1">#                     merged_cumulative_flows[i_o][factory][substance] = qty</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, S.E. Tanzer
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,587 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>processchain &mdash; blackblox.py 0.2.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/logo150.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                blackblox v0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">NOTE: This introductory document still must be updated with the latest feature set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html#what-is-blackblox-py">What is blackblox.py?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../unit.html">The Unit Process Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chain.html">The Process Chain Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../factory.html">The Factory Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../industry.html">The Industry Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../calculators.html">The Calculators Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io_functions.html">The IO Functions Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dataconfig.html">The dataconfig Module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">blackblox.py</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>processchain</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for processchain</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot; Product Chain class</span>
+
+<span class="sd">This module contains the Product Chain class, which are objects that </span>
+<span class="sd">link together (and can generate) a linear sequence of unit processes.</span>
+
+<span class="sd">Product chains can currently be balanced on an inflow of their initial</span>
+<span class="sd">unit process or an outflow of their final unit process. It is also possible</span>
+<span class="sd">to automatically generate diagrams of the flows in a product chain.</span>
+
+<span class="sd">Module Outline:</span>
+
+<span class="sd">- import statements and logger</span>
+<span class="sd">- class: ProductChain</span>
+<span class="sd">    - class function: Build</span>
+<span class="sd">    - class function: Balance</span>
+<span class="sd">    - class function: Diagram</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
+<span class="kn">from</span> <span class="nn">bb_log</span> <span class="k">import</span> <span class="n">get_logger</span>
+<span class="kn">import</span> <span class="nn">io_functions</span> <span class="k">as</span> <span class="nn">iof</span>
+<span class="kn">import</span> <span class="nn">dataconfig</span> <span class="k">as</span> <span class="nn">dat</span>
+<span class="kn">import</span> <span class="nn">unitprocess</span> <span class="k">as</span> <span class="nn">unit</span>
+
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;Chain&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ProductChain"><a class="viewcode-back" href="../chain.html#processchain.ProductChain">[docs]</a><span class="k">class</span> <span class="nc">ProductChain</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Linear linkage of unit processes.</span>
+
+<span class="sd">    Product chains are a linear sets of unit process linked by their inflows</span>
+<span class="sd">    and outflow; the outflow of a unit process must be an inflow into </span>
+<span class="sd">    the next unit process. Requires the existence of a unit process library</span>
+<span class="sd">    file.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        chain_data (dataframe/str): Dataframe or filepath to a excel or </span>
+<span class="sd">            tabular data that specifies the linkages of the unit process, </span>
+<span class="sd">            with each row detailing an inflow, a unit process, and an outflow,</span>
+<span class="sd">            with the outflow in one row being the inflow in the next row.</span>
+<span class="sd">            Chain data is order depedent. Specifying the inflow of the </span>
+<span class="sd">            first row or outflow of the last row is optional.</span>
+<span class="sd">        name (str): Name for the chain. Optional.</span>
+<span class="sd">            (Defaults to &quot;Product Chain.)</span>
+<span class="sd">        xls_sheet (str/None): Excel sheet where chain data resides. Optional.</span>
+<span class="sd">            (Defaults to None)</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        name: the name of the chain</span>
+<span class="sd">        process_chain_df: the dataframe of chain linkages</span>
+<span class="sd">        default_product: if no other product is specified when balancing</span>
+<span class="sd">            the chain, this will be used. Determined by process_chain_df:</span>
+<span class="sd">            if there is an outflow specified for the last process or an</span>
+<span class="sd">            inflow specified for the first process. If both are specified,</span>
+<span class="sd">            the outflow is used by default.</span>
+<span class="sd">        process_list: list of unit process information generated using the</span>
+<span class="sd">            process_chain_df.  The list is in order of the unit processes in </span>
+<span class="sd">            the chain, and each list item is a dictionary including the keys:</span>
+<span class="sd">            - process: UnitProcess object</span>
+<span class="sd">            - i: (str) inflow from process_chain_df</span>
+<span class="sd">            - o: (str) inflow from process_chain_df</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain_data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Product Chain&quot;</span><span class="p">,</span> <span class="n">xls_sheet</span><span class="o">=</span><span class="kc">None</span><span class="p">,):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_chain_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">chain_data</span><span class="p">,</span> 
+                                            <span class="n">sheet</span><span class="o">=</span><span class="n">xls_sheet</span><span class="p">,</span> 
+                                            <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_product</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_list</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_names</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_dict</span> <span class="o">=</span> <span class="kc">False</span>
+    
+    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generates the needed unit process objects</span>
+
+<span class="sd">        Chekcs that the processes specified in the chain dataframe have </span>
+<span class="sd">        data available in the unit process library. Checks that the</span>
+<span class="sd">        inflow and outflow specified in the chain exist for the associated</span>
+<span class="sd">        unit process. Populates self.default_product and self.process_list.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;initializing chain for </span><span class="si">{self.name}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">process_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">process_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">process_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">process_row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_chain_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">process</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">UnitProcess</span><span class="p">(</span><span class="n">process_row</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">process_col</span><span class="p">])</span>
+            <span class="n">inflow</span> <span class="o">=</span> <span class="n">process_row</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">inflow_col</span><span class="p">]</span>
+            <span class="n">outflow</span> <span class="o">=</span> <span class="n">process_row</span><span class="p">[</span><span class="n">dat</span><span class="o">.</span><span class="n">outflow_col</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">inflow</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">process</span><span class="o">.</span><span class="n">inflows</span> <span class="ow">and</span> <span class="n">index</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{inflow}</span><span class="s2"> not found in </span><span class="si">{process.name}</span><span class="s2"> inflows&quot;</span><span class="p">)</span>            
+            
+            <span class="k">if</span> <span class="p">(</span><span class="n">outflow</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">process</span><span class="o">.</span><span class="n">outflows</span> 
+                <span class="ow">and</span> <span class="n">index</span> <span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">process_chain_df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{outflow}</span><span class="s2"> not found in </span><span class="si">{process.name}</span><span class="s2"> outflows&quot;</span><span class="p">)</span>
+ 
+            <span class="n">process_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">process</span><span class="o">=</span><span class="n">process</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">inflow</span><span class="p">,</span> <span class="n">o</span><span class="o">=</span><span class="n">outflow</span><span class="p">))</span>
+            <span class="n">process_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">process_dict</span><span class="p">[</span><span class="n">process</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">process</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_list</span> <span class="o">=</span> <span class="n">process_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_names</span> <span class="o">=</span> <span class="n">process_names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_dict</span> <span class="o">=</span> <span class="n">process_dict</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_product</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">process_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;o&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">process_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">outflows</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">default_product</span> <span class="o">=</span> <span class="n">process_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;o&#39;</span><span class="p">]</span>
+
+            <span class="k">elif</span> <span class="n">process_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;i&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">process_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">inflows</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">default_product</span> <span class="o">=</span> <span class="n">process_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;i&#39;</span><span class="p">]</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;No default product found for </span><span class="si">{self.name}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    
+    <span class="k">def</span> <span class="nf">balance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qty</span><span class="p">,</span> <span class="n">product</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">i_o</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">unit_process</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">default_scenario</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario)</span>
+<span class="sd">        Calculates the mass balance of the product chain</span>
+
+<span class="sd">        Based on a quantity of an inflow for the first unit process in the </span>
+<span class="sd">        chain or an outflow for the last unit process, calculates the remaining</span>
+<span class="sd">        quantities of all flows in the chain, assuming all unit processes</span>
+<span class="sd">        are well-specified with zero degrees of freedom.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            qty (float): the quantity of the product to balance on.</span>
+<span class="sd">            product (str/bool): the product name. If False, uses the default</span>
+<span class="sd">                product in the chain object attributes. Required if balancing a </span>
+<span class="sd">                chain on an intermediate process.</span>
+<span class="sd">                (Defaults to False)</span>
+<span class="sd">            i_o (str/bool): String beginning with &quot;i&quot; or &quot;o&quot;. &quot;i&quot; if the product</span>
+<span class="sd">                is an inflow of the chain&#39;s first unit process, &quot;o&quot; if it is an</span>
+<span class="sd">                outflow of the chain&#39;s last unit process. If False, first checks</span>
+<span class="sd">                to see if product exist in last unit process&#39;s outflows, then</span>
+<span class="sd">                first unit process&#39;s inflows, and uses the first matching </span>
+<span class="sd">                product that it finds. Required if balancing a chain on an</span>
+<span class="sd">                intermediate process.</span>
+<span class="sd">                (Defaults to False)</span>
+<span class="sd">            unit_process (str): Name of the unit process that the specified product</span>
+<span class="sd">                belongs to. Necessary to balance chain on intermediate process.</span>
+<span class="sd">            scenario (str): The name of the scenario of variable values to use, </span>
+<span class="sd">                corresponding to the matching row index in each unit process&#39;s</span>
+<span class="sd">                var_df. </span>
+<span class="sd">                (Defaults to the string specified in dat.default_scenario)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            - 3-level nested dictionary of inflows, ``[unit process][flowtype][substance] = (float)``</span>
+<span class="sd">            - 3-level nested dictionary of outflows, ``[unit process][flowtype][substance] = (float)``</span>
+<span class="sd">            - dictionary of intermediate flows, ``[substance] = (float)``</span>
+<span class="sd">            - list of lists of internal flows, ``[chain, origin unit, product, qty (float), chain, destination unit]``</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_list</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+        <span class="n">chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_list</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">unit_process</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">unit_process</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_names</span><span class="p">:</span>
+                <span class="n">unit_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">unit_process</span><span class="p">)</span>
+                <span class="n">upstream</span> <span class="o">=</span> <span class="n">chain</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">unit_index</span><span class="p">]</span>
+                <span class="n">upstream</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+                <span class="n">downstream</span> <span class="o">=</span> <span class="n">chain</span><span class="p">[</span><span class="n">unit_index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">chain</span><span class="p">[</span><span class="n">unit_index</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{unit_process}</span><span class="s2"> not found in </span><span class="si">{self.name}</span><span class="s2"> process list&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i_o</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;If specifying a unit process, i_o cannot be False&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">i_o</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">i_o</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">i_o</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">]:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;i_o must start with &#39;i&#39; for inflow or &#39;o&#39; for outflow&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">product</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;If specifying a unit process, product cannot be False&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">product</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">[</span><span class="n">unit_index</span><span class="p">][</span><span class="n">i_o</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{product}</span><span class="s2"> is not an </span><span class="si">{i_o}</span><span class="s2">-flow of </span><span class="si">{start.name}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">product</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_product</span>
+            <span class="k">if</span> <span class="n">i_o</span><span class="p">:</span>
+                <span class="n">i_o</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">i_o</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> 
+            <span class="k">if</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">outflows</span> <span class="ow">and</span> <span class="n">i_o</span> <span class="o">!=</span> <span class="s1">&#39;i&#39;</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">chain</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span>
+                <span class="n">chain</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+                <span class="n">upstream</span> <span class="o">=</span> <span class="n">chain</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+                <span class="n">downstream</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">i_o</span> <span class="o">=</span> <span class="s1">&#39;o&#39;</span>
+            <span class="k">elif</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">inflows</span> <span class="ow">and</span> <span class="n">i_o</span> <span class="o">!=</span> <span class="s1">&#39;o&#39;</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">chain</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;process&#39;</span><span class="p">]</span>
+                <span class="n">upstream</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">downstream</span> <span class="o">=</span> <span class="n">chain</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+                <span class="n">i_o</span> <span class="o">=</span> <span class="s1">&#39;i&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{product}</span><span class="s2"> not found as input or outflow of chain.&quot;</span><span class="p">)</span>
+
+        <span class="n">io_dicts</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;i&#39;</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)),</span> 
+            <span class="s1">&#39;o&#39;</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">))</span>
+            <span class="p">}</span>
+        <span class="n">intermediate_product_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">internal_flows</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1">#balance starting process</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;attempting to balance </span><span class="si">{start.name}</span><span class="s2"> on </span><span class="si">{qty}</span><span class="s2"> of </span><span class="si">{product}</span><span class="s2">(</span><span class="si">{i_o}</span><span class="s2">) using </span><span class="si">{scenario}</span><span class="s2"> variables.&quot;</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="n">start</span><span class="o">.</span><span class="n">name</span><span class="p">],</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="n">start</span><span class="o">.</span><span class="n">name</span><span class="p">])</span> <span class="o">=</span> <span class="n">start</span><span class="o">.</span><span class="n">balance</span><span class="p">(</span><span class="n">qty</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="n">i_o</span><span class="p">,</span> <span class="n">scenario</span><span class="p">)</span>
+ 
+        <span class="k">if</span> <span class="n">upstream</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">unit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">upstream</span><span class="p">):</span>
+                <span class="n">process</span> <span class="o">=</span> <span class="n">unit</span><span class="p">[</span><span class="s1">&#39;process&#39;</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">previous_process</span> <span class="o">=</span> <span class="n">start</span>
+
+                <span class="n">product</span> <span class="o">=</span> <span class="n">unit</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">]</span>
+                <span class="n">qty</span> <span class="o">=</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="n">previous_process</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">product</span><span class="p">]</span>
+                <span class="n">intermediate_product_dict</span><span class="p">[</span><span class="n">product</span><span class="p">]</span> <span class="o">=</span> <span class="n">qty</span>
+                <span class="n">internal_flows</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">previous_process</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="n">qty</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">process</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;attempting to balance </span><span class="si">{process.name}</span><span class="s2"> on </span><span class="si">{qty}</span><span class="s2"> of </span><span class="si">{product}</span><span class="s2">({&#39;o&#39;}) using </span><span class="si">{scenario}</span><span class="s2"> variables.&quot;</span><span class="p">)</span>
+                <span class="p">(</span><span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="n">process</span><span class="o">.</span><span class="n">name</span><span class="p">],</span> 
+                <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="n">process</span><span class="o">.</span><span class="n">name</span><span class="p">])</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">balance</span><span class="p">(</span><span class="n">qty</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">scenario</span><span class="p">)</span>
+
+                <span class="n">previous_process</span> <span class="o">=</span> <span class="n">process</span>
+
+        <span class="k">if</span> <span class="n">downstream</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">unit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">downstream</span><span class="p">):</span>
+                <span class="n">process</span> <span class="o">=</span> <span class="n">unit</span><span class="p">[</span><span class="s1">&#39;process&#39;</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">previous_process</span> <span class="o">=</span> <span class="n">start</span>
+
+                <span class="n">product</span> <span class="o">=</span> <span class="n">unit</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">]</span>
+                <span class="n">qty</span> <span class="o">=</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="n">previous_process</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">product</span><span class="p">]</span>
+                <span class="n">intermediate_product_dict</span><span class="p">[</span><span class="n">product</span><span class="p">]</span> <span class="o">=</span> <span class="n">qty</span>
+                <span class="n">internal_flows</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">previous_process</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="n">qty</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">process</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;attempting to balance </span><span class="si">{process.name}</span><span class="s2"> on </span><span class="si">{qty}</span><span class="s2"> of </span><span class="si">{product}</span><span class="s2">({&#39;i&#39;}) using </span><span class="si">{scenario}</span><span class="s2"> variables.&quot;</span><span class="p">)</span>
+                <span class="p">(</span><span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="n">process</span><span class="o">.</span><span class="n">name</span><span class="p">],</span> 
+                <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="n">process</span><span class="o">.</span><span class="n">name</span><span class="p">])</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">balance</span><span class="p">(</span><span class="n">qty</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="n">scenario</span><span class="p">)</span>
+
+                <span class="n">previous_process</span> <span class="o">=</span> <span class="n">process</span>
+
+            
+        <span class="n">totals</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;i&#39;</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span>
+            <span class="s1">&#39;o&#39;</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="k">for</span> <span class="n">dummy_process</span><span class="p">,</span> <span class="n">inflows_dict</span> <span class="ow">in</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">inflow</span><span class="p">,</span> <span class="n">qty</span> <span class="ow">in</span> <span class="n">inflows_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">totals</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="n">inflow</span><span class="p">]</span> <span class="o">+=</span> <span class="n">qty</span>
+        <span class="k">for</span> <span class="n">dummy_process</span><span class="p">,</span> <span class="n">outflows_dict</span> <span class="ow">in</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">outflow</span><span class="p">,</span> <span class="n">qty</span> <span class="ow">in</span> <span class="n">outflows_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">totals</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="n">outflow</span><span class="p">]</span> <span class="o">+=</span> <span class="n">qty</span>
+        <span class="k">for</span> <span class="n">io_dict</span> <span class="ow">in</span> <span class="n">totals</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">product</span><span class="p">,</span> <span class="n">qty</span> <span class="ow">in</span> <span class="n">intermediate_product_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">totals</span><span class="p">[</span><span class="n">io_dict</span><span class="p">][</span><span class="n">product</span><span class="p">]</span> <span class="o">-=</span> <span class="n">qty</span>
+        <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="s2">&quot;chain totals&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">totals</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">]</span>
+        <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="s2">&quot;chain totals&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">totals</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">]</span>
+        
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;successfully balanced </span><span class="si">{self.name}</span><span class="s2"> using </span><span class="si">{scenario}</span><span class="s2"> variables.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">],</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">],</span> <span class="n">intermediate_product_dict</span><span class="p">,</span> <span class="n">internal_flows</span>
+
+
+    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{dat.outdir}</span><span class="s1">/pfd&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;diagram(self, view_diagram=True, save=True, outdir=f&#39;{dat.outdir}/pfd&#39;)</span>
+<span class="sd">        Generates a diagram of the chain</span>
+
+<span class="sd">        Using Graphviz, takes the unit process names, sets of inflows and </span>
+<span class="sd">        outflows, and the specified linkages of the chain to generate a</span>
+<span class="sd">        diagram of the chain as a png and svg.</span>
+
+<span class="sd">        Code looks repetitive, but slightly different elements are needed to</span>
+<span class="sd">        be generated if the unit process is the first in the list, a middle</span>
+<span class="sd">        process, or the last unit process in the list, as well as a special</span>
+<span class="sd">        case needed if the chain is only one unit process long. Each node is</span>
+<span class="sd">        also given a long unique identifier, which is necessary for building</span>
+<span class="sd">        factory-level diagrams.</span>
+<span class="sd">        </span>
+<span class="sd">        The use of a product flow subgraph allows the unconnected inflows and</span>
+<span class="sd">        outflows to appear in invisible (white) nodes, and also is returnable</span>
+<span class="sd">        for use in larger factory diagrams.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            view(bool): If True, displays the diagram in the system</span>
+<span class="sd">                viewer. </span>
+<span class="sd">                (Defaults to True)</span>
+<span class="sd">            save (bool): If True, writes the diagram to file</span>
+<span class="sd">                (Defaults to True)</span>
+<span class="sd">            outdir(str/bool): The output directory where to write the files.</span>
+<span class="sd">                (Defaults to the output directory specified in dataconfig in</span>
+<span class="sd">                a &#39;pfd&#39; subfolder.)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Optional: The Digraph object of the product flow diagram, with each</span>
+<span class="sd">            unit process as a node, with the concatanated chain name and </span>
+<span class="sd">            unit process name (e.g. chainunitprocess) as the identifier,</span>
+<span class="sd">            and also the non-linking inflows and outflows as white-bordered</span>
+<span class="sd">            nodes with concatanated chain, process, and flowtype (e.g.</span>
+<span class="sd">            chainunitprocessinflows)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_list</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>        
+
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{c}</span><span class="s1">_{datetime.now().strftime(&quot;%Y-%m-</span><span class="si">%d</span><span class="s1">_%H%M&quot;)}&#39;</span>
+
+        <span class="n">chain_diagram</span> <span class="o">=</span> <span class="n">Digraph</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="n">outdir</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+        <span class="n">product_flow</span> <span class="o">=</span> <span class="n">Digraph</span><span class="p">(</span><span class="s1">&#39;mainflow_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">product_flow</span><span class="o">.</span><span class="n">graph_attr</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rank</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span>
+        <span class="n">product_flow</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;box&#39;</span><span class="p">)</span>
+        <span class="n">chain_diagram</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;box&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">unit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">process_list</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">unit</span><span class="p">[</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">inflows</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">unit</span><span class="p">[</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">inflows</span><span class="p">)</span>
+            <span class="n">outflows</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">unit</span><span class="p">[</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">outflows</span><span class="p">)</span>
+            <span class="n">product_flow</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">chain_diagram</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">inflows</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">inflows</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+                <span class="n">chain_diagram</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">inflows</span><span class="p">,</span> <span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">process_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> 
+                    <span class="n">chain_diagram</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">outflows</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">outflows</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+                    <span class="n">chain_diagram</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">outflows</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">outflows</span> <span class="o">!=</span> <span class="n">unit</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">]:</span>
+                    <span class="n">outflows</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">outflows</span><span class="p">,</span> <span class="n">str_to_cut</span><span class="o">=</span><span class="n">unit</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">])</span>
+                    <span class="n">chain_diagram</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">outflows</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">outflows</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+                    <span class="n">chain_diagram</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">outflows</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">process_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">product_flow</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">prevunit</span><span class="p">,</span> <span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">unit</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">])</span>
+
+                <span class="k">if</span> <span class="n">inflows</span> <span class="o">!=</span> <span class="n">unit</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">]:</span>
+                    <span class="n">inflows</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">inflows</span><span class="p">,</span> <span class="n">str_to_cut</span><span class="o">=</span><span class="n">unit</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">])</span>
+                    <span class="n">chain_diagram</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">inflows</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">inflows</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+                    <span class="n">chain_diagram</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">inflows</span><span class="p">,</span> <span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">outflows</span> <span class="o">!=</span> <span class="n">unit</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">]:</span>
+                    <span class="n">outflows</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">outflows</span><span class="p">,</span> <span class="n">str_to_cut</span><span class="o">=</span><span class="n">unit</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">])</span>
+                    <span class="n">chain_diagram</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">outflows</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">outflows</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+                    <span class="n">chain_diagram</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">outflows</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">product_flow</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">prevunit</span><span class="p">,</span> <span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">unit</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">])</span>
+
+                <span class="k">if</span> <span class="n">inflows</span> <span class="o">!=</span> <span class="n">unit</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">]:</span>
+                    <span class="n">inflows</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">inflows</span><span class="p">,</span> <span class="n">str_to_cut</span><span class="o">=</span><span class="n">unit</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">])</span>
+                    <span class="n">chain_diagram</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">inflows</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">inflows</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+                    <span class="n">chain_diagram</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">inflows</span><span class="p">,</span> <span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="p">)</span>
+
+                <span class="n">chain_diagram</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">outflows</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">outflows</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+                <span class="n">chain_diagram</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="n">outflows</span><span class="p">)</span>
+
+            <span class="n">prevunit</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="n">chain_diagram</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">product_flow</span><span class="p">)</span>   
+
+        <span class="k">if</span> <span class="n">save</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>     
+            <span class="n">chain_diagram</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+            <span class="n">chain_diagram</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="s1">&#39;svg&#39;</span>
+            <span class="n">chain_diagram</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">view</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">chain_diagram</span><span class="o">.</span><span class="n">view</span><span class="p">()</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;diagram created for </span><span class="si">{self.name}</span><span class="s2"> chain&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">product_flow</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, S.E. Tanzer
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

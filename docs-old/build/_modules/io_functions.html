@@ -1,0 +1,639 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>io_functions &mdash; blackblox.py 0.2.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/logo150.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                blackblox v0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">NOTE: This introductory document still must be updated with the latest feature set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html#what-is-blackblox-py">What is blackblox.py?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../unit.html">The Unit Process Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chain.html">The Process Chain Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../factory.html">The Factory Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../industry.html">The Industry Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../calculators.html">The Calculators Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io_functions.html">The IO Functions Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dataconfig.html">The dataconfig Module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">blackblox.py</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>io_functions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for io_functions</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot; Data input and output manipulation functions</span>
+
+<span class="sd">This module contains data manipulation functions used in BlackBlox.py to </span>
+<span class="sd">retrieve user input and manipulate it into useable formats, as well as </span>
+<span class="sd">functions used in output file generation.</span>
+
+<span class="sd">Module Outline:</span>
+<span class="sd">- imports</span>
+<span class="sd">- function: make_df</span>
+<span class="sd">- function: check_for_col</span>
+<span class="sd">- function: build_filedir</span>
+<span class="sd">- function: write_to_excel</span>
+<span class="sd">- fucntion: sl</span>
+<span class="sd">- function: if_str</span>
+<span class="sd">- function: nested_dicts</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pan</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">dataconfig</span> <span class="k">as</span> <span class="nn">dat</span>
+<span class="kn">from</span> <span class="nn">bb_log</span> <span class="k">import</span> <span class="n">get_logger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;IO&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="make_df"><a class="viewcode-back" href="../io_functions.html#io_functions.make_df">[docs]</a><span class="k">def</span> <span class="nf">make_df</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">sheet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">metaprefix</span> <span class="o">=</span> <span class="s2">&quot;meta&quot;</span><span class="p">,</span> 
+            <span class="n">col_order</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">drop_zero</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates a Pandas dataframe from various file types</span>
+
+<span class="sd">    Numbers that are initially read as strings will be converted to </span>
+<span class="sd">    numeric values when possible (errors are ignored).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data: accepts both objects that can be made into dataframes </span>
+<span class="sd">            (e.g. nested) dictionaries and strings of filespaths (including </span>
+<span class="sd">            excel workbooks, comma seperated value files, and other delimited </span>
+<span class="sd">            text files)</span>
+<span class="sd">        sheet (str, optional): The worksheet of a specified excel workbook. </span>
+<span class="sd">            (Defaults to None)</span>
+<span class="sd">        sep (str): the seperator used in non-csv text file. </span>
+<span class="sd">            (Defaults to tab (\t))</span>
+<span class="sd">        index (int or None): the column of data that is the index. </span>
+<span class="sd">            (Defaults to 0)</span>
+<span class="sd">        metaprefix (str/None): If a column name or row index begins with</span>
+<span class="sd">            the metaprefix, that row or column is dropped from the data frame.</span>
+<span class="sd">            (Defaults to &#39;meta&#39;)</span>
+<span class="sd">        col_order (list[str]/False): If a list is passed, will use those strings</span>
+<span class="sd">            as the column names of the dataframe in the order in the list.</span>
+<span class="sd">        T (bool): If True, transposes the data frame before return.</span>
+<span class="sd">            (Defaults to False)</span>
+<span class="sd">        drop_zero (bool): If True, converts any NaNs to zeros, and then </span>
+<span class="sd">            removes any rows or columns that contain only zeros.</span>
+<span class="sd">        sort (bool): Whether to sort the data by the ascending order of the</span>
+<span class="sd">            index</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The generated dataframe.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pan</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span> 
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pan</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">endswith</span><span class="p">((</span><span class="s1">&#39;.xls&#39;</span><span class="p">,</span> <span class="s1">&#39;xlsx&#39;</span><span class="p">)):</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pan</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="n">sheet</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">):</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pan</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pan</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="n">index</span><span class="p">)</span> 
+                 
+    <span class="k">if</span> <span class="n">metaprefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="o">~</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">metaprefix</span><span class="p">)]</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">col</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">metaprefix</span><span class="p">)]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">col_order</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col_order</span><span class="p">]</span>
+ 
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">pan</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="s1">&#39;ignore&#39;</span><span class="p">)</span> <span class="c1">#if it looks like a number, make it a number</span>
+
+    <span class="k">if</span> <span class="n">T</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">if</span> <span class="n">drop_zero</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">(</span><span class="n">df</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span> <span class="c1"># uses square so that negative numbers aren&#39;t an issue</span>
+
+    <span class="k">if</span> <span class="n">sort</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="check_for_col"><a class="viewcode-back" href="../io_functions.html#io_functions.check_for_col">[docs]</a><span class="k">def</span> <span class="nf">check_for_col</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Checks if a column exists and returns column value at the given index </span>
+
+<span class="sd">    This function is used mostly to check for whether a column for excel</span>
+<span class="sd">    worksheet data exists in a particular data location list data frame.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pandas.dataframe): The data frame to check</span>
+<span class="sd">        col (str): the column name to check for</span>
+<span class="sd">        index (str or int): the row index to get column value for, if column</span>
+<span class="sd">            exists.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Value at index, column in the dataframe, if column exists, otherwise</span>
+<span class="sd">        returns None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="n">col</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="build_filedir"><a class="viewcode-back" href="../io_functions.html#io_functions.build_filedir">[docs]</a><span class="k">def</span> <span class="nf">build_filedir</span><span class="p">(</span><span class="n">filedir</span><span class="p">,</span> <span class="n">subfolder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_id_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">time</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Builds complicated file directory names.</span>
+<span class="sd">    Used for allowing file to be output to unique directories.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filedir (str): the base file directory</span>
+<span class="sd">        subfolder (str): optional subfolder(s)</span>
+<span class="sd">            (Defaults to None.)</span>
+<span class="sd">        file_id_list (list of str): list of strings to append to the directory</span>
+<span class="sd">            name. </span>
+<span class="sd">            (Defaults to an empty list.)</span>
+<span class="sd">        time (bool): Whether to include a date-time stamp in the file</span>
+<span class="sd">            directory  name. </span>
+<span class="sd">            (Defaults to True.)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The built file directory string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">subfolder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">filedir</span><span class="o">=</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{filedir}</span><span class="s1">/</span><span class="si">{subfolder}</span><span class="s1">&#39;</span>
+    
+    <span class="k">for</span> <span class="n">file_id</span> <span class="ow">in</span> <span class="n">file_id_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">file_id</span><span class="p">:</span>
+            <span class="n">filedir</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{filedir}</span><span class="s1">_</span><span class="si">{file_id}</span><span class="s1">&#39;</span>
+
+    <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">filedir</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{filedir}</span><span class="s1">_{datetime.now().strftime(&quot;%Y-%m-</span><span class="si">%d</span><span class="s1">_%H%M&quot;)}&#39;</span>
+
+    <span class="k">return</span> <span class="n">filedir</span></div>
+
+
+<div class="viewcode-block" id="is_energy"><a class="viewcode-back" href="../io_functions.html#io_functions.is_energy">[docs]</a><span class="k">def</span> <span class="nf">is_energy</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">energy_strings</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">energy_flows</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;is_energy(string, energy_strings=dat.energy_flows)</span>
+<span class="sd">    checks if a string refers to an energy flow</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        string(str): the string to check</span>
+<span class="sd">        energy_strings(list): list of strings that mark whether the substance</span>
+<span class="sd">            name that starts or ends with them is an energy flow.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        bool. True, if the string starts or ends with the energy marker. Otherwise, False.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">clean_string</span> <span class="o">=</span> <span class="n">clean_str</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    <span class="n">is_it_energy</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">string</span> <span class="ow">in</span> <span class="n">energy_strings</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">clean_string</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="ow">or</span> <span class="n">clean_string</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+            <span class="n">is_it_energy</span> <span class="o">=</span> <span class="kc">True</span>
+        
+    <span class="k">return</span> <span class="n">is_it_energy</span></div>
+
+
+<div class="viewcode-block" id="mass_energy_df"><a class="viewcode-back" href="../io_functions.html#io_functions.mass_energy_df">[docs]</a><span class="k">def</span> <span class="nf">mass_energy_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">energy_strings</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">energy_flows</span><span class="p">,</span> <span class="n">totals</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Reorders dataframe to seperate mass and energy flows</span>
+
+<span class="sd">    Uses a list of prefix/suffixes to identify mass and energy flows</span>
+<span class="sd">    and reorders a dataframe to seperate them, orders them alphabetically,</span>
+<span class="sd">    and also optionally adds rows for mass totals and energy totals.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        energy_strings (list): contains strings of prefix/suffix to substance</span>
+<span class="sd">            names that indicate an energy flow</span>
+<span class="sd">            (Defaults to dat.energy_flows)</span>
+<span class="sd">        totals (bool): Appends summation rows for mass and energy seperately.</span>
+<span class="sd">            (Defaults to True)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;seperating mass and energy flows using </span><span class="si">{energy_strings}</span><span class="s2"> as energy flow markers&quot;</span><span class="p">)</span>
+
+    <span class="n">cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+    <span class="n">mass_df</span> <span class="o">=</span> <span class="n">pan</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">cols</span><span class="p">)</span>
+    <span class="n">energy_df</span> <span class="o">=</span> <span class="n">pan</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">cols</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">clean_i</span> <span class="o">=</span> <span class="n">clean_str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">energy_flow</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">string</span> <span class="ow">in</span> <span class="n">energy_strings</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">clean_i</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="ow">or</span> <span class="n">clean_i</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+                <span class="n">energy_flow</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="n">energy_flow</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">energy_df</span> <span class="o">=</span> <span class="n">energy_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mass_df</span> <span class="o">=</span> <span class="n">mass_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mass_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">mass_df</span><span class="p">[</span><span class="s1">&#39;index-lowercase&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mass_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">mass_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s1">&#39;index-lowercase&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">mass_df</span><span class="p">[</span><span class="s1">&#39;index-lowercase&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">energy_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">energy_df</span><span class="p">[</span><span class="s1">&#39;index-lowercase&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">energy_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">energy_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s1">&#39;index-lowercase&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">energy_df</span><span class="p">[</span><span class="s1">&#39;index-lowercase&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">totals</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mass_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">mass_df</span> <span class="o">=</span> <span class="n">mass_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mass_df</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s1">&#39;TOTAL - mass&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">energy_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">energy_df</span> <span class="o">=</span> <span class="n">energy_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">energy_df</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s1">&#39;TOTAL - energy&#39;</span><span class="p">))</span>
+
+    <span class="n">combined_df</span> <span class="o">=</span> <span class="n">pan</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">mass_df</span><span class="p">,</span> <span class="n">energy_df</span><span class="p">],</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Mass&#39;</span><span class="p">,</span> <span class="s1">&#39;Energy&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">combined_df</span></div>
+    
+<span class="k">def</span> <span class="nf">metadata_df</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">user_data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span> 
+                <span class="n">product</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span> <span class="n">product_qty</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span>
+                <span class="n">energy_flows</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">energy_flows</span><span class="p">):</span>
+    
+    <span class="n">about</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;BlackBlox.py&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;0.1&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;OFFLINE&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;documentation&quot;</span><span class="p">:</span> <span class="s2">&quot;OFFLINE&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;github&quot;</span><span class="p">:</span> <span class="s2">&quot;OFFLINE&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;creator&quot;</span><span class="p">:</span> <span class="s2">&quot;S.E. Tanzer&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;affiliation&quot;</span><span class="p">:</span> <span class="s2">&quot;Energy &amp; Industry Group, Department of Engineering Systems and Services, Facult of Technology Policy, and Management, Delft University of Technology, The Netherlands&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;license&quot;</span><span class="p">:</span> <span class="s2">&quot;GPL v3&quot;</span><span class="p">,</span>
+         <span class="p">}</span>
+              
+    <span class="n">creation_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%A, </span><span class="si">%d</span><span class="s2"> %B %Y at %H:%M&quot;</span><span class="p">)</span>
+    <span class="n">energy_flows</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">energy_flows</span><span class="p">)</span>
+
+    <span class="n">meta</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;00&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;This data was calculated using </span><span class="si">{about[&#39;name&#39;]}</span><span class="s2"> v</span><span class="si">{about[&#39;version&#39;]}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;01&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{about[&#39;name&#39;]}</span><span class="s2"> was created by </span><span class="si">{about[&#39;creator&#39;]}</span><span class="s2"> of </span><span class="si">{about[&#39;affiliation&#39;]}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;02&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;More information on </span><span class="si">{about[&#39;name&#39;]}</span><span class="s2"> can be found at </span><span class="si">{about[&#39;URL&#39;]}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;03&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
+            <span class="s2">&quot;04&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
+            <span class="s2">&quot;05&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;This file was generated on </span><span class="si">{creation_date}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;06&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;by </span><span class="si">{user[&#39;name&#39;]}</span><span class="s2"> of </span><span class="si">{user[&#39;affiliation&#39;]}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;07&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;for use in </span><span class="si">{user[&#39;project&#39;]}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;08&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;and contains </span><span class="si">{level}</span><span class="s2">-level results data for </span><span class="si">{name}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;09&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;balanced on </span><span class="si">{product_qty}</span><span class="s2"> of </span><span class="si">{product}</span><span class="s2"> using the variable values from the </span><span class="si">{scenario}</span><span class="s2"> scenario(s)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;10&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
+            <span class="s2">&quot;11&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;Note: Substances beginning or ending with any of the following strings were assumed by </span><span class="si">{about[&#39;name&#39;]}</span><span class="s2"> to be energy flows:&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;12&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{energy_flows}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;13&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
+            <span class="s2">&quot;14&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
+            <span class="s2">&quot;15&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{about[&#39;name&#39;]}</span><span class="s2"> is a python package that faciliates the calculation of mass and energy balances for black block models at an arbitrary level of detail.&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;16&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;For full documentation on how to use </span><span class="si">{about[&#39;name&#39;]}</span><span class="s2">, visit </span><span class="si">{about[&#39;documentation&#39;]}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;17&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{about[&#39;name&#39;]}</span><span class="s2"> is currently under active development. Head over to </span><span class="si">{about[&#39;github&#39;]}</span><span class="s2"> to download, fork, or contribute.&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;18&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{about[&#39;name&#39;]}</span><span class="s2"> is avaiable for use free of charge under the terms and conditions of the </span><span class="si">{about[&#39;license&#39;]}</span><span class="s2"> license.&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">meta_df</span> <span class="o">=</span> <span class="n">pan</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Workbook Information&#39;</span><span class="p">])</span>
+
+    <span class="n">meta_df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">meta_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;metadata dataframe created for </span><span class="si">{level}</span><span class="s2">-level </span><span class="si">{name}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">meta_df</span>
+
+
+<div class="viewcode-block" id="write_to_excel"><a class="viewcode-back" href="../io_functions.html#io_functions.write_to_excel">[docs]</a><span class="k">def</span> <span class="nf">write_to_excel</span><span class="p">(</span><span class="n">df_or_df_list</span><span class="p">,</span> <span class="n">sheet_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filedir</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> 
+                   <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;output&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Writes one or more data frames to a single excel workbook.</span>
+
+<span class="sd">    Each data frame appears on its own worksheet. Automatically creates the</span>
+<span class="sd">    specified output folder if it does not exist.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        df_or_df_list (dataframe or list): A single pandas dataframe or list</span>
+<span class="sd">            of pandas dataframes.</span>
+<span class="sd">        sheet_list (optional, list): List of sheetnames that will be used for</span>
+<span class="sd">            the dataframe at the same index in df_or_df_list. </span>
+<span class="sd">            (Defaults to None.)</span>
+<span class="sd">        filedir (optional, str): desired file output directory. </span>
+<span class="sd">            (Defaults to current working directory.)</span>
+<span class="sd">        filename (optional, str): desired excel file name, without extension.</span>
+<span class="sd">            (Defaults to &#39;output&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Path</span><span class="p">(</span><span class="n">filedir</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> 
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;attempting to create </span><span class="si">{filename}</span><span class="s2"> in </span><span class="si">{filedir}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">empty_notice</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;00&#39;</span><span class="p">:</span> <span class="s2">&quot;The supplied dataframe was empty.&quot;</span><span class="p">,</span>
+                    <span class="s1">&#39;01&#39;</span><span class="p">:</span> <span class="s2">&quot;This could happen is all the supplied values were zero&quot;</span><span class="p">,</span>
+                    <span class="s1">&#39;02&#39;</span><span class="p">:</span> <span class="s1">&#39;and rows with all zeros were dropped when the data frame was created.&#39;</span><span class="p">}</span>
+    <span class="n">empty_df</span> <span class="o">=</span> <span class="n">pan</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">empty_notice</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Empty Dataframe&#39;</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_or_df_list</span><span class="p">,</span> <span class="n">pan</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">df_or_df_list</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">filedir</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.xlsx&#39;</span><span class="p">)</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">pan</span><span class="o">.</span><span class="n">ExcelWriter</span><span class="p">(</span><span class="n">filedir</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.xlsx&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">df_or_df_list</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">sheet_list</span><span class="p">:</span>
+                    <span class="n">sheet</span> <span class="o">=</span> <span class="n">sheet_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sheet</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="k">if</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                    <span class="n">empty_df</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">sheet</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">df</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">sheet</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;writing </span><span class="si">{sheet}</span><span class="s2"> sheet to workbook&quot;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{filename}</span><span class="s2"> successfully created in </span><span class="si">{filedir}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="clean_str"><a class="viewcode-back" href="../io_functions.html#io_functions.clean_str">[docs]</a><span class="k">def</span> <span class="nf">clean_str</span><span class="p">(</span><span class="n">string_to_check</span><span class="p">,</span> <span class="n">str_to_cut</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">remove_dblnewline</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Multipurpose function to clean user input strings</span>
+<span class="sd">    </span>
+<span class="sd">    Used to clean user input. First creates a copy of the string to prevent </span>
+<span class="sd">    the original string from being modified unintentionally.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        string_to_check (str): The string to strip and lower</span>
+<span class="sd">        str_to_cut (str/list/bool): If passed a string, will check for and </span>
+<span class="sd">            remove the cut_str string from the string_to_check. If passed a list </span>
+<span class="sd">            of strings, will check for and remove each from the string_to_check.</span>
+<span class="sd">            (Defaults to False.)</span>
+<span class="sd">        remove_dblnewlines (bool): If True, looks for and removes instances</span>
+<span class="sd">            of double new lines.</span>
+<span class="sd">            (Defaults to True.)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">        The input string, stripped of leading and trailing white space </span>
+<span class="sd">        and in all lowercase.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">string_to_check</span><span class="p">)</span>
+
+    <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">lower</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">str_to_cut</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">str_to_cut</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">str_to_cut</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">snip</span> <span class="ow">in</span> <span class="n">str_to_cut</span><span class="p">:</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">snip</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">remove_dblnewline</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">string</span><span class="p">:</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">string</span></div>
+
+
+<div class="viewcode-block" id="if_str"><a class="viewcode-back" href="../io_functions.html#io_functions.if_str">[docs]</a><span class="k">def</span> <span class="nf">if_str</span><span class="p">(</span><span class="n">maybe_a_string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;checks if an input is a string, returns string if so, None if not.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        string: a thing to check if it&#39;s a string.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        The string, if it was a string, otherwise returns None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">maybe_a_string</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">maybe_a_string</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="nested_dicts"><a class="viewcode-back" href="../io_functions.html#io_functions.nested_dicts">[docs]</a><span class="k">def</span> <span class="nf">nested_dicts</span><span class="p">(</span><span class="n">levels</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="nb">float</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Created a nested defaultdict with an arbitrary level depth</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        1_level_dict[1st] = final (Same as standard defaultdict)</span>
+<span class="sd">        2_level_dict[1st][2nd] = final</span>
+<span class="sd">        4_level_dict[1st][2nd][3rd][4th] = final</span>
+
+<span class="sd">    source: https://goo.gl/Wq5kLq</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        levels (int): The number of nested levels the dictionary should have.</span>
+<span class="sd">            Defaults to 2. (As 1 is just a normal defaultdict)</span>
+<span class="sd">        final (type): The type of data stored as the value in the ultimate </span>
+<span class="sd">            level of the dictionary.</span>
+<span class="sd">            Defaults to float because that&#39;s what most commonly used in</span>
+<span class="sd">            this package.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A nested defaultdict of the specified depth.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">defaultdict</span><span class="p">(</span><span class="n">final</span><span class="p">)</span> <span class="k">if</span> <span class="n">levels</span> <span class="o">&lt;</span><span class="mi">2</span> <span class="k">else</span>
+            <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">nested_dicts</span><span class="p">(</span><span class="n">levels</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">final</span><span class="p">)))</span></div>
+
+
+<span class="k">def</span> <span class="nf">plot_annual_flows</span><span class="p">(</span><span class="n">df_dict</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">outdir</span><span class="p">,</span> <span class="n">unit_dict</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">default_units</span><span class="p">):</span>
+    <span class="n">flow_series</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">df_name</span> <span class="ow">in</span> <span class="n">df_dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;cumulative&#39;</span> <span class="ow">in</span> <span class="n">df_name</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df_dict</span><span class="p">[</span><span class="n">df_name</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">df</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">flow</span><span class="p">]</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">df_name</span><span class="p">)</span>
+                <span class="n">flow_series</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    
+    <span class="n">flow_df</span> <span class="o">=</span> <span class="n">pan</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">flow_series</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df_index</span> <span class="o">=</span> <span class="n">flow_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="n">energy_flow</span> <span class="o">=</span> <span class="n">is_energy</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">energy_flow</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">flow_unit</span> <span class="o">=</span> <span class="n">unit_dict</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">flow_unit</span> <span class="o">=</span> <span class="n">unit_dict</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;tableau-colorblind10&#39;</span><span class="p">)</span>
+    <span class="n">flow_df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">f</span><span class="s2">&quot;annual outflows of </span><span class="si">{flow}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_index</span><span class="p">))),</span> <span class="n">df_index</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{flow_unit}</span><span class="s2"> </span><span class="si">{flow}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{outdir}</span><span class="s1">/</span><span class="si">{flow}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="c1"># def plot_df(df, columns, kind=&#39;line&#39;, outdir)</span>
+<span class="c1">#     column_series = []</span>
+<span class="c1">#     df = df.fillna(0)</span>
+<span class="c1">#     for col in columns:</span>
+<span class="c1">#         if col in df:</span>
+<span class="c1">#             s = df.loc[:,col]</span>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, S.E. Tanzer
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

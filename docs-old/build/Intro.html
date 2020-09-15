@@ -1,0 +1,795 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>NOTE: This introductory document still must be updated with the latest feature set &mdash; blackblox.py 0.2.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The Unit Process Module" href="unit.html" />
+    <link rel="prev" title="Black Box Modeling in Python" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html">
+          
+
+          
+            
+            <img src="_static/logo150.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                blackblox v0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">NOTE: This introductory document still must be updated with the latest feature set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#what-is-blackblox-py">What is blackblox.py?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#unit-processes">Unit Processes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#defining-unit-processes">Defining unit processes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#calculations-table">Calculations Table</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#variables-table">Variables Table</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#balancing-unit-processes">Balancing unit processes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unit-table-library">Unit Table Library</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#process-chain">Process Chain</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#defining-a-chain">Defining a chain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#balancing-a-chain">Balancing a chain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generating-a-chain-diagram">Generating a chain diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#factory">Factory</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#defining-a-factory">Defining a factory</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#factory-chains-table">Factory chains table</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#balancing-a-factory">Balancing a factory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generating-a-factory-diagram">Generating a factory diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#industries">Industries</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#defining-an-industry">Defining an Industry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#balancing-an-industry">Balancing an Industry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#evolving-an-industry">Evolving an Industry</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#forthcoming-features">Forthcoming Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#current-limitations">Current limitations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="unit.html">The Unit Process Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chain.html">The Process Chain Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="factory.html">The Factory Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="industry.html">The Industry Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calculators.html">The Calculators Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io_functions.html">The IO Functions Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataconfig.html">The dataconfig Module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">blackblox.py</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>NOTE: This introductory document still must be updated with the latest feature set</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/intro.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="note-this-introductory-document-still-must-be-updated-with-the-latest-feature-set">
+<h1>NOTE: This introductory document still must be updated with the latest feature set<a class="headerlink" href="#note-this-introductory-document-still-must-be-updated-with-the-latest-feature-set" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="what-is-blackblox-py">
+<h1>What is blackblox.py?<a class="headerlink" href="#what-is-blackblox-py" title="Permalink to this headline">¶</a></h1>
+<p>blackblox is a calculator for “black box” systems, ranging from single unit processes to factories with branching chains of processes.</p>
+<div class="section" id="unit-processes">
+<h2>Unit Processes<a class="headerlink" href="#unit-processes" title="Permalink to this headline">¶</a></h2>
+<p>Unit processes are the smallest”block” in blackblox. Each unit process has a set of inflows and outflows and a set of specified relationships between the process flows. Then, given a quantity for one inflow or outflow, the quantities of the remaining inflows and outflows can be calculated.</p>
+<div class="section" id="defining-unit-processes">
+<h3>Defining unit processes<a class="headerlink" href="#defining-unit-processes" title="Permalink to this headline">¶</a></h3>
+<p>A unit process is defined by two tables:</p>
+<div class="section" id="calculations-table">
+<h4>Calculations Table<a class="headerlink" href="#calculations-table" title="Permalink to this headline">¶</a></h4>
+<p>The first specifies the relationships between inflows and outflows, with each row listing two substances; whether each substance is an inflow, an outflow, or a flow internal to the unit process; the type of calculation that would generate the quantity of the second substance if the quantity of the first substance is known, and the name of the variable (if any) used in that calculation.</p>
+<p>The calculation types must be those available in the program’s calculator library. The substance variable names are user specified. It is also possible to define special substance names (e.g. “fuel”) to allow the substance to be defined in the variables table (e.g. “fuel type”) and also have properties defined elsewhere (e.g. HHV and combustion emissions)</p>
+<p>e.g.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>KnownQty</th>
+<th>k_QtyFrom</th>
+<th>UnknownQty</th>
+<th>u_QtyTo</th>
+<th>Calculation</th>
+<th>Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>clinker</td>
+<td>output</td>
+<td>CaO</td>
+<td>tmp</td>
+<td>Ratio</td>
+<td>CaO_Clinker</td>
+</tr>
+<tr>
+<td>CaO</td>
+<td>tmp</td>
+<td>CaCO3</td>
+<td>tmp</td>
+<td>MolMassRatio</td>
+<td>none</td>
+</tr>
+<tr>
+<td>CaCO3</td>
+<td>tmp</td>
+<td>meal</td>
+<td>input</td>
+<td>Ratio</td>
+<td>CaCO3_Meal</td>
+</tr>
+<tr>
+<td>clinker</td>
+<td>output</td>
+<td>energyFuel</td>
+<td>tmp</td>
+<td>Ratio</td>
+<td>fuelDemand</td>
+</tr>
+<tr>
+<td>CaCO3</td>
+<td>tmp</td>
+<td>CO2</td>
+<td>output</td>
+<td>MolMassRatio</td>
+<td>none</td>
+</tr>
+<tr>
+<td>energyFuel</td>
+<td>tmp</td>
+<td>fuel</td>
+<td>input</td>
+<td>Combustion</td>
+<td>combustEff</td>
+</tr>
+<tr>
+<td>clinker</td>
+<td>output</td>
+<td>electricity</td>
+<td>input</td>
+<td>Ratio</td>
+<td>elecDemand</td>
+</tr>
+</tbody>
+</table><p>There is also a feature</p>
+</div>
+<div class="section" id="variables-table">
+<h4>Variables Table<a class="headerlink" href="#variables-table" title="Permalink to this headline">¶</a></h4>
+<p>The second provides the values of the variables named in the calculations table. Separating the values into their own table allows for the same unit process to be run in different configurations(e.g. different efficiencies or fuel types).</p>
+<p>e.g.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>scenario</th>
+<th>fuelDemand</th>
+<th>fuelType</th>
+<th>CaO_Clinker</th>
+<th>CaCO3_Meal</th>
+<th>combustEff</th>
+<th>elecDemand</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>meta-units</td>
+<td>(mj /t clinker)</td>
+<td>name</td>
+<td>(t/t)</td>
+<td>(t/t)</td>
+<td>(%)</td>
+<td>(mj/t clinker)</td>
+</tr>
+<tr>
+<td>default</td>
+<td>3.6</td>
+<td>coal</td>
+<td>0.75</td>
+<td>0.8</td>
+<td>1</td>
+<td>0.2</td>
+</tr>
+<tr>
+<td>EU-old</td>
+<td>3.6</td>
+<td>coal</td>
+<td>0.75</td>
+<td>0.8</td>
+<td>1</td>
+<td>0.2</td>
+</tr>
+<tr>
+<td>EU-bat</td>
+<td>3</td>
+<td>charcoal</td>
+<td>0.65</td>
+<td>0.8</td>
+<td>1</td>
+<td>0.1</td>
+</tr>
+<tr>
+<td>EU-typ</td>
+<td>3.2</td>
+<td>coal</td>
+<td>0.67</td>
+<td>0.8</td>
+<td>1</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="section" id="balancing-unit-processes">
+<h3>Balancing unit processes<a class="headerlink" href="#balancing-unit-processes" title="Permalink to this headline">¶</a></h3>
+<p>Balancing a unit process calculates the quantity of all inflows and outflows of that unit process. To balance a unit process, the following arguments  must be provided:</p>
+<ul class="simple">
+<li>the quantity of one inflow or outflow</li>
+<li>the name of that inflow or outflow substance</li>
+<li>whether the substance is an inflow or outflow</li>
+<li>the name of the configuration scenario to use from the variables table.</li>
+</ul>
+<p>All arguments besides the quantity can be optional, if default values have been specified for the unit process.</p>
+<p>After calculating all flows based on the user input, blackblox then checks for whether the mass and energy flows are balanced, and either raises an exception or, by default, creates an ‘UKNOWN’ balancer flow where needed.</p>
+<p>blackblox assumes that flows are mass by defautl. It decides if a flow is an energy flow based on whether it begins or end with an energy-signifier string (such as ‘energy’, ‘heat’, or ‘electricity’), which the user can specify.</p>
+<p>N.B. When processing fuel combustion, blackblox writes an “energy in [fuelname]” flow to the inflows dictionary, to balance the energy of combustion.</p>
+</div>
+<div class="section" id="unit-table-library">
+<h3>Unit Table Library<a class="headerlink" href="#unit-table-library" title="Permalink to this headline">¶</a></h3>
+<p>A library table with a list to the locations of all the unit processes available will allow you to not have to enter in the data every time the unit process function is called.</p>
+<p>e.g.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>name</th>
+<th>product</th>
+<th>productType</th>
+<th>varFile</th>
+<th>varSheet</th>
+<th>calcFile</th>
+<th>calcSheet</th>
+<th>meta-notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kiln</td>
+<td>clinker</td>
+<td>output</td>
+<td>excelData/cementUnits.xlsx</td>
+<td>var clinker kiln</td>
+<td>excelData/cementUnits.xlsx</td>
+<td>c clinker kiln</td>
+<td>none</td>
+</tr>
+<tr>
+<td>blender</td>
+<td>cement</td>
+<td>output</td>
+<td>excelData/cementUnits.xlsx</td>
+<td>var cement blender</td>
+<td>excelData/cementUnits.xlsx</td>
+<td>c cement blender</td>
+<td>none</td>
+</tr>
+<tr>
+<td>mixer</td>
+<td>meal</td>
+<td>output</td>
+<td>excelData/cementUnits.xlsx</td>
+<td>var meal mixer</td>
+<td>excelData/cementUnits.xlsx</td>
+<td>c meal mixer</td>
+<td>none</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="section" id="process-chain">
+<h2>Process Chain<a class="headerlink" href="#process-chain" title="Permalink to this headline">¶</a></h2>
+<p>A process chain is a linear collection of one or more connected unit processes, where an outflow of a preceding unit process is an inflow of the following unit process.</p>
+<div class="section" id="defining-a-chain">
+<h3>Defining a chain<a class="headerlink" href="#defining-a-chain" title="Permalink to this headline">¶</a></h3>
+<p>A process chain is defined by a table with a list of unit processes with an inflow and outflow to each, where the outflow of a unit process must be the inflow into the next unit process. When the process chain is first used, an initializalion process creates each of the unit processes, if they do not already exist, and verifies that the inflows and outflows specified in the chain table exist for the corresponding unit processes.</p>
+<p>e.g.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Inflow</th>
+<th>Process</th>
+<th>Outflow</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CaCO3</td>
+<td>mixer</td>
+<td>meal</td>
+</tr>
+<tr>
+<td>meal</td>
+<td>kiln</td>
+<td>clinker</td>
+</tr>
+<tr>
+<td>clinker</td>
+<td>blender</td>
+<td>cement</td>
+</tr>
+</tbody>
+</table></div>
+<div class="section" id="balancing-a-chain">
+<h3>Balancing a chain<a class="headerlink" href="#balancing-a-chain" title="Permalink to this headline">¶</a></h3>
+<p>Balancing a chain calculates the quantity of all inflows and outflows of each unit process in the chain, either from first inflow to last outflow or from last outflow to first inflow. To balance a chain, the following arguments  must be provided:</p>
+<ul class="simple">
+<li>the quantity of one inflow or outflow somwhere in the chain</li>
+<li>the name of that inflow or outflow substance</li>
+<li>the name of the configuration scenario to use from the variables table.</li>
+<li>the name of the unit process in the chain, if the specified flow is not an iflow into the first process or an outflow of the last proces.</li>
+</ul>
+<p>All arguments besides the quantity can be optional, if default values have been specified for the process chain.</p>
+<p>Balancing a chain returns a dictionary with both the calculated inflows and outflows for each unit process, as well as the the overall inflows and outflows.</p>
+</div>
+<div class="section" id="generating-a-chain-diagram">
+<h3>Generating a chain diagram<a class="headerlink" href="#generating-a-chain-diagram" title="Permalink to this headline">¶</a></h3>
+<p>After a chain has been defined, a process flow diagram of the chain can be generated.</p>
+<p>E.g.</p>
+<p><img alt="_images/chain_pfd.png" src="_images/chain_pfd.png" /></p>
+</div>
+</div>
+<div class="section" id="factory">
+<h2>Factory<a class="headerlink" href="#factory" title="Permalink to this headline">¶</a></h2>
+<p>A factory is a collection of one or more connected process chains, where the inflow of outflow of any unit process within any chain can be the inflow or outflow of any other chain. A factory has a single main chain, and zero or more auxiliary chains. By specifying an input or output quantity to the main chain, it is possible to calculate the inflows and outflows of all processes within the chain.</p>
+<div class="section" id="defining-a-factory">
+<h3>Defining a factory<a class="headerlink" href="#defining-a-factory" title="Permalink to this headline">¶</a></h3>
+<p>A factory is defined by two tables: one that lists the chains (and their file locations) and another that lists the connections between the chains. Factory data can be in seperate spreadsheets or in a single excel workbook.</p>
+<div class="section" id="factory-chains-table">
+<h4>Factory chains table<a class="headerlink" href="#factory-chains-table" title="Permalink to this headline">¶</a></h4>
+<p>This table specifies the location of the proces chain data used in the factory, as well as the  primary product and whether that product is an inflow or outflow of the chain.
+The first chain of the chain list is assumed to be the main product chain, but otherwise it doesn’t matter.
+The chains can either be in the same file, if an excel workbook, or in a seperate file.</p>
+<p>e.g.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>ChainName</th>
+<th>ChainProduct</th>
+<th>Product_IO</th>
+<th>ChainFile</th>
+<th>ChainSheet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cement</td>
+<td>cement</td>
+<td>outflow</td>
+<td>here</td>
+<td>Cement Chain</td>
+</tr>
+<tr>
+<td>CO2capture</td>
+<td>CO2</td>
+<td>inflow</td>
+<td>here</td>
+<td>CO2 Capture</td>
+</tr>
+<tr>
+<td>power</td>
+<td>electricity</td>
+<td>outflow</td>
+<td>here</td>
+<td>Power Chain</td>
+</tr>
+</tbody>
+</table>
+<h4>Factory connections table</h4>
+<p>The factory connections table specifies how the chains connect, including the origin process chain and unit process, the destination chain, the connecting product, and whether the product is an inflow or outflow of the origin and destination.
+The connections table is order depedent, and the first chain should always be the main chain. </p><p>e.g.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>OriginChain</th>
+<th>OriginProcess</th>
+<th>Product</th>
+<th>Product_IO_of_Origin</th>
+<th>Product_IO_of_Destination</th>
+<th>DestinationChain</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cement</td>
+<td>kiln</td>
+<td>CO2</td>
+<td>outflow</td>
+<td>inflow</td>
+<td>CO2capture</td>
+</tr>
+<tr>
+<td>cement</td>
+<td>all</td>
+<td>electricity</td>
+<td>inflow</td>
+<td>outflow</td>
+<td>power</td>
+</tr>
+<tr>
+<td>CO2capture</td>
+<td>all</td>
+<td>electricity</td>
+<td>inflow</td>
+<td>outflow</td>
+<td>power</td>
+</tr>
+</tbody>
+</table><p>It is also possible to specify recycling flows in the connections table, if a Destination Unit is also provided. (The optional destination unit can be used to send flows to intermediate unit processes in chains.) Currently two types of recycling are usable:</p>
+<ul class="simple">
+<li><em>1-to-1 replacement</em>: allows for a recycle flow to replace a flow in another unit process, given that is a 1-to-1 correspondent and does not affect other flows in unit process</li>
+<li><em>energy replacing fuel</em>: allows for recycled energy to replace energy generated from a fuel in a unit process that has a combustion calculation. The emission outflows (e.g. CO2) and inflow of oxygen are also recalculated.</li>
+</ul>
+<p>It is possible to specify a purge fraction of the initial flow, as well as a maximum percentage of the existing flow that the recycled flow can replace. There can be recycling flow leftover, which is treated as a normal output. If there is insufficient recycling flow to fully replace the existing flow, it is only partially replaced. A single flow can be recycled into multiple units, by specifying each connection as a new line in the table, but only up to the original quantity of the recycling flow.</p>
+</div>
+</div>
+<div class="section" id="balancing-a-factory">
+<h3>Balancing a factory<a class="headerlink" href="#balancing-a-factory" title="Permalink to this headline">¶</a></h3>
+<p>A factory is balanced on a single quantity of the main product and using a single scenario of variables for the whole factory. Balancing a factory returns a nested dictionary with the inflows and outflows of the factory, every chain, and every unit process. Optionally, the data can be outputted to an Excel workbook with sheets for:</p>
+<ul class="simple">
+<li>Total factory inflows and outflows</li>
+<li>A matrix for all inflow from every unit process</li>
+<li>A matrix for all outflows from every unit process</li>
+<li>A list of all internal flows/connections, both within chains and</li>
+<li>Inflows for each chain unit process and chain totals (per chain)</li>
+<li>Outflows for each chain unit process and chain totals (per chain)</li>
+</ul>
+<p>By default, the data is divided into mass and energy flows, if energy flow name signifiers are provided, with totals for both mass and energy flows.</p>
+</div>
+<div class="section" id="generating-a-factory-diagram">
+<h3>Generating a factory diagram<a class="headerlink" href="#generating-a-factory-diagram" title="Permalink to this headline">¶</a></h3>
+<p>After a factory has been defined, a process flow diagram of the factory can be generated. However, due to the limitations of the diagram rendering software, they are unlikely to be pretty.</p>
+<p>E.g.<img alt="_images/factory_pfd.png" src="_images/factory_pfd.png" /></p>
+</div>
+</div>
+<div class="section" id="industries">
+<h2>Industries<a class="headerlink" href="#industries" title="Permalink to this headline">¶</a></h2>
+<p>The largest block is currently an “Industry”, which is a collection of one or more factories that produce one or more products.</p>
+<div class="section" id="defining-an-industry">
+<h3>Defining an Industry<a class="headerlink" href="#defining-an-industry" title="Permalink to this headline">¶</a></h3>
+<p>An industry is defined by a factory list table, which has the name of each factory and location of its data.</p>
+<p>E.g.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Factory Name</th>
+<th>Factory File</th>
+<th>Factory Chains Sheet</th>
+<th>Factory Connections Sheet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cementFactory</td>
+<td>excelData/cementFactory.xlsx</td>
+<td>Chain List</td>
+<td>Connections</td>
+</tr>
+<tr>
+<td>duplicateCementFactory</td>
+<td>excelData/cementFactory.xlsx</td>
+<td>Chain List</td>
+<td>Connections</td>
+</tr>
+<tr>
+<td>otherCementFactory</td>
+<td>excelData/otherCementFactory.xlsx</td>
+<td>Chain List</td>
+<td>Connections</td>
+</tr>
+<tr>
+<td>clinkerFactory</td>
+<td>excelData/clinkerFactory.xlsx</td>
+<td>Chain List</td>
+<td>Connections</td>
+</tr>
+</tbody>
+</table></div>
+<div class="section" id="balancing-an-industry">
+<h3>Balancing an Industry<a class="headerlink" href="#balancing-an-industry" title="Permalink to this headline">¶</a></h3>
+<p>An industry can be balanced by specifying the output product quantity for each factory, and the scenario of variables for each factory. It is possible to specify each of these absolutely for each factory, or relative to the total output of each product. It is possible to mix absolute and relative specifications in an industry, but it must be the same for each product. It is also possible to batch-balance the industries on the same output quantity but using different scenarios of variable.</p>
+<p>E.g. Absolute Product and Scenarios</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Factory Name</th>
+<th>Factory Product</th>
+<th>Product Qty</th>
+<th>Scenario</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cementFactory</td>
+<td>cement</td>
+<td>500</td>
+<td>EU-typ</td>
+</tr>
+<tr>
+<td>otherCementFactory</td>
+<td>cement</td>
+<td>200</td>
+<td>EU-old</td>
+</tr>
+<tr>
+<td>duplicateCementFactory</td>
+<td>same_cement</td>
+<td>500</td>
+<td>EU-typ</td>
+</tr>
+<tr>
+<td>clinkerFactory</td>
+<td>clinker</td>
+<td>50</td>
+<td>EU-bat</td>
+</tr>
+</tbody>
+</table><p>E.g. Relative products and scenarios</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Factory Name</th>
+<th>Factory Product</th>
+<th>Product Qty</th>
+<th>Scenario</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>industry</td>
+<td>cement</td>
+<td>1200</td>
+<td>EU-typ</td>
+</tr>
+<tr>
+<td>cementFactory</td>
+<td>cement</td>
+<td>0.4</td>
+<td></td>
+</tr>
+<tr>
+<td>otherCementFactory</td>
+<td>cement</td>
+<td>0.5</td>
+<td></td>
+</tr>
+<tr>
+<td>duplicateCementFactory</td>
+<td>cement</td>
+<td>0.1</td>
+<td></td>
+</tr>
+<tr>
+<td>clinkerFactory</td>
+<td>clinker</td>
+<td>50</td>
+<td>EU-bat</td>
+</tr>
+</tbody>
+</table><p>Balancing an industry returns a dictionary with the inputs and outputs of every factory and sub-block. It is also possible to output the industry data to a set of Excel workbooks, one for each factory (as described above), and one for the industry as a whole, with matricies of overall inputs and outputs by factory and for the industry in total.</p>
+</div>
+<div class="section" id="evolving-an-industry">
+<h3>Evolving an Industry<a class="headerlink" href="#evolving-an-industry" title="Permalink to this headline">¶</a></h3>
+<p>Evolving an industry allows for the specification of a start timestep industry state and an end timestep industry state, using the same format for balancing an industry. blackblox can then calculate both annual and cumulative inflows and outflows, assuming a linear change between start and industry state. It is possible for one state to have a different set of factories than the other, as long as all the factories were listed in the industry factory list table.</p>
+<p>Evolving an industry outputs the same Excel files as does balancing an industry —one set for each the start and end state—, as well as a file with the cumulative and annual inflows and outflows listed by year, both for the industry as a whole, and for all factories.</p>
+<p>You can also export a graph of the annual outputs of a given flow, e.g.</p>
+<p><img alt="_images/annual_cement.png" src="_images/annual_cement.png" /></p>
+</div>
+</div>
+<div class="section" id="forthcoming-features">
+<h2>Forthcoming Features<a class="headerlink" href="#forthcoming-features" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Specifying evolution growth rates rather than absolute values</li>
+<li>Multi-step evolution of industries</li>
+<li>Comparison of industries (static and evolution)</li>
+<li>More and prettier graphics</li>
+<li>Cleaner code with beter documentation</li>
+</ul>
+</div>
+<div class="section" id="current-limitations">
+<h2>Current limitations<a class="headerlink" href="#current-limitations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>No more than two “must be known” quantities can be specified in the calculations</li>
+<li>Recycling flows cannot affect other inflows/outflows in a chain<ul>
+<li>excepting emissions and oxygen from combustion when replacing fuel with recycled energy</li>
+</ul>
+</li>
+<li>Chains can only balance if the specified flow is a substance name that is uniquely an input or uniquely an output of the chain.</li>
+<li>Industries only can evolve linearly.</li>
+<li>Mass flows cannot carry energy or other properties - this would require treating flows as objects, and I’m not sure I’m going to do that<ul>
+<li>Therefore energy flows will not balance</li>
+<li>Though fuels are recognized as containing energy, if specified in the fuels lookup dataframe</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="unit.html" class="btn btn-neutral float-right" title="The Unit Process Module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Black Box Modeling in Python" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, S.E. Tanzer
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

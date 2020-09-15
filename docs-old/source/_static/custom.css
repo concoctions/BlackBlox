@@ -1,0 +1,64 @@
+/* SIDEBAR */
+.wy-nav-side {
+    background: #3e3e3e;
+}
+
+/* Sidebar header (and topbar for mobile) */
+.wy-side-nav-search, .wy-nav-top {
+    background: #00d3e6;
+}
+
+/* Version number in sidebar */
+.wy-side-nav-search div.version {
+    color: white;
+}
+
+/* Headers in left-nav */
+.wy-menu-vertical p.caption {
+  color: white;
+}
+/* Subheaders in left-nav */
+.wy-menu-vertical a {
+  color: #eeeeee;
+}
+.wy-menu-vertical a:hover {
+  color: #fffd09;
+  background-color: #484848;
+}
+
+/*links*/
+a {
+    color: #00d3e6;
+}
+
+a:hover{
+    color: #00d3e6;
+}
+
+
+/* HEADINGS 
+h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend {
+  font-family: "Lato", "proxima-nova", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 700;
+}
+body {
+  font-family: "Lato", "proxima-nova", "Helvetica Neue", Arial, sans-serif;
+}
+*/
+
+/* override TABLE WIDTH restrictions 
+@media screen and (min-width: 767px) {
+
+   .wy-table-responsive table td {  
+*/
+      /* !important prevents the common CSS stylesheets from overriding
+         this as on RTD they are loaded after this stylesheet */
+ /*        
+      white-space: normal !important;
+   }
+
+   .wy-table-responsive {
+      overflow: visible !important;
+   }
+}
+*/

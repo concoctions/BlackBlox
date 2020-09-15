@@ -1,0 +1,730 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>unitprocess &mdash; blackblox.py 0.2.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/logo150.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                blackblox v0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">NOTE: This introductory document still must be updated with the latest feature set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html#what-is-blackblox-py">What is blackblox.py?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../unit.html">The Unit Process Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chain.html">The Process Chain Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../factory.html">The Factory Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../industry.html">The Industry Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../calculators.html">The Calculators Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io_functions.html">The IO Functions Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dataconfig.html">The dataconfig Module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">blackblox.py</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>unitprocess</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for unitprocess</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot; Unit process class</span>
+
+<span class="sd">This module contains the Unit Process class, which is the smallest,</span>
+<span class="sd">and fundamental, block used in BlackBlox.py.</span>
+
+<span class="sd">Each unit process has inflows and outflows, whose abstract relationships </span>
+<span class="sd">are specified in a relationships table. The numeric values for the variables</span>
+<span class="sd">used in those relationships are specified in a seperate table, to allow</span>
+<span class="sd">for multipe scenarios to be used.</span>
+
+<span class="sd">The Unit Process class has a single function, which is to balance the</span>
+<span class="sd">inflows and outflows given one quantity of an inflow or outflow. Balancing</span>
+<span class="sd">the unit process requires that the relationships table is complete.</span>
+
+<span class="sd">Module Outline:</span>
+
+<span class="sd">- import statements and logger</span>
+<span class="sd">- module variable: df_units_library (dataframe)</span>
+<span class="sd">- class: unit process</span>
+<span class="sd">    - class function: Balance</span>
+<span class="sd">    - class function: recycle_1to1</span>
+<span class="sd">    - class function: recycle_energy_replacing_fuel</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
+<span class="kn">from</span> <span class="nn">bb_log</span> <span class="k">import</span> <span class="n">get_logger</span>
+<span class="kn">import</span> <span class="nn">io_functions</span> <span class="k">as</span> <span class="nn">iof</span>
+<span class="kn">import</span> <span class="nn">dataconfig</span> <span class="k">as</span> <span class="nn">dat</span>
+<span class="kn">import</span> <span class="nn">calculators</span>  <span class="k">as</span> <span class="nn">calc</span>
+
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;Unit Process&quot;</span><span class="p">)</span>
+
+<span class="c1"># LOOK UP VARIABLES</span>
+<span class="n">df_unit_library</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">dat</span><span class="o">.</span><span class="n">unit_process_library_file</span><span class="p">,</span> 
+                             <span class="n">sheet</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">unit_process_library_sheet</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot;dataframe of all unit process names and file locations</span>
+
+<span class="sd">This data frame is used by the unit process class to provide the</span>
+<span class="sd">locations of the calculations and variable tables for each unit</span>
+<span class="sd">process. Data locations for each unit process can also be provided</span>
+<span class="sd">invidivually, but if not otherwise specified, the unit process</span>
+<span class="sd">__init__ function will look for the data in this data frame.</span>
+
+<span class="sd">The names of the unit process should be index column of the data</span>
+<span class="sd">frame, and there should also be columns for the file paths of the</span>
+<span class="sd">variables table and calculations tables. Columns for sheet names,</span>
+<span class="sd">if the data is within excel sheets, will also be used if provided.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">lookup_var_dict</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">dat</span><span class="o">.</span><span class="n">lookup_var_dict</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">lookup_var_dict</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">lookup_var_dict</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="s1">&#39;filepath&#39;</span><span class="p">],</span> <span class="n">sheet</span><span class="o">=</span><span class="n">lookup_var_dict</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="s1">&#39;sheet&#39;</span><span class="p">])</span>
+    <span class="n">lookup_var_dict</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="s1">&#39;data_frame&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span>
+
+
+<div class="viewcode-block" id="UnitProcess"><a class="viewcode-back" href="../unit.html#unitprocess.UnitProcess">[docs]</a><span class="k">class</span> <span class="nc">UnitProcess</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;UnitProcess(name, var_df=False, calc_df=False, units_df=df_unit_library)</span>
+<span class="sd">    Unit processes have inflows and outflows with defined relationships.</span>
+
+<span class="sd">    The relationships of the unit process flows must be defined so that</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (str): Unique name for the process</span>
+<span class="sd">        var_df (str/dataframe/bool): Optional. Dataframe or filepath tof</span>
+<span class="sd">            tabular data of the variable values to use when balancing the </span>
+<span class="sd">            unit process. If False, __init__ uses df_unit_library to fetch </span>
+<span class="sd">            data.</span>
+<span class="sd">            (Defaults to False)</span>
+<span class="sd">        calc_df (str/dataframe/bool): Optional. Dataframe or filepath to </span>
+<span class="sd">            tabular data the relationships between the flows within the</span>
+<span class="sd">            unit process, with each relationship having no more than a</span>
+<span class="sd">            single variable. If False, __init__ uses df_unit_library to fetch</span>
+<span class="sd">            data. The relationships must be sufficiently specified so that</span>
+<span class="sd">            so that there are zero degrees of freedom. </span>
+<span class="sd">            (Defaults to False)</span>
+<span class="sd">        units_df (dataframe): Unit process library data frame</span>
+<span class="sd">            (Defaults to df_unit_library)</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        name (str): Name of process</span>
+<span class="sd">        var_df (dataframe): Dataframe of relationship variable values</span>
+<span class="sd">            indexed by scenario name.</span>
+<span class="sd">        calc_df (dataframe): Dataframe of relationships between unit</span>
+<span class="sd">            process flows.</span>
+<span class="sd">        default_product (str): The primary &quot;product&quot; flow of the unit</span>
+<span class="sd">            process. Derived from units_df.</span>
+<span class="sd">        default_io (str): Whether the primary product is an inflow</span>
+<span class="sd">            or an outflow. Derived from units_df.</span>
+<span class="sd">        inflows (set[str]): List of inflows to the unit process. Derived</span>
+<span class="sd">            from calc_df.</span>
+<span class="sd">        outflows (set[str]): List of outflows to the unit process. Derived</span>
+<span class="sd">            from calc_df.</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">name</span><span class="p">,</span> 
+                 <span class="n">var_df</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                 <span class="n">calc_df</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                 <span class="n">units_df</span><span class="o">=</span><span class="n">df_unit_library</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;creating unit process object for </span><span class="si">{name}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="k">if</span> <span class="n">var_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">var_df</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">v_sheet</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">check_for_col</span><span class="p">(</span><span class="n">units_df</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">var_sheetname</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">units_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">name</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">var_filepath</span><span class="p">],</span> 
+                                      <span class="n">sheet</span><span class="o">=</span><span class="n">v_sheet</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">calc_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calc_df</span> <span class="o">=</span> <span class="n">calc_df</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">c_sheet</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">check_for_col</span><span class="p">(</span><span class="n">units_df</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">calc_sheetname</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calc_df</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">make_df</span><span class="p">(</span><span class="n">units_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">name</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">calc_filepath</span><span class="p">],</span> 
+                                       <span class="n">sheet</span><span class="o">=</span><span class="n">c_sheet</span><span class="p">,</span> 
+                                       <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1">#create sets of process inflows and outflows</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_product</span> <span class="o">=</span> <span class="n">units_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">name</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">unit_product</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_io</span> <span class="o">=</span> <span class="n">units_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">name</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">unit_product_io</span><span class="p">]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">inflows</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">outflows</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span> 
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_df</span><span class="o">.</span><span class="n">index</span><span class="p">:</span> 
+            <span class="n">products</span> <span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calc_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">known</span><span class="p">],</span> 
+                <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calc_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">known_io</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span>
+                 <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calc_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">unknown</span><span class="p">],</span>
+                 <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calc_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">unknown_io</span><span class="p">][</span><span class="mi">0</span><span class="p">]))]</span>
+
+            <span class="k">for</span> <span class="n">product</span><span class="p">,</span> <span class="n">i_o</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i_o</span> <span class="o">==</span> <span class="s1">&#39;i&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">inflows</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">i_o</span> <span class="o">==</span> <span class="s1">&#39;o&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">outflows</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+            
+ 
+    <span class="k">def</span> <span class="nf">balance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                <span class="n">qty</span><span class="p">,</span> 
+                <span class="n">product</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                <span class="n">i_o</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                <span class="n">scenario</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">default_scenario</span><span class="p">,</span>
+                <span class="n">energy_flows</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">energy_flows</span><span class="p">,</span>
+                <span class="n">balance_energy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                <span class="n">raise_imbalance</span><span class="o">=</span><span class="kc">False</span><span class="p">,):</span>
+        <span class="sd">&quot;&quot;&quot;balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario, energy_flows=dat.energy_flows, balance_energy=True, raise_imbalance=False,)</span>
+<span class="sd">        performs a mass (and optionally energy) balance on the unit process.</span>
+
+<span class="sd">        Calculates all inflows and outflows, using the specified variable values</span>
+<span class="sd">        and relationship dataframe. Will only work if there are zero degrees of</span>
+<span class="sd">        freedom in the specified relationships. Currently, only checks mass</span>
+<span class="sd">        flows to see if they are properly balanced.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            If the inflow mass and outflow mass are imbalanced an error will</span>
+<span class="sd">            be raised and/or a &quot;UNKNOWN MASS&quot; or  &quot;UNKNOWN ENERGY &quot; flow will </span>
+<span class="sd">            be added to the offending flow dictionary with the imbalance quantity.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            qty (float): The quantity of the specified flow.</span>
+<span class="sd">            product (str/bool): the inflow or outflow on which to balance </span>
+<span class="sd">                the calculations. If False, uses the default product.</span>
+<span class="sd">                (Defaults to False)</span>
+<span class="sd">            i_o (str): &#39;i&#39; or &#39;o&#39;, depending on whether the specified</span>
+<span class="sd">                product is an inflow (i) or outflow (o). If False, uses the </span>
+<span class="sd">                default product&#39;s IO.</span>
+<span class="sd">                (Defaults to False)</span>
+<span class="sd">            scenario (str): row index of var_df to use for the variables value,</span>
+<span class="sd">                generally corresponding to the name of the scenario. If</span>
+<span class="sd">                False, uses the default scenario index specified in </span>
+<span class="sd">                dataconfig.</span>
+<span class="sd">                (Defaults to False)</span>
+<span class="sd">            energy_flows (list[str]): If any substance name starts with</span>
+<span class="sd">                or ends with a string on this list, the substance will not </span>
+<span class="sd">                be considered when performing the mass balance.</span>
+<span class="sd">                Defaults to energy keyword list in dataconfig.</span>
+<span class="sd">            balance_energy(bool): If true, checks for a balance of the flows</span>
+<span class="sd">                with the specified energy prefix/suffix in energy_flows.</span>
+<span class="sd">            raise_imbalance (bool): If True, the process will raise an </span>
+<span class="sd">                exception if the inflow and outflow masses and/or energies are </span>
+<span class="sd">                unbalanced. If False, will add a &quot;UNKNOWN MASS&quot; or &quot;UNKNOWN </span>
+<span class="sd">                ENERGY&quot; substance to the offended inflow or outflow dictionary.</span>
+<span class="sd">                Defaults to False.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Defaultdict of inflows with substance names as keys and quantities as values</span>
+<span class="sd">            Defaultdict of outflows with substance names as keys and quantities as values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">i_o</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">i_o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_io</span>
+        <span class="n">i_o</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">i_o</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">i_o</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{i_o}</span><span class="s1"> not valid product destination&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scenario</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{scenario}</span><span class="s1"> not found in variables file&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">product</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_product</span>
+        <span class="k">if</span> <span class="n">product</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inflows</span> <span class="ow">and</span> <span class="n">product</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outflows</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{product}</span><span class="s1"> not found in </span><span class="si">{self.name}</span><span class="s1"> inflows or outflows&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">lookup_var_dict</span><span class="p">:</span>
+            <span class="n">product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">scenario</span><span class="p">,</span> <span class="n">lookup_var_dict</span><span class="p">[</span><span class="n">product</span><span class="p">][</span><span class="s1">&#39;lookup_var&#39;</span><span class="p">]]</span>   
+        <span class="n">calc_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_df</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Attempting to balance </span><span class="si">{self.name}</span><span class="s2"> on </span><span class="si">{qty}</span><span class="s2"> of </span><span class="si">{product}</span><span class="s2"> (</span><span class="si">{i_o}</span><span class="s2">) using </span><span class="si">{scenario}</span><span class="s2"> variables&quot;</span><span class="p">)</span>
+
+        <span class="n">io_dicts</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;i&#39;</span> <span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span>    <span class="c1"># inflows dictionary</span>
+            <span class="s1">&#39;o&#39;</span> <span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span>    <span class="c1"># outflows dictionary</span>
+            <span class="s1">&#39;t&#39;</span> <span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span>    <span class="c1"># temp dictionay (intermediate values - discarded)</span>
+            <span class="s1">&#39;e&#39;</span> <span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span>    <span class="c1"># emissions dictionary (values added to outflows after all calculations)</span>
+            <span class="s1">&#39;c&#39;</span> <span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span>    <span class="c1"># co-inflows dictionary (values added to inflows after all calculations)</span>
+        <span class="p">}</span>
+        <span class="n">io_dicts</span><span class="p">[</span><span class="n">i_o</span><span class="p">][</span><span class="n">product</span><span class="p">]</span> <span class="o">=</span> <span class="n">qty</span> <span class="c1"># primes inflow or outflow dictionary with product quantity</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">attempt</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">calc_df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>     
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">calc_df</span><span class="p">):</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>   <span class="c1"># if at end of list, loop around</span>
+
+            <span class="n">known_substance</span> <span class="o">=</span> <span class="n">calc_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">known</span><span class="p">]</span>
+            <span class="n">known_io</span> <span class="o">=</span><span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">calc_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">known_io</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">unknown_io</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">calc_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">unknown_io</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> 
+            <span class="n">unknown_substance</span> <span class="o">=</span> <span class="n">calc_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">unknown</span><span class="p">]</span>
+            <span class="n">calc_type</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">calc_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">calc_type</span><span class="p">])</span>
+            <span class="n">invert</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">known_substance2</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">known_qty2</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">calc_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">calc_var</span><span class="p">])</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dat</span><span class="o">.</span><span class="n">no_var</span><span class="p">:</span>
+                <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">scenario</span><span class="p">,</span> <span class="n">calc_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">calc_var</span><span class="p">]]</span> 
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;current index: </span><span class="si">{i}</span><span class="s2">, current product: </span><span class="si">{known_substance}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">attempt</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">calc_df</span><span class="p">):</span> 
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Cannot process </span><span class="si">{known_substance}</span><span class="s2">. Breaking to prevent infinite loop&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">known_substance</span> <span class="ow">in</span> <span class="n">lookup_var_dict</span><span class="p">:</span>
+                <span class="n">known_substance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">scenario</span><span class="p">,</span> <span class="n">lookup_var_dict</span><span class="p">[</span><span class="n">known_substance</span><span class="p">][</span><span class="s1">&#39;lookup_var&#39;</span><span class="p">]]</span> 
+            <span class="k">if</span> <span class="n">unknown_substance</span> <span class="ow">in</span> <span class="n">lookup_var_dict</span><span class="p">:</span>
+                <span class="n">unknown_substance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">scenario</span><span class="p">,</span> <span class="n">lookup_var_dict</span><span class="p">[</span><span class="n">unknown_substance</span><span class="p">][</span><span class="s1">&#39;lookup_var&#39;</span><span class="p">]]</span> 
+
+            <span class="k">if</span> <span class="n">known_substance</span> <span class="ow">in</span> <span class="n">io_dicts</span><span class="p">[</span><span class="n">known_io</span><span class="p">]:</span>
+                <span class="k">pass</span>
+            <span class="k">elif</span> <span class="n">unknown_io</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">unknown_substance</span> <span class="ow">in</span> <span class="n">io_dicts</span><span class="p">[</span><span class="n">unknown_io</span><span class="p">]:</span>
+                <span class="n">invert</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">known_substance</span><span class="p">,</span> <span class="n">unknown_substance</span> <span class="o">=</span> <span class="p">(</span><span class="n">unknown_substance</span><span class="p">,</span> <span class="n">known_substance</span><span class="p">)</span>
+                <span class="n">known_io</span><span class="p">,</span> <span class="n">unknown_io</span> <span class="o">=</span> <span class="n">unknown_io</span><span class="p">,</span> <span class="n">known_io</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{known_substance}</span><span class="s2"> not found, but </span><span class="si">{unknown_substance}</span><span class="s2"> found. Inverting calculations&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">attempt</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;neither </span><span class="si">{known_substance}</span><span class="s2"> nor </span><span class="si">{unknown_substance}</span><span class="s2"> found, skipping for now&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+            
+            <span class="k">if</span> <span class="n">calc_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">calc</span><span class="o">.</span><span class="n">calcs_dict</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{calc_type}</span><span class="s2"> is an unknown_substance calculation type&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">unknown_io</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">io_dicts</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{unknown_io}</span><span class="s2"> is an unknown destination&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">calc_type</span> <span class="ow">in</span> <span class="n">calc</span><span class="o">.</span><span class="n">twoQty_calc_list</span><span class="p">:</span>
+                <span class="n">known_substance2</span> <span class="o">=</span> <span class="n">calc_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">known2</span><span class="p">]</span>
+                <span class="n">k2_io</span> <span class="o">=</span> <span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">calc_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">known2_io</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">known_substance2</span> <span class="ow">in</span> <span class="n">lookup_var_dict</span><span class="p">:</span>
+                    <span class="n">known_substance2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">scenario</span><span class="p">,</span> <span class="n">lookup_var_dict</span><span class="p">[</span><span class="n">known_substance</span><span class="p">][</span><span class="s1">&#39;lookup_var&#39;</span><span class="p">]]</span> 
+                <span class="k">if</span> <span class="n">known_substance2</span> <span class="ow">in</span> <span class="n">io_dicts</span><span class="p">[</span><span class="n">k2_io</span><span class="p">]:</span>
+                    <span class="n">known_qty2</span> <span class="o">=</span> <span class="n">io_dicts</span><span class="p">[</span><span class="n">k2_io</span><span class="p">][</span><span class="n">known_substance2</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">attempt</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{known_substance2}</span><span class="s2"> not found (both </span><span class="si">{known_substance}</span><span class="s2"> (</span><span class="si">{known_io}</span><span class="s2">) and </span><span class="si">{known_substance2}</span><span class="s2"> (</span><span class="si">{k2_io}</span><span class="s2">) required), skipping for now&quot;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+
+            <span class="n">qty_known</span> <span class="o">=</span> <span class="n">io_dicts</span><span class="p">[</span><span class="n">known_io</span><span class="p">][</span><span class="n">known_substance</span><span class="p">]</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">qty</span><span class="o">=</span><span class="n">qty_known</span><span class="p">,</span> 
+                          <span class="n">var</span><span class="o">=</span><span class="n">var</span><span class="p">,</span> 
+                          <span class="n">known_substance</span><span class="o">=</span><span class="n">known_substance</span><span class="p">,</span> 
+                          <span class="n">unknown_substance</span><span class="o">=</span><span class="n">unknown_substance</span><span class="p">,</span>
+                          <span class="n">known_substance2</span> <span class="o">=</span> <span class="n">known_substance2</span><span class="p">,</span>
+                          <span class="n">qty2</span> <span class="o">=</span> <span class="n">known_qty2</span><span class="p">,</span>
+                          <span class="n">invert</span><span class="o">=</span><span class="n">invert</span><span class="p">,</span> 
+                          <span class="n">emissions_dict</span><span class="o">=</span><span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;e&#39;</span><span class="p">],</span>
+                          <span class="n">inflows_dict</span><span class="o">=</span><span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">])</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Attempting </span><span class="si">{calc_type}</span><span class="s2"> calculation for </span><span class="si">{unknown_substance}</span><span class="s2"> using </span><span class="si">{qty_known}</span><span class="s2"> of </span><span class="si">{known_substance}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">qty_calculated</span> <span class="o">=</span> <span class="n">calc</span><span class="o">.</span><span class="n">calcs_dict</span><span class="p">[</span><span class="n">calc_type</span><span class="p">](</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">io_dicts</span><span class="p">[</span><span class="n">unknown_io</span><span class="p">][</span><span class="n">unknown_substance</span><span class="p">]</span> <span class="o">=</span> <span class="n">qty_calculated</span>
+
+            <span class="n">calc_df</span> <span class="o">=</span> <span class="n">calc_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">calc_df</span> <span class="o">=</span> <span class="n">calc_df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">attempt</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{qty_calculated}</span><span class="s2"> of </span><span class="si">{unknown_substance}</span><span class="s2"> calculated. {len(calc_df)} calculations remaining.&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;emissions: </span><span class="si">{io_dicts[&#39;e&#39;]}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;coinflows: </span><span class="si">{io_dicts[&#39;c&#39;]}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">substance</span><span class="p">,</span> <span class="n">qty</span> <span class="ow">in</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;e&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> <span class="c1">#adds emissions dictionary to outflow dictionary</span>
+            <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="n">substance</span><span class="p">]</span> <span class="o">+=</span> <span class="n">qty</span>
+        <span class="k">for</span> <span class="n">substance</span><span class="p">,</span> <span class="n">qty</span> <span class="ow">in</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> <span class="c1">#adds co-inflows dictionary to inflows dictionary</span>
+            <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="n">substance</span><span class="p">]</span> <span class="o">+=</span> <span class="n">qty</span>
+
+        <span class="n">total_mass_in</span><span class="p">,</span> <span class="n">total_mass_out</span> <span class="o">=</span> <span class="n">calc</span><span class="o">.</span><span class="n">check_balance</span><span class="p">(</span><span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">],</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">],</span>
+                                                 <span class="n">raise_imbalance</span><span class="o">=</span><span class="n">raise_imbalance</span><span class="p">,</span> 
+                                                 <span class="n">ignore_flows</span><span class="o">=</span><span class="n">energy_flows</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">total_mass_in</span> <span class="o">&gt;</span> <span class="n">total_mass_out</span><span class="p">:</span>
+            <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="s1">&#39;UNKNOWN-mass&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_mass_in</span> <span class="o">-</span> <span class="n">total_mass_out</span>
+        <span class="k">elif</span> <span class="n">total_mass_out</span> <span class="o">&gt;</span> <span class="n">total_mass_in</span><span class="p">:</span>
+            <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="s1">&#39;UNKNOWN-mass&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_mass_out</span> <span class="o">-</span> <span class="n">total_mass_in</span>
+
+        <span class="k">if</span> <span class="n">balance_energy</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Balancing energy&quot;</span><span class="p">)</span>
+            <span class="n">total_energy_in</span><span class="p">,</span> <span class="n">total_energy_out</span> <span class="o">=</span> <span class="n">calc</span><span class="o">.</span><span class="n">check_balance</span><span class="p">(</span><span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">],</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">],</span>
+                                                 <span class="n">raise_imbalance</span><span class="o">=</span><span class="n">raise_imbalance</span><span class="p">,</span> 
+                                                 <span class="n">ignore_flows</span><span class="o">=</span><span class="p">[],</span>
+                                                 <span class="n">only_these_flows</span><span class="o">=</span><span class="n">energy_flows</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">total_energy_in</span> <span class="o">&gt;</span> <span class="n">total_energy_out</span><span class="p">:</span>
+                <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="s1">&#39;UNKNOWN-energy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_energy_in</span> <span class="o">-</span> <span class="n">total_energy_out</span>
+            <span class="k">elif</span> <span class="n">total_mass_out</span> <span class="o">&gt;</span> <span class="n">total_mass_in</span><span class="p">:</span>
+                <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="s1">&#39;UNKNOWN-energy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_energy_out</span> <span class="o">-</span> <span class="n">total_energy_in</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{self.name}</span><span class="s2"> process balanced on </span><span class="si">{qty}</span><span class="s2"> of </span><span class="si">{product}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Inflows:&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">substance</span><span class="p">,</span> <span class="n">qty</span> <span class="ow">in</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{substance}</span><span class="s2">: </span><span class="si">{qty}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Outflows:&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">substance</span><span class="p">,</span> <span class="n">qty</span> <span class="ow">in</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{substance}</span><span class="s2">: </span><span class="si">{qty}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">],</span> <span class="n">io_dicts</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">]</span>
+
+
+    <span class="k">def</span> <span class="nf">recycle_1to1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                       <span class="n">original_inflows_dict</span><span class="p">,</span>
+                       <span class="n">original_outflows_dict</span><span class="p">,</span>
+                       <span class="n">recycled_qty</span><span class="p">,</span>
+                       <span class="n">recycle_io</span><span class="p">,</span>
+                       <span class="n">recycled_flow</span><span class="p">,</span>
+                       <span class="n">replaced_flow</span><span class="p">,</span>
+                       <span class="n">max_replace_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                       <span class="n">scenario</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">default_scenario</span><span class="p">,</span> 
+                       <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    
+        <span class="sd">&quot;&quot;&quot;Inserts a recycle flow that corresponds 1-to-1 with an existing flow</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            original_inflows_dict (defaultdict): Dictionary of inflow quantities </span>
+<span class="sd">                from the orignal balancing of the unit process</span>
+<span class="sd">            original_outflows_dict (defaultdict): Dictionary of outflow </span>
+<span class="sd">                quantities from the orignal balancing of the unit process</span>
+<span class="sd">            recycled_qty (float): quantity of recycled flow</span>
+<span class="sd">            recycle_io (str): &quot;i&quot; if the recycled flow is an inflow or &quot;o&quot; if </span>
+<span class="sd">                it is an outflow</span>
+<span class="sd">            recycled_flow (str): name of the recycled flow</span>
+<span class="sd">            replaced_flow (str): name of the flow to be replaced by the recycled flow</span>
+<span class="sd">            max_replace_fraction (float/none): the maximum percentage of the </span>
+<span class="sd">                original flow that the recycled flow is allowed to replace</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            - *dictionary* of rebalanced inflows</span>
+<span class="sd">            - *dictionary* of rebalanced outflows</span>
+<span class="sd">            - *float* of the remaining quantity of the recycle stream</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">original_flows</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">original_inflows_dict</span><span class="p">,</span>
+                              <span class="n">o</span><span class="o">=</span><span class="n">original_outflows_dict</span><span class="p">)</span>
+        <span class="n">rebalanced_flows</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">copy</span><span class="p">(</span><span class="n">original_inflows_dict</span><span class="p">),</span>
+                                <span class="n">o</span><span class="o">=</span><span class="n">copy</span><span class="p">(</span><span class="n">original_outflows_dict</span><span class="p">))</span>
+    
+
+        <span class="n">i_o</span> <span class="o">=</span><span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">recycle_io</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">i_o</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{i_o}</span><span class="s1"> is unknown flow location (Only inflows and outflows allowed for rebalanced processes&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">replaced_flow</span> <span class="ow">in</span> <span class="n">lookup_var_dict</span><span class="p">:</span>
+            <span class="n">replaced_flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">scenario</span><span class="p">,</span> <span class="n">lookup_var_dict</span><span class="p">[</span><span class="n">replaced_flow</span><span class="p">][</span><span class="s1">&#39;lookup_var&#39;</span><span class="p">]]</span> 
+
+        <span class="k">if</span> <span class="n">replaced_flow</span> <span class="ow">in</span> <span class="n">calc</span><span class="o">.</span><span class="n">df_fuels</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;WARNING! </span><span class="si">{replaced_flow}</span><span class="s1"> is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.&#39;</span><span class="p">)</span>
+
+        <span class="n">calc</span><span class="o">.</span><span class="n">check_qty</span><span class="p">(</span><span class="n">max_replace_fraction</span><span class="p">,</span> <span class="n">fraction</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">replacable_qty</span> <span class="o">=</span> <span class="n">original_flows</span><span class="p">[</span><span class="n">i_o</span><span class="p">][</span><span class="n">replaced_flow</span><span class="p">]</span> <span class="o">*</span> <span class="n">max_replace_fraction</span>
+        <span class="n">unreplacable_qty</span> <span class="o">=</span> <span class="n">original_flows</span><span class="p">[</span><span class="n">i_o</span><span class="p">][</span><span class="n">replaced_flow</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">max_replace_fraction</span><span class="p">)</span>
+        <span class="n">remaining_replacable_qty</span> <span class="o">=</span> <span class="n">replacable_qty</span> <span class="o">-</span> <span class="n">recycled_qty</span>
+
+        <span class="k">if</span> <span class="n">remaining_replacable_qty</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">rebalanced_flows</span><span class="p">[</span><span class="n">i_o</span><span class="p">][</span><span class="n">replaced_flow</span><span class="p">]</span> <span class="o">=</span> <span class="n">remaining_replacable_qty</span> <span class="o">+</span> <span class="n">unreplacable_qty</span>
+            <span class="n">rebalanced_flows</span><span class="p">[</span><span class="n">i_o</span><span class="p">][</span><span class="n">recycled_flow</span><span class="p">]</span> <span class="o">+=</span> <span class="n">recycled_qty</span>
+            <span class="n">remaining_recycle_qty</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rebalanced_flows</span><span class="p">[</span><span class="n">i_o</span><span class="p">][</span><span class="n">replaced_flow</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">+</span> <span class="n">unreplacable_qty</span>
+            <span class="n">used_recycle_qty</span> <span class="o">=</span> <span class="n">recycled_qty</span> <span class="o">+</span> <span class="n">remaining_replacable_qty</span>
+            <span class="n">rebalanced_flows</span><span class="p">[</span><span class="n">i_o</span><span class="p">][</span><span class="n">recycled_flow</span><span class="p">]</span> <span class="o">+=</span> <span class="n">used_recycle_qty</span>
+            <span class="n">remaining_recycle_qty</span> <span class="o">=</span> <span class="n">recycled_qty</span> <span class="o">-</span> <span class="n">used_recycle_qty</span>
+
+        <span class="k">if</span> <span class="n">remaining_recycle_qty</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Something went wrong. remaining_recycle_qty &lt; 0 </span><span class="si">{remaining_recycle_qty}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">rebalanced_flows</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">],</span> <span class="n">rebalanced_flows</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">],</span> <span class="n">remaining_recycle_qty</span>
+
+
+    <span class="k">def</span> <span class="nf">recycle_energy_replacing_fuel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                       <span class="n">original_inflows_dict</span><span class="p">,</span>
+                       <span class="n">original_outflows_dict</span><span class="p">,</span>
+                       <span class="n">recycled_qty</span><span class="p">,</span>
+                       <span class="n">recycle_io</span><span class="p">,</span>
+                       <span class="n">recycled_flow</span><span class="p">,</span>
+                       <span class="n">replaced_flow</span><span class="p">,</span>
+                       <span class="n">max_replace_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                       <span class="n">combustion_eff</span> <span class="o">=</span> <span class="n">dat</span><span class="o">.</span><span class="n">combustion_efficiency_var</span><span class="p">,</span>
+                       <span class="n">scenario</span><span class="o">=</span><span class="n">dat</span><span class="o">.</span><span class="n">default_scenario</span><span class="p">,</span>
+                       <span class="n">emissions_list</span> <span class="o">=</span> <span class="n">dat</span><span class="o">.</span><span class="n">default_emissions</span><span class="p">,</span> 
+                       <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;recycle_energy_replacing_fuel(original_inflows_dict, original_outflows_dict, recycled_qty, recycle_io, recycled_flow, replaced_flow, max_replace_fraction=1.0, combustion_eff = dat.combustion_efficiency_var, scenario=dat.default_scenario, emissions_list = [&#39;CO2&#39;, &#39;H2O&#39;, &#39;SO2&#39;], **kwargs)</span>
+<span class="sd">        replaces fuel use and associated emissions with a recycled energy flow</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            original_inflows_dict (defaultdict): Dictionary of inflow quantities from the orignal</span>
+<span class="sd">                balancing of the unit process</span>
+<span class="sd">            original_outflows_dict (defaultdict): Dictionary of outflow quantities from the orignal</span>
+<span class="sd">                balancing of the unit process</span>
+<span class="sd">            recycled_qty (float): quantity of recycled flow</span>
+<span class="sd">            recycle_io (str): &quot;i&quot; if the recycled flow is an inflow or &quot;o&quot; if it is an outflow</span>
+<span class="sd">            recycled_flow (str): name of the recycled flow</span>
+<span class="sd">            replaced_flow (str): name of the flow to be replaced by the recycled flow</span>
+<span class="sd">            combustion_eff [str/float]: The name of the combustion efficiency variable (case sensitive) from the variables table</span>
+<span class="sd">                or a float of the combustion_eff (must be between 0 and 1)</span>
+<span class="sd">            scenario (str): name of the scenario to use</span>
+<span class="sd">                (Defaults to dat.default_scenario)</span>
+<span class="sd">            emissions_list (list[str]): list of emissions to recalculation. O2 is always automatically recalculated.</span>
+<span class="sd">                (Defaults to [&#39;CO2&#39;, &#39;H2O&#39;, &#39;SO2&#39;])</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            - *dictionary* of rebalanced inflows</span>
+<span class="sd">            - *dictionary* of rebalanced outflows</span>
+<span class="sd">            - *float* of the remaining quantity of the recycle stream</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Attempting to replace </span><span class="si">{replaced_flow}</span><span class="s2"> (energy) with </span><span class="si">{recycled_flow}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="n">original_flows</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">original_inflows_dict</span><span class="p">,</span>
+                              <span class="n">o</span><span class="o">=</span><span class="n">original_outflows_dict</span><span class="p">)</span>
+        <span class="n">rebalanced_flows</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">copy</span><span class="p">(</span><span class="n">original_inflows_dict</span><span class="p">),</span>
+                                <span class="n">o</span><span class="o">=</span><span class="n">copy</span><span class="p">(</span><span class="n">original_outflows_dict</span><span class="p">))</span>
+
+        <span class="n">i_o</span> <span class="o">=</span><span class="n">iof</span><span class="o">.</span><span class="n">clean_str</span><span class="p">(</span><span class="n">recycle_io</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">i_o</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{i_o}</span><span class="s1"> is unknown flow location (Only inflows and outflows allowed for rebalanced processes&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">replaced_flow</span> <span class="ow">in</span> <span class="n">lookup_var_dict</span><span class="p">:</span>
+            <span class="n">replaced_flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">scenario</span><span class="p">,</span> <span class="n">lookup_var_dict</span><span class="p">[</span><span class="n">replaced_flow</span><span class="p">][</span><span class="s1">&#39;lookup_var&#39;</span><span class="p">]]</span> 
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">combustion_eff</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">combustion_eff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">scenario</span><span class="p">,</span> <span class="n">combustion_eff</span><span class="p">]</span>
+
+        <span class="n">replaced_emissions_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">replaced_inflows_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">equivelent_fuel_qty</span> <span class="o">=</span> <span class="n">calc</span><span class="o">.</span><span class="n">Combustion</span><span class="p">(</span><span class="s1">&#39;energy&#39;</span><span class="p">,</span> 
+                                          <span class="n">recycled_qty</span><span class="p">,</span> 
+                                          <span class="n">replaced_flow</span><span class="p">,</span> 
+                                          <span class="n">combustion_eff</span><span class="p">,</span> 
+                                          <span class="n">replaced_emissions_dict</span><span class="p">,</span>
+                                          <span class="n">replaced_inflows_dict</span><span class="p">,</span>
+                                          <span class="n">emissions_list</span><span class="o">=</span><span class="n">emissions_list</span><span class="p">)</span>
+
+        <span class="n">calc</span><span class="o">.</span><span class="n">check_qty</span><span class="p">(</span><span class="n">max_replace_fraction</span><span class="p">,</span> <span class="n">fraction</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">replacable_qty</span> <span class="o">=</span> <span class="n">original_flows</span><span class="p">[</span><span class="n">i_o</span><span class="p">][</span><span class="n">replaced_flow</span><span class="p">]</span> <span class="o">*</span> <span class="n">max_replace_fraction</span>
+        <span class="n">unreplacable_qty</span> <span class="o">=</span> <span class="n">original_flows</span><span class="p">[</span><span class="n">i_o</span><span class="p">][</span><span class="n">replaced_flow</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">max_replace_fraction</span><span class="p">)</span>
+        <span class="n">remaining_fuel_qty</span> <span class="o">=</span> <span class="n">replacable_qty</span> <span class="o">-</span> <span class="n">equivelent_fuel_qty</span>
+
+        <span class="k">if</span> <span class="n">remaining_fuel_qty</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">rebalanced_flows</span><span class="p">[</span><span class="n">i_o</span><span class="p">][</span><span class="n">replaced_flow</span><span class="p">]</span> <span class="o">=</span> <span class="n">remaining_fuel_qty</span> <span class="o">+</span> <span class="n">unreplacable_qty</span>
+            <span class="n">rebalanced_flows</span><span class="p">[</span><span class="n">i_o</span><span class="p">][</span><span class="n">recycled_flow</span><span class="p">]</span> <span class="o">=</span> <span class="n">recycled_qty</span>
+            <span class="n">remaining_energy_qty</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">replaced_emissions_dict</span><span class="p">:</span>
+                <span class="n">rebalanced_flows</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="n">flow</span><span class="p">]</span> <span class="o">-=</span> <span class="n">replaced_emissions_dict</span><span class="p">[</span><span class="n">flow</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">replaced_inflows_dict</span><span class="p">:</span>
+                <span class="n">rebalanced_flows</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="n">flow</span><span class="p">]</span> <span class="o">-=</span> <span class="n">replaced_inflows_dict</span><span class="p">[</span><span class="n">flow</span><span class="p">]</span>
+
+            <span class="n">remaining_energy_qty</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">else</span><span class="p">:</span> <span class="c1">#if remaining_fuel_qty is negative, that means there is unused recycled energy</span>
+            <span class="n">rebalanced_flows</span><span class="p">[</span><span class="n">i_o</span><span class="p">][</span><span class="n">replaced_flow</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">+</span> <span class="n">unreplacable_qty</span>
+            <span class="n">used_equivelent_fuel_qty</span> <span class="o">=</span> <span class="n">equivelent_fuel_qty</span> <span class="o">+</span> <span class="n">remaining_fuel_qty</span>
+
+            <span class="n">replaced_emissions_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">replaced_inflows_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            
+            <span class="n">used_energy_qty</span> <span class="o">=</span> <span class="n">calc</span><span class="o">.</span><span class="n">Combustion</span><span class="p">(</span><span class="n">replaced_flow</span><span class="p">,</span> 
+                                         <span class="n">used_equivelent_fuel_qty</span><span class="p">,</span> 
+                                         <span class="s1">&#39;energy&#39;</span><span class="p">,</span> 
+                                         <span class="n">combustion_eff</span><span class="p">,</span> 
+                                         <span class="n">replaced_emissions_dict</span><span class="p">,</span>
+                                         <span class="n">replaced_inflows_dict</span><span class="p">,</span>
+                                         <span class="n">emissions_list</span><span class="o">=</span><span class="n">emissions_list</span><span class="p">)</span>
+
+            <span class="n">rebalanced_flows</span><span class="p">[</span><span class="n">i_o</span><span class="p">][</span><span class="n">recycled_flow</span><span class="p">]</span> <span class="o">+=</span> <span class="n">used_energy_qty</span>
+            <span class="n">remaining_energy_qty</span> <span class="o">=</span> <span class="n">recycled_qty</span> <span class="o">-</span> <span class="n">used_energy_qty</span>
+        
+            <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">replaced_emissions_dict</span><span class="p">:</span>
+                <span class="n">rebalanced_flows</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="n">flow</span><span class="p">]</span> <span class="o">-=</span> <span class="n">replaced_emissions_dict</span><span class="p">[</span><span class="n">flow</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">round</span><span class="p">(</span><span class="n">rebalanced_flows</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="n">flow</span><span class="p">],</span> <span class="mi">8</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># rounds off floating point errors</span>
+                    <span class="n">rebalanced_flows</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">][</span><span class="n">flow</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">replaced_inflows_dict</span><span class="p">:</span>
+                <span class="n">rebalanced_flows</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="n">flow</span><span class="p">]</span> <span class="o">-=</span> <span class="n">replaced_inflows_dict</span><span class="p">[</span><span class="n">flow</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">round</span><span class="p">(</span><span class="n">rebalanced_flows</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="n">flow</span><span class="p">],</span> <span class="mi">8</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># rounds off floating point errors</span>
+                    <span class="n">rebalanced_flows</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">][</span><span class="n">flow</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">remaining_energy_qty</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Something went wrong. remaining_recycle_qty &lt; 0 </span><span class="si">{remaining_energy_qty}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">rebalanced_flows</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">],</span> <span class="n">rebalanced_flows</span><span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">],</span> <span class="n">remaining_energy_qty</span></div>
+    
+        
+
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, S.E. Tanzer
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

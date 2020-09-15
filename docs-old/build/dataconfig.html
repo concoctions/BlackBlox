@@ -1,0 +1,424 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>The dataconfig Module &mdash; blackblox.py 0.2.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="The IO Functions Module" href="io_functions.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html">
+          
+
+          
+            
+            <img src="_static/logo150.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                blackblox v0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">NOTE: This introductory document still must be updated with the latest feature set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#what-is-blackblox-py">What is blackblox.py?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unit.html">The Unit Process Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chain.html">The Process Chain Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="factory.html">The Factory Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="industry.html">The Industry Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calculators.html">The Calculators Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io_functions.html">The IO Functions Module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The dataconfig Module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">blackblox.py</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>The dataconfig Module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/dataconfig.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="the-dataconfig-module">
+<h1>The dataconfig Module<a class="headerlink" href="#the-dataconfig-module" title="Permalink to this headline">¶</a></h1>
+<p>Note: This page has not yet been formatted. It is currently only the automodule documentation.</p>
+<span class="target" id="module-dataconfig"></span><p>Data Input and Output default strings</p>
+<p>This module contains variables used for default file paths, column headers
+for input data files, as well as special variable strings (generally used)
+to indicate whether something is All or None.</p>
+<p>Please note that as of this time, these variables are case and white space
+sensitive.</p>
+<p>Module Outline:</p>
+<ul class="simple">
+<li>import statements and logger</li>
+<li>module variables: default filepaths (str)</li>
+<li>module variables: user data (dict)</li>
+<li><dl class="first docutils">
+<dt>module variables: column headers (str)</dt>
+<dd><ul class="first last">
+<li>for unit process library tabular data</li>
+<li>for unit process relationships tabular data</li>
+<li>for product chain linkages tabular data</li>
+<li>for factory product chain list tabular data</li>
+<li>for factory linkages tabular data</li>
+<li>for industry data</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>module variables: reserved words for tabular data</dt>
+<dd><ul class="first last">
+<li>same_xls (list)</li>
+<li>default_scenario (str)</li>
+<li>no_var (list)</li>
+<li>massless_flows (list)</li>
+<li>connect_all (str)</li>
+<li>all_factories (list)</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="data">
+<dt id="dataconfig.all_factories">
+<code class="descclassname">dataconfig.</code><code class="descname">all_factories</code><em class="property"> = ['industry', 'all', 'factories']</em><a class="headerlink" href="#dataconfig.all_factories" title="Permalink to this definition">¶</a></dt>
+<dd><p>strings indicating all factories in a given industry</p>
+<p>Useable as a row index in industry scenario tables to indicate that a
+production quantity or scenario applies to all factories producing the
+specified product.</p>
+<p>If used to specify an industry-wide total product production quantity,
+each factory producing that product should specify their production quantity
+as a fraction of that total as a decimal between 0 and 1.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)">list</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="dataconfig.connect_all">
+<code class="descclassname">dataconfig.</code><code class="descname">connect_all</code><em class="property"> = 'all'</em><a class="headerlink" href="#dataconfig.connect_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>indicator that all processes of a chain connect to the destination</p>
+<p>Usable in the factory connections table, for the “origin process” column.
+Indicates that  every process of the origin chain is connected to the
+destination chain by the specified product.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="dataconfig.default_scenario">
+<code class="descclassname">dataconfig.</code><code class="descname">default_scenario</code><em class="property"> = 'default'</em><a class="headerlink" href="#dataconfig.default_scenario" title="Permalink to this definition">¶</a></dt>
+<dd><p>the index used for the default scenario of variables</p>
+<p>Usable in the unit process variables data tables.
+If present in the variables data index, the default scenario will be used
+when a scenario of variables is not otherwise specified.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="dataconfig.energy_flows">
+<code class="descclassname">dataconfig.</code><code class="descname">energy_flows</code><em class="property"> = ['heat', 'energy', 'electricity', 'power']</em><a class="headerlink" href="#dataconfig.energy_flows" title="Permalink to this definition">¶</a></dt>
+<dd><p>indicator that a substance is an energy flow</p>
+<p>Usable in flow names. Must be used at the beginning or end of the flow name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)">list</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="dataconfig.lookup_var_dict">
+<code class="descclassname">dataconfig.</code><code class="descname">lookup_var_dict</code><em class="property"> = {'fuel': {'filepath': '/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx', 'lookup_var': 'fuelType', 'sheet': 'Fuels'}}</em><a class="headerlink" href="#dataconfig.lookup_var_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>dictionary of special lookup substance names
+Lookup_var_dict is a dictionary with the names of substance, that when used
+in the unit process calculations file, will trigger the program to replace
+the lookup substance name with the substance name specified in the unit
+process’s variable data table for the scenario currently in use.</p>
+<p>Each entry in this dictionary should be formatted with the following:</p>
+<blockquote>
+<div><p><strong>key</strong> <em>(str)</em>: the substance name to be used in the calcuations file</p>
+<dl class="docutils">
+<dt><strong>value</strong> <em>(dict)</em>: a dictionary of lookup variable attributes, containing:</dt>
+<dd><p class="first"><strong>lookup_var</strong> <em>(str)</em>: the header of the column in the unit process
+variable file that contains the value with which to replace
+the lookup substance word.</p>
+<p class="last"><strong>data_frame</strong> <em>(optional)</em>: a data frame with additional custom data
+about the lookup variable, such as to be used in custom functions,
+below. These are not used elsewhere in BlackBlox.py.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="data">
+<dt id="dataconfig.no_var">
+<code class="descclassname">dataconfig.</code><code class="descname">no_var</code><em class="property"> = ['none', 'false', 'na', '-', '--', '', 'nan', 0, '0', None, False, nan]</em><a class="headerlink" href="#dataconfig.no_var" title="Permalink to this definition">¶</a></dt>
+<dd><p>indicator that no variable is used in the calculation</p>
+<p>Usable in the unit process calculation table, to indicate that the
+calculation type requires no variable beyond the names of the substances.
+(e.g. MolMassRatio)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="dataconfig.outdir">
+<code class="descclassname">dataconfig.</code><code class="descname">outdir</code><em class="property"> = 'BlackBlox_output'</em><a class="headerlink" href="#dataconfig.outdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default output directory.</p>
+<p>Unless an absolute path is specified, BlackBlox will create the directory
+as a subfolder of the current working directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="dataconfig.same_xls">
+<code class="descclassname">dataconfig.</code><code class="descname">same_xls</code><em class="property"> = ['thisfile', 'same', 'here']</em><a class="headerlink" href="#dataconfig.same_xls" title="Permalink to this definition">¶</a></dt>
+<dd><p>strings indicating the data is in the current Excel workbook</p>
+<p>Usable as a replacement for a filepath for input data that is in an
+Excel workbook with multiple sheets. The correct Excel sheet must still
+be specified.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)">list</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="dataconfig.set_config">
+<code class="descclassname">dataconfig.</code><code class="descname">set_config</code><span class="sig-paren">(</span><em>config_data</em>, <em>user_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataconfig.html#set_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dataconfig.set_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allows user to specify config data without changing module default values</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="dataconfig.unit_process_library_file">
+<code class="descclassname">dataconfig.</code><code class="descname">unit_process_library_file</code><em class="property"> = '/Users/Tanzer/GitHub/BlackBlox/excelData/globalData.xlsx'</em><a class="headerlink" href="#dataconfig.unit_process_library_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>The filepath whre the unit process library file exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="dataconfig.unit_process_library_sheet">
+<code class="descclassname">dataconfig.</code><code class="descname">unit_process_library_sheet</code><em class="property"> = 'Unit Processes'</em><a class="headerlink" href="#dataconfig.unit_process_library_sheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>The worksheet of the unit process library, if in an Excel workbook</p>
+<p>If not an excel worksheet, this variable should be None.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="io_functions.html" class="btn btn-neutral float-left" title="The IO Functions Module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, S.E. Tanzer
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
