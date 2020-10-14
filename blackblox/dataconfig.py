@@ -56,13 +56,15 @@ unit_process_library_sheet = "Unit Processes"
 
 If not an excel worksheet, this variable should be None.
 """
+day = datetime.now().strftime("%b%d") 
+time = datetime.now().strftime("%H%M")   
 
-outdir = 'output'+'/'+datetime.now().strftime("%b%d")
+outdir = 'output'+'/'+day
 """str: The file output directory.
 
 Unless an absolute path is specified, BlackBlox will create the directory 
 as a subfolder of the current working directory.
-"""        
+"""  
 
 same_xls = ['thisfile', 'same', 'here']
 """list: strings indicating the data is in the current Excel workbook

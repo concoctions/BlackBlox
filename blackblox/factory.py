@@ -51,8 +51,8 @@ if platform.system() is 'Windows':
     os.environ["PATH"] += os.pathsep + dat.graphviz_path
 
 logger = get_logger("Factory")
-today_path = datetime.now().strftime("%H%M")
-today_string = datetime.now().strftime("%b%d_%H%M")
+today_path = dat.time
+today_string = dat.day+dat.time
 
 
 class Factory:
@@ -160,15 +160,15 @@ class Factory:
             self.connections_df = None
 
         if outdir is False:
-            self.outdir = f'{dat.outdir}/{self.name}-f_{today_path}'
+            self.outdir = f'{dat.outdir}/{today_path}_{self.name}-f'
         else:
             self.outdir = outdir
 
         logger.info(f"{self.name.upper()}: Initalization successful")
 
 
-    def balance(self, product_qty=1.0, product=False, product_unit=False, product_io=False, 
-                scenario=dat.default_scenario, upstream_outflows=False, upstream_inflows=False, 
+    def balance(self, scenario=dat.default_scenario, product_qty=1.0, product=False, product_unit=False, product_io=False, 
+                upstream_outflows=False, upstream_inflows=False, 
                 downstream_outflows=False, downstream_inflows=False,
                 aggregate_flows=False, net_flows=False, write_to_xls=True, outdir=False, subdir=False):
         """Calculates the mass balance of the factory using qty of main product
@@ -1235,6 +1235,7 @@ class Factory:
         minuend - subtrahend = difference
         """
         if not net_tuples or type(net_tuples) is not list:
+            logger.debug("No Net Flows")
             return pan.DataFrame()
 
         
@@ -1269,7 +1270,8 @@ class Factory:
                     net_dict[difference_name][m_s] = qty
                 
                 net_dict[difference_name]['difference'] = net_dict[difference_name]['minuend'] - net_dict[difference_name]['subtrahend']
-            
+                logger.debug(f"net flow written for {difference_name }")
+        
             return iof.make_df(net_dict, drop_zero=False, T=True)
 
 

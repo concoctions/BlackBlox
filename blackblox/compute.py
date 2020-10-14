@@ -164,8 +164,8 @@ def test_factories(factory_dict,
         factory = built_factories[f]
         print(f"\n{str.upper(factory.name)} factory")
         
-        inflows, outflows = factory.balance(product_qty = qty, 
-                                            scenario=factory_dict[f]['scenario'], 
+        inflows, outflows = factory.balance(scenario=factory_dict[f]['scenario'],
+                                            product_qty = qty,  
                                             write_to_xls=write_to_xls, 
                                             outdir=outdir, 
                                             upstream_outflows=upstream_outflows, 

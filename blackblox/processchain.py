@@ -110,7 +110,7 @@ class ProductChain:
                 logger.debug(f"{self.name.upper()}: No default product found for {self.name}.")
 
     
-    def balance(self, qty, product=False, i_o=False, unit_process=False, 
+    def balance(self, qty=1.0, product=False, i_o=False, unit_process=False, 
                 product_alt_name=False, scenario=dat.default_scenario,
                 write_to_console=False, write_to_xls = False):
         """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario)
@@ -213,6 +213,7 @@ class ProductChain:
         intermediate_product_dict = defaultdict(float)
         internal_flows = []
 
+        orig_product = product
         # balances starting process
         logger.debug(f"{self.name.upper()}: attempting to balance {start.name} on {qty} of {product}({i_o}) using {scenario} variables.")
         (io_dicts['i'][start.name], io_dicts['o'][start.name]) = start.balance(qty, product, i_o, scenario, product_alt_name=product_alt_name)
@@ -267,7 +268,7 @@ class ProductChain:
             outflows_df = iof.mass_energy_df(io_dicts['o'])
 
         if write_to_console is True:
-            print(f'\n{self.name.upper()}: balanced on {product_qty} of {product} using {scenario} values')
+            print(f'\n{self.name.upper()}: balanced on {product_qty} of {orig_product} using {scenario} values')
             print("\ninflows:\n", inflows_df)
             print("\noutflows:\n", outflows_df)
 
