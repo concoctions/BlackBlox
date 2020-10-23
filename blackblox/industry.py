@@ -81,7 +81,7 @@ class Industry:
                             name=name)
 
             factory = fac.Factory(**f_kwargs)
-            factory.build()
+            # factory.build()
 
             factory_dict[name] = dict(factory=factory,
                                       product=factory.main_product,
@@ -190,13 +190,14 @@ class Industry:
                                     upstream_outflows=upstream_outflows, 
                                     upstream_inflows=upstream_inflows,
                                     aggregate_flows=aggregate_flows,
-                                    mass_energy=mass_energy, 
-                                    energy_flows=dat.energy_flows)
+  #                                  mass_energy=mass_energy, 
+                                    # energy_flows=dat.energy_flows)
+                                     )
 
         for f in f_production_dict:
             factory = self.factory_dict[f]['factory']
             f_kwargs = f_production_dict[f]
-            io_dicts['inflows'][f], io_dicts['outflows'][f] = factory.balance(**f_kwargs)
+            io_dicts['inflows'][f], io_dicts['outflows'][f], dummy_agg, dummy_net = factory.balance(**f_kwargs)
 
             if diagrams is not False:
                 factory.diagram(outdir=outdir+'/pfd')

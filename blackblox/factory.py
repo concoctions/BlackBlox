@@ -679,20 +679,31 @@ class Factory:
 
         scenario_dict = iof.nested_dicts(3)
         
-        unit = self.chain_dict[chain_name]['chain'].process_dict[unit_name]
+        units = []
+        original_var_dfs = []
+
+        if type(unit_name) is list:
+            for i, unit in enumerate(unit_name):
+                units.append(self.chain_dict[chain_name[i]]['chain'].process_dict[unit])
+
+        else: 
+            units = [self.chain_dict[chain_name]['chain'].process_dict[unit_name]]
 
         # change variables which will remain static between sensitivity runs
+        for unit in units: 
+            original_var_dfs.append(unit.var_df.copy())
 
         if type(fixed_vars) is list:
             for fixedvar, value in fixed_vars:
-                unit.var_df.loc[scenario, fixedvar.lower()] = value
+                for unit in units:
+                    unit.var_df.loc[scenario, fixedvar.lower()] = value
                 logger.debug(f"{variable} for {unit} ({scenario} set to {value}) (fixed over all sensitivity analyses)")
 
-        original_var_df = unit.var_df.copy()
 
         # evaluate over varying variables
         for value in variable_options:
-            unit.var_df.loc[scenario, variable.lower()] = value
+            for unit in units:
+                unit.var_df.loc[scenario, variable.lower()] = value
             logger.debug(f"{variable} for {unit.name} ({scenario}) set to {value})")
 
             f_in, f_out, agg_df, net_df = self.balance(product_qty=product_qty, 
@@ -709,62 +720,35 @@ class Factory:
                                        write_to_xls=individual_xls,
                                        outdir=f"{outdir}/{value}")
             
-        #     scenario_dict['i'][f'{scenario}_{unit_name}-{variable}_{value}'] = f_in
-        #     scenario_dict['o'][f'{scenario}_{unit_name}-{variable}_{value}'] = f_out
-
-        # inflows_df = iof.make_df(scenario_dict['i'], drop_zero=True)
-        # inflows_df = iof.mass_energy_df(inflows_df, aggregate_consumed=True)
-        # outflows_df = iof.make_df(scenario_dict['o'], drop_zero=True)
-        # outflows_df = iof.mass_energy_df(outflows_df, aggregate_consumed=True)
-
-        # if type(aggregate_flows) is list:
-        #     aggregated_dict = iof.nested_dicts(3)
-
-        #     for flow in aggregate_flows:
-        #         for scenario in scenario_dict['i']:
-        #             for inflow in scenario_dict['i'][scenario]:
-        #                 if inflow.lower().startswith(flow.lower()):
-        #                     aggregated_dict['i'][scenario][flow] += scenario_dict['i'][scenario][inflow]
-
-        #         for scenario in scenario_dict['o']:
-        #             for outflow in scenario_dict['o'][scenario]:
-        #                 if outflow.lower().startswith(flow.lower()):
-        #                     aggregated_dict['o'][scenario][flow] += scenario_dict['o'][scenario][outflow]
-
-
-        # aggregated_inflows_df = iof.make_df(aggregated_dict['i'], drop_zero=True)
-        # aggregated_outflows_df = iof.make_df(aggregated_dict['o'], drop_zero=True)
 
             scenario_dict['i'][f'{scenario}_{unit_name}-{variable}_{value}'] = f_in
             scenario_dict['o'][f'{scenario}_{unit_name}-{variable}_{value}'] = f_out
-            scenario_dict['agg_i'][f'{scenario}_{unit_name}-{variable}_{value}'] = agg_df['inflows'].rename(f'{scenario}_{unit_name}-{variable}_{value}')
-            scenario_dict['agg_o'][f'{scenario}_{unit_name}-{variable}_{value}'] = agg_df['outflows'].rename(f'{scenario}_{unit_name}-{variable}_{value}')
-            scenario_dict['net'][f'{scenario}_{unit_name}-{variable}_{value}'] = net_df['difference'].rename(f'{scenario}_{unit_name}-{variable}_{value}')
+
+            try:
+                scenario_dict['agg_i'][f'{scenario}_{unit_name}-{variable}_{value}'] = agg_df['inflows'].rename(f'{scenario}_{unit_name}-{variable}_{value}')
+                has_agg_in = True
+            except:
+                logger.debug("No agg inflows defined")
+                has_agg_in = False
+
+            try:
+                scenario_dict['agg_o'][f'{scenario}_{unit_name}-{variable}_{value}'] = agg_df['outflows'].rename(f'{scenario}_{unit_name}-{variable}_{value}')
+                has_agg_out = True
+            except:
+                logger.debug("No agg outflows defined")
+                has_agg_out = False
+
+            try:
+                scenario_dict['net'][f'{scenario}_{unit_name}-{variable}_{value}'] = net_df['difference'].rename(f'{scenario}_{unit_name}-{variable}_{value}')
+                has_net = True
+            except:
+                logger.debug("No net flows defined")
+                has_net = False
 
         inflows_df = iof.mass_energy_df(scenario_dict['i'])
         outflows_df = iof.mass_energy_df(scenario_dict['o'])
 
-        if type(aggregate_flows) is list:
-            first = True
-            for scenario in  scenario_dict['agg_i'].keys():
-                if first is True: 
-                    aggregated_inflows_df = scenario_dict['agg_i'][scenario].copy()
-                    aggregated_outflows_df = scenario_dict['agg_o'][scenario].copy()
 
-                    first = False
-                else:
-                    aggregated_inflows_df = pan.concat([aggregated_inflows_df, scenario_dict['agg_i'][scenario]], ignore_index=False, sort=False, axis=1)
-                    aggregated_outflows_df = pan.concat([aggregated_outflows_df, scenario_dict['agg_o'][scenario]], ignore_index=False, sort=False, axis=1)
-
-        if type(net_flows) is list:
-            first = True
-            for scenario in scenario_dict['net'].keys():
-                if first is True: 
-                    net_df = scenario_dict['net'][scenario].copy()
-                    first = False
-                else:
-                    net_df = pan.concat([net_df, scenario_dict['net'][scenario]], ignore_index=False, sort=False, axis=1)
-                
 
         if product is False:
             product= self.main_product
@@ -776,22 +760,37 @@ class Factory:
                                     product=product,
                                     product_qty=product_qty)
 
-        if type(aggregate_flows) is list:
-            dfs = [meta_df, inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df]
-            sheets = ["meta", "inflows", "outflows", "aggr inflows", "aggr outflows"]
-        else:
-            dfs = [meta_df, inflows_df, outflows_df]
-            sheets = ["meta", "inflows", "outflows"]
+        dfs = [meta_df, inflows_df, outflows_df,]
+        sheets = ["meta", "inflows", "outflows"]
+
+        # generate dfs for agg inflows, agg outflows, and net flows, if extant
+        agg_flow_dfs = [None, None, None]
+
+        for i, bool, name in [(0, has_agg_in, "agg_i"), (1, has_agg_out, "agg_o"), (2, has_net, "net")]:
+            df = None
+            if bool is True:
+                first = True
+                for scenario in scenario_dict[name].keys():
+                    if first is True: 
+                        df = scenario_dict[name][scenario].copy()
+                        first = False
+                    else:
+                        df = pan.concat([df, scenario_dict[name][scenario]], ignore_index=False, sort=False, axis=1)
+                
+                dfs.append(df)
+                sheets.append(name)
+                agg_flow_dfs[i] = df                    
 
         iof.write_to_xls(df_or_df_list=dfs,
                             sheet_list=sheets, 
                             filedir=outdir,
                             filename=f'{self.name}_f_sens_{today_string}')
 
-        original_var_df_copy=original_var_df.copy()
-        unit.var_df = original_var_df_copy
         
-        return inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df, net_df #aggregated_dict 
+        for i, unit in enumerate(units):
+            unit.var_df = original_var_dfs[i].copy()
+        
+        return inflows_df, outflows_df, agg_flow_dfs[0], agg_flow_dfs[1], agg_flow_dfs[2] #aggregated_dict 
 
 
 
@@ -1193,7 +1192,7 @@ class Factory:
         df_list.append(all_inflows_df)
         sheet_list.append("unit inflow matrix")
 
-        all_outflows_df = iof.make_df(all_outflows, drop_zero=True)
+        all_outflows_df = iof.make_df(all_outflows, drop_zero=False)
         all_outflows_df = iof.mass_energy_df(all_outflows_df, totals=False)
         df_list.append(all_outflows_df)
         sheet_list.append("unit outflow matrix")
