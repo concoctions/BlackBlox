@@ -438,7 +438,7 @@ class Industry:
                 iof.plot_annual_flows(df_dict['o'], flow, outdir)
 
         if type(graph_inflows) is list:
-            for flow in graph_outflows:
+            for flow in graph_inflows:
                 iof.plot_annual_flows(df_dict['i'], flow, outdir)
 
         
@@ -566,7 +566,7 @@ class Industry:
                 iof.plot_annual_flows(df_dict['o'], flow, outdir)
 
         if type(graph_inflows) is list:
-            for flow in graph_outflows:
+            for flow in graph_inflows:
                 iof.plot_annual_flows(df_dict['i'], flow, outdir)
 
         
