@@ -15,7 +15,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('../../blackblox'))
 sys.setrecursionlimit(500)
 
 
@@ -102,8 +102,9 @@ html_theme_options = {'logo_only': True,
 html_static_path = ['_static']
 html_logo = "doc_assets/logo150.png"
 
+
 def setup(app):
-   app.add_stylesheet('custom.css')
+    app.add_css_file('custom.css')
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
