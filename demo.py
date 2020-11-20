@@ -261,7 +261,7 @@ print(f"and outputting any files to {dat.outdir}")
 # totals = iof.mass_energy_df(totals)
 # print(f"\n{cement_factory.name} total inflows and outflows")
 # print(totals)
-# print("\n Full results available in demo_output directory.")
+# print(f"\n Full results available in {dat.outdir} directory.")
 
 
 # stop = input("\n\n\nPress enter to balance the factory on 13.9535 tonnes of fuel inflow to kiln (outputs to file): ")
@@ -278,7 +278,7 @@ print(f"and outputting any files to {dat.outdir}")
 
 # print(f"\n{cement_factory.name} total inflows and outflows")
 # print(totals, "\n")
-# print("\n Full results available in demo_output directory")
+# print(f"\n Full results available in {dat.outdir} directory")
 
 
 ###############################################################################
@@ -313,7 +313,7 @@ while stop == '':
     ioDicts= industry.balance(production_data_sheet='2000', write_to_xls=True, 
                     file_id='2010', diagrams=True)
             
-    print("\nDone. Files available in demo_output directory.")
+    print(f"\nDone. Files available in {dat.outdir} directory.")
 
     stop = input("\n\n\nPress enter to compare scenarios of production in the cement industry: ")
     if stop != '':
@@ -335,7 +335,7 @@ while stop == '':
 
     industry.run_scenarios(**s_kwargs)
 
-    print("\nDone. Files available in demo_output directory.")
+    print(f"\nDone. Files available in {dat.outdir} directory.")
 
     stop = input("\n\n\nPress enter to model the cement industry from 1990 to 2010 and generate outflow graphs for cement and CO2: ")
     if stop != '':
@@ -351,7 +351,7 @@ while stop == '':
                     graph_outflows = ['CO2', 'cement'])
     industry.evolve(**e_kwargs)
 
-    print("Done. Files available in demo_output directory.")
+    print(f"Done. Files available in {dat.outdir} directory.")
 
     stop = input("\n\n\nPress enter to model the cement industry from 1990 to 2000 to 2010 and generate outflow graphs for cement and CO2: ")
     if stop != '':
@@ -367,7 +367,7 @@ while stop == '':
                     graph_outflows = ['CO2', 'cement'])
     industry.evolve_multistep(**m_kwargs)
 
-    print("\nDone. Files available in demo_output directory.")
+    print(f"\nDone. Files available in {dat.outdir} directory.")
     stop = 'stop'
 
 input("\n\n\nPress enter to end demo. \n")
