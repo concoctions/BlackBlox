@@ -3,14 +3,3 @@
 
 # ... except for this one and some other important ones.
 !.gitignore
-!footnotehyper-sphinx.sty
-!latexmkjarc
-!LatinRules.xdy
-!LICRcyr2utf8.xdy
-!LICRlatin2utf8.xdy
-!python.ist
-!sphinx.sty
-!sphinx.xdy
-!sphinxhowto.cls
-!sphinxmanual.cls
-!sphinxmulticell.sty
