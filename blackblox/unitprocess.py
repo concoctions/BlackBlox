@@ -678,10 +678,12 @@ class UnitProcess:
 
 
     def get_var(self, var, scenario):
-        if scenario in self.var_df.index:                                     # otherwise looks up the variable in the var df
+        if scenario in self.var_df.index:                           # otherwise looks up the variable in the var df
             return self.var_df.at[scenario, iof.clean_str(var)]     # from the relevant scenario
         else:
+            logger.debug(f"using {self.var_df.at[dat.default_scenario, iof.clean_str(var)]} from {dat.default_scenario} for {var}" )
             return self.var_df.at[dat.default_scenario, iof.clean_str(var)] # if not available, return from default string
+            
 
 
     def check_var(self, var, calc_type, scenario):
@@ -696,7 +698,6 @@ class UnitProcess:
             return var
         else:
             return None
-
 
 
     def check_substance(self, substance, scenario, product, product_alt_name, lookup_product_key):
