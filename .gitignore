@@ -101,3 +101,7 @@ output/
 #others
 ~$*
 scratch.*
+.vscode/settings.json
+.vscode/.ropeproject/objectdb
+.vscode/.ropeproject/config.py
+.vscode/launch.json

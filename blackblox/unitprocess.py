@@ -225,12 +225,12 @@ class UnitProcess:
         product_qty = qty
         
         if scenario not in self.var_df.index.values:
-            raise Exception(f'{self.name.upper()}: {scenario} not found in variables file')
+            print(f'ALERT! {self.name.upper()}: {scenario} not found in variables file. {dat.default_scenario} values will be used instead')
 
         product = self.check_product(product)
         if product in lookup_var_dict: 
             lookup_product_key = product 
-            product = self.var_df.at[scenario, lookup_var_dict[product]['lookup_var']]  # get product name from var_df, at variable specified in lookup_var_dict
+            product  =self.get_var(lookup_var_dict[product]['lookup_var'], scenario) # get product name from var_df, at variable specified in lookup_var_dict
         else:
             lookup_product_key = False
 
@@ -452,7 +452,7 @@ class UnitProcess:
             raise KeyError(f'{i_o} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
         
         if toBeReplaced_flow in lookup_var_dict:
-            toBeReplaced_flow = self.var_df.at[scenario, lookup_var_dict[toBeReplaced_flow]['lookup_var']] 
+            toBeReplaced_flow =  self.get_var(lookup_var_dict[toBeReplaced_flow]['lookup_var'], scenario)
         if toBeReplaced_flow in calc.df_fuels:
             logger.info(f'{self.name.upper()}: WARNING! {toBeReplaced_flow} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
 
@@ -540,10 +540,10 @@ class UnitProcess:
             raise KeyError(f'{self.name.upper()}: {i_o} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
 
         if toBeReplaced_flow in lookup_var_dict:
-            toBeReplaced_flow = self.var_df.at[scenario, lookup_var_dict[toBeReplaced_flow]['lookup_var']] 
+            toBeReplaced_flow = self.get_var(lookup_var_dict[toBeReplaced_flow]['lookup_var'], scenario)  
 
         if type(combustion_eff) is str:
-            combustion_eff = self.var_df.at[scenario, combustion_eff]
+            combustion_eff = self.get_var(combustion_eff, scenario)
 
         # calculate how much fuel energy will replace, including emissions/coinflows
         equivelent_fuel_qty = calc.Combustion(known_substance='energy', 
@@ -677,20 +677,26 @@ class UnitProcess:
             return i
 
 
+    def get_var(self, var, scenario):
+        if scenario in self.var_df.index:                                     # otherwise looks up the variable in the var df
+            return self.var_df.at[scenario, iof.clean_str(var)]     # from the relevant scenario
+        else:
+            return self.var_df.at[dat.default_scenario, iof.clean_str(var)] # if not available, return from default string
+
+
     def check_var(self, var, calc_type, scenario):
         """checks that the variable is valid and returns the correct variable for the calc type
         """
         if isinstance(var, str) and iof.clean_str(var) not in dat.no_var:
             if calc_type in calc.lookup_var_calc_list:          # for lookup calculations the var specifies the column of the lookup df
                 return iof.clean_str(var, lower=False)       # which is given as the var in the calc df
-            else:                                               # otherwise looks up the variable in the var df
-                return self.var_df.at[scenario, iof.clean_str(var)] # from the relevant scenario
-        
+            else:
+                return self.get_var(var, scenario)
         elif isinstance(var, (float, int, complex, np.integer, np.floating)):
             return var
-        
         else:
             return None
+
 
 
     def check_substance(self, substance, scenario, product, product_alt_name, lookup_product_key):
@@ -712,7 +718,7 @@ class UnitProcess:
             if 'data_frame' in lookup_var_dict[substance]:
                 logger.debug(f"{self.name.upper()}: {substance} has dataframe in lookup_var_dict")
                 lookup_df = lookup_var_dict[substance]['data_frame']
-            substance = self.var_df.at[scenario, lookup_var_dict[substance]['lookup_var']]
+            substance = self.get_var(lookup_var_dict[substance]['lookup_var'], scenario) 
             logger.debug(f"{self.name.upper()}: lookup substance {substance} substituted")
 
         if dat.ignore_sep in substance:
@@ -720,7 +726,7 @@ class UnitProcess:
                 logger.debug(f"{self.name.upper()}: {substance} in lookup_var_dict")
                 if 'data_frame' in lookup_var_dict[substance.split(dat.ignore_sep)[0]]:
                     lookup_df = lookup_var_dict[substance.split(dat.ignore_sep)[0]]['data_frame']
-                proxy = self.var_df.at[scenario, lookup_var_dict[substance.split(dat.ignore_sep)[0]]['lookup_var']]
+                proxy = self.get_var(lookup_var_dict[substance.split(dat.ignore_sep)[0]]['lookup_var'], scenario) 
                 substance = proxy + dat.ignore_sep + substance.split(dat.ignore_sep)[1]
                 logger.debug(f"{self.name.upper()}:lookup substance {substance} substituted")
             else:
@@ -772,11 +778,11 @@ class UnitProcess:
             k2_io = iof.clean_str(calc_df.at[i, dat.known2_io][0])
 
             if known2_substance in lookup_var_dict:
-                known2_substance = self.var_df.at[scenario, lookup_var_dict[known2_substance]['lookup_var']] 
+                known2_substance = self.get_var(lookup_var_dict[known2_substance]['lookup_var'], scenario)
 
             if dat.ignore_sep in known2_substance:    
                 if known2_substance.split(dat.ignore_sep)[0] in lookup_var_dict:
-                    known2_proxy = self.var_df.at[scenario, lookup_var_dict[known2_substance.split(dat.ignore_sep)[0]]['lookup_var']]
+                    known2_proxy = self.get_var(lookup_var_dict[known2_substance.split(dat.ignore_sep)[0]]['lookup_var'], scenario)
                     known2_substance = known2_proxy + dat.ignore_sep + known2_substance.split(dat.ignore_sep)[1]
                 else:
                     known2_proxy  = known2_substance.split(dat.ignore_sep)[0]  
