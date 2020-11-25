@@ -1,0 +1,5 @@
+# Ignore all files and folders under here, because they are all generated and should not be tracked...
+*
+
+# ... except for this one and some other important ones.
+!.gitignore
