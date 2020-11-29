@@ -225,7 +225,7 @@ class UnitProcess:
         product_qty = qty
         
         if scenario not in self.var_df.index.values:
-            print(f'ALERT! {self.name.upper()}: {scenario} not found in variables file. {dat.default_scenario} values will be used instead')
+            logger.info(f'ALERT! {self.name.upper()}: {scenario} not found in variables file. {dat.default_scenario} values will be used instead')
 
         product = self.check_product(product)
         if product in lookup_var_dict: 
