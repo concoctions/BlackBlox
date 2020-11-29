@@ -655,17 +655,18 @@ class Factory:
     def run_sensitivity(self, product_qty, scenario, chain_name, unit_name, variable, variable_options=[], fixed_vars=False,
                       product=False, product_unit=False, product_io=False, upstream_outflows=False, upstream_inflows=False,
                       downstream_outflows=False, downstream_inflows=False, aggregate_flows=False, net_flows=False,
-                      write_to_xls=True, individual_xls=False, outdir=False):
+                      write_to_xls=True, individual_xls=False, outdir=False, id=''):
         """Balances the factory on the same quantity for a list of different scenarios.
         Outputs a file with total inflows and outflows for the factory for each scenario.
 
         Args:
             all arguments from Factory.balance() 
-            chain_name
-            unit_name
+            chain_name (str or list; must be same type as unit_name)
+            unit_name (str or list; must be same type as chain_name)
             variable
             variable_options
             fixed_vars
+            id (str): optional file name prefix
 
 
         Returns:
@@ -675,7 +676,7 @@ class Factory:
         """
 
         if outdir is False:
-            outdir = f"{self.outdir}/sensitivity/{variable}"
+            outdir = f"{self.outdir}/{id}sensitivity/{variable}"
 
         scenario_dict = iof.nested_dicts(3)
         
@@ -696,14 +697,20 @@ class Factory:
         if type(fixed_vars) is list:
             for fixedvar, value in fixed_vars:
                 for unit in units:
-                    unit.var_df.loc[scenario, fixedvar.lower()] = value
+                    if scenario in unit.var_df.index: 
+                        unit.var_df.loc[scenario, fixedvar.lower()] = value
+                    else:
+                        unit.var_df.loc[dat.default_scenario, fixedvar.lower()] = value
                 logger.debug(f"{variable} for {unit} ({scenario} set to {value}) (fixed over all sensitivity analyses)")
 
 
         # evaluate over varying variables
         for value in variable_options:
             for unit in units:
-                unit.var_df.loc[scenario, variable.lower()] = value
+                if scenario in unit.var_df.index: 
+                 unit.var_df.loc[scenario, variable.lower()] = value
+                else:
+                    unit.var_df.loc[dat.default_scenario, variable.lower()] = value
             logger.debug(f"{variable} for {unit.name} ({scenario}) set to {value})")
 
             f_in, f_out, agg_df, net_df = self.balance(product_qty=product_qty, 
@@ -784,7 +791,7 @@ class Factory:
         iof.write_to_xls(df_or_df_list=dfs,
                             sheet_list=sheets, 
                             filedir=outdir,
-                            filename=f'{self.name}_f_sens_{today_string}')
+                            filename=f'{self.name}_{id}f_sens_{today_string}')
 
         
         for i, unit in enumerate(units):
@@ -808,11 +815,16 @@ class Factory:
 
         if  dat.ignore_sep in origin_product:
             if origin_product.split(dat.ignore_sep)[0] in lookup_var_dict:
-                lookup_substance = orig_unit.var_df.at[scenario, lookup_var_dict[origin_product.split(dat.ignore_sep)[0]]['lookup_var']]
+                if scenario in orig_unit.var_df.index:
+                    lookup_substance = orig_unit.var_df.at[scenario, lookup_var_dict[origin_product.split(dat.ignore_sep)[0]]['lookup_var']]
+                else:
+                    lookup_substance = orig_unit.var_df.at[dat.default_scenario, lookup_var_dict[origin_product.split(dat.ignore_sep)[0]]['lookup_var']]
                 origin_product= lookup_substance + dat.ignore_sep + origin_product.split(dat.ignore_sep)[1]
         elif origin_product in lookup_var_dict:
+            if scenario in orig_unit.var_df.index:
                 origin_product = orig_unit.var_df.at[scenario, lookup_var_dict[origin_product]['lookup_var']] 
-
+            else:
+                origin_product = orig_unit.var_df.at[dat.default_scenario, lookup_var_dict[origin_product]['lookup_var']] 
         return origin_product
 
 
@@ -879,8 +891,10 @@ class Factory:
         in_list = None
 
         if df[col] in lookup_var_dict:
-            flow = unit.var_df.at[scenario, lookup_var_dict[df[col]]['lookup_var']] 
-            
+            if scenario in unit.var_df.index:
+                flow = unit.var_df.at[scenario, lookup_var_dict[df[col]]['lookup_var']] 
+            else:
+                flow = unit.var_df.at[dat.default_scenario, lookup_var_dict[df[col]]['lookup_var']]
             if type(check_if_in_list) is list:
                 if df[col] in check_if_in_list:
                     in_list= True
