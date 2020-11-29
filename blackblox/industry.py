@@ -5,7 +5,6 @@
 import pandas as pan
 from collections import defaultdict
 from graphviz import Digraph
-from datetime import datetime
 import matplotlib.pyplot as plt
 
 import blackblox.io_functions as iof
@@ -15,6 +14,7 @@ import blackblox.calculators as calc
 
 from blackblox.bb_log import get_logger
 
+today_string = dat.day+dat.time
 logger = get_logger("Industry")
 
 class Industry:
@@ -215,7 +215,7 @@ class Industry:
         io_dicts['outflows']['industry totals'] = totals_out
 
         if write_to_xls is True:
-            filename = f'i_{self.name}_{file_id}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
+            filename = f'i_{self.name}_{file_id}_{today_string}'
 
             meta_df = iof.metadata_df(user=dat.user_data, 
                                       name=self.name, 
@@ -302,7 +302,7 @@ class Industry:
             iof.write_to_xls(df_or_df_list=[meta_df, inflows_df, outflows_df],
                                 sheet_list=["meta", "inflows", "outflows"], 
                                 filedir=outdir, 
-                                filename=f'{self.name}_multiscenario_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+                                filename=f'{self.name}_multiscenario_{today_string}')
 
 
     def evolve(self, start_data=None, start_sheet=None, end_data=None, end_sheet=None,
@@ -399,7 +399,7 @@ class Industry:
         if write_to_xls is True:
 
             filename = (f'i_{self.name}_{start_step}-{end_step}_{file_id}'
-                        f'_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+                        f'_{today_string}')
 
             cumulative_infows_df = iof.make_df(cumulative_dict['inflows'], drop_zero=True)
             cumulative_infows_df = iof.mass_energy_df(cumulative_infows_df)
@@ -527,7 +527,7 @@ class Industry:
         if write_to_xls is True:
 
             filename = (f'i_{self.name}_{steps[0]}-{steps[-1]}_{file_id}'
-                        f'_{datetime.now().strftime("%Y-%m-%d_%H%M")}')
+                        f'_{today_string}')
 
             cumulative_infows_df = iof.make_df(merged_cumulative_flows['inflows'], drop_zero=True)
             cumulative_infows_df = iof.mass_energy_df(cumulative_infows_df, aggregate_consumed=True)
