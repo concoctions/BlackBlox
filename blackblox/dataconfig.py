@@ -114,6 +114,11 @@ lookup_var_dict = {
                  sheet='Fuels',
                  is_fuel = True,
                  lookup_var='reducing agent'),
+    'waste fuel': dict(filepath='data/shared/fuels.xlsx',
+                 sheet='Fuels',
+                 is_fuel = True,
+                 lookup_var='waste fuel type'),
+
     #UPSTREAM
     'upstream outflows': dict(lookup_var='upstream outflows',
                      filepath='data/shared/upstream.xlsx',
