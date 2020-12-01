@@ -1,24 +1,19 @@
 The Process Chain Module
 ==========================
 
-.. automodule:: processchain
+.. automodule:: blackblox.processchain
 
 ProductChain Class
 ------------------
 
-.. autoclass:: processchain.ProductChain
-
-ProductChain.build()
-----------------------------
-
-.. autofunction:: processchain.ProductChain.build
+.. autoclass:: blackblox.processchain.ProductChain
 
 ProductChain.balance()
 ---------------------------------
 
-.. autofunction:: processchain.ProductChain.balance
+.. automethod:: blackblox.processchain.ProductChain.balance
 
 ProductChain.diagram()
 --------------------------------------------------
 
-.. autofunction:: processchain.ProductChain.diagram
+.. automethod:: blackblox.processchain.ProductChain.diagram

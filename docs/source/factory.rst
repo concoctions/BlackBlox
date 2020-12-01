@@ -2,5 +2,5 @@ The Factory Module
 ==========================
 Note: This page has not yet been formatted. It is currently only the automodule documentation.
 
-.. automodule:: factory
+.. automodule:: blackblox.factory
    :members:
