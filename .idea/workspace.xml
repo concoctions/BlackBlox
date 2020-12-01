@@ -20,14 +20,21 @@
       <path>
         <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
         <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="BRANCH:master" type="e8cecc67:BranchNodeDescriptor" />
       </path>
     </select>
   </component>
   <component name="ChangeListManager">
     <list default="true" id="cd8a6bf6-a524-4f19-afe3-3a7212982df9" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/docs_sphinx_html.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/docs_sphinx_html.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/docs_sphinx_latex.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/docs_sphinx_latex.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/source/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/conf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blackblox/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/blackblox/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blackblox/about.py" beforeDir="false" afterPath="$PROJECT_DIR$/blackblox/about.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blackblox/bb_log.py" beforeDir="false" afterPath="$PROJECT_DIR$/blackblox/bb_log.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blackblox/calculators.py" beforeDir="false" afterPath="$PROJECT_DIR$/blackblox/calculators.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blackblox/compare.py" beforeDir="false" afterPath="$PROJECT_DIR$/blackblox/compare.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blackblox/dataconfig.py" beforeDir="false" afterPath="$PROJECT_DIR$/blackblox/dataconfig.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -130,7 +137,19 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="master" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
@@ -148,15 +167,16 @@
     <MESSAGE value="Improved .gitignore's , taking out things that don't exist anymore anyways and putting some things that may pollute soon" />
     <MESSAGE value="Add runConfiguration files of PyCharm so that all developers can easily run the task of building docs (HTML and LaTeX)" />
     <MESSAGE value="Add some IDE (PyCharm) related files (warning preferences, git, etc.) so that all developers share some common conventions." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add some IDE (PyCharm) related files (warning preferences, git, etc.) so that all developers share some common conventions." />
+    <MESSAGE value="Prefixed all autodoc directives in sphinx docs with package name (was needed to import)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Prefixed all autodoc directives in sphinx docs with package name (was needed to import)" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="387" y="40" width="1084" height="708" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1606503532553">
+    <state x="382" y="22" width="1084" height="708" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1606839564523">
       <screen x="134" y="0" width="1680" height="1050" />
     </state>
     <state x="308" y="98" width="1084" height="708" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1605875503021" />
     <state x="417" y="136" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.2130@0.0.1920.2130" timestamp="1605888392727" />
-    <state x="387" y="40" width="1084" height="710" key="#com.intellij.execution.impl.EditConfigurationsDialog/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1606503532553" />
+    <state x="382" y="22" width="1084" height="710" key="#com.intellij.execution.impl.EditConfigurationsDialog/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1606839564523" />
     <state x="649" y="316" width="640" height="389" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1605885831952">
       <screen x="0" y="0" width="1920" height="2130" />
     </state>
@@ -165,40 +185,40 @@
       <screen x="0" y="0" width="1920" height="2130" />
     </state>
     <state x="692" y="227" width="534" height="495" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1920.2130@0.0.1920.2130" timestamp="1605888359062" />
-    <state x="-5" y="541" width="1930" height="539" key="DiffContextDialog" timestamp="1605875897716">
-      <screen x="0" y="0" width="1920" height="1080" />
+    <state x="129" y="526" width="1690" height="524" key="DiffContextDialog" timestamp="1606840748545">
+      <screen x="134" y="0" width="1680" height="1050" />
     </state>
     <state x="-5" y="541" width="1930" height="539" key="DiffContextDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1605875897716" />
-    <state x="-5" y="547" width="1930" height="533" key="DiffContextDialog/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1605279628113" />
+    <state x="129" y="526" width="1690" height="524" key="DiffContextDialog/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1606840748545" />
     <state x="668" y="164" width="434" height="477" key="FileChooserDialogImpl" timestamp="1605875501171">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="668" y="164" width="434" height="477" key="FileChooserDialogImpl/0.0.1920.1080@0.0.1920.1080" timestamp="1605875501171" />
     <state x="732" y="212" width="434" height="477" key="FileChooserDialogImpl/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1605794321990" />
-    <state width="1874" height="264" key="GridCell.Tab.0.bottom" timestamp="1606697551897">
+    <state width="1634" height="254" key="GridCell.Tab.0.bottom" timestamp="1606839759952">
       <screen x="134" y="0" width="1680" height="1050" />
     </state>
     <state width="1874" height="265" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1605875823786" />
     <state width="1634" height="255" key="GridCell.Tab.0.bottom/0.0.1920.2130@0.0.1920.2130" timestamp="1605890085245" />
-    <state width="1874" height="264" key="GridCell.Tab.0.bottom/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1606697551897" />
-    <state width="1874" height="264" key="GridCell.Tab.0.center" timestamp="1606697551897">
+    <state width="1634" height="254" key="GridCell.Tab.0.bottom/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1606839759952" />
+    <state width="1634" height="254" key="GridCell.Tab.0.center" timestamp="1606839759951">
       <screen x="134" y="0" width="1680" height="1050" />
     </state>
     <state width="1874" height="265" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1605875823786" />
     <state width="1634" height="255" key="GridCell.Tab.0.center/0.0.1920.2130@0.0.1920.2130" timestamp="1605890085245" />
-    <state width="1874" height="264" key="GridCell.Tab.0.center/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1606697551897" />
-    <state width="1874" height="264" key="GridCell.Tab.0.left" timestamp="1606697551897">
+    <state width="1634" height="254" key="GridCell.Tab.0.center/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1606839759951" />
+    <state width="1634" height="254" key="GridCell.Tab.0.left" timestamp="1606839759951">
       <screen x="134" y="0" width="1680" height="1050" />
     </state>
     <state width="1874" height="265" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1605875823785" />
     <state width="1634" height="255" key="GridCell.Tab.0.left/0.0.1920.2130@0.0.1920.2130" timestamp="1605890085244" />
-    <state width="1874" height="264" key="GridCell.Tab.0.left/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1606697551897" />
-    <state width="1874" height="264" key="GridCell.Tab.0.right" timestamp="1606697551897">
+    <state width="1634" height="254" key="GridCell.Tab.0.left/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1606839759951" />
+    <state width="1634" height="254" key="GridCell.Tab.0.right" timestamp="1606839759951">
       <screen x="134" y="0" width="1680" height="1050" />
     </state>
     <state width="1874" height="265" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1605875823786" />
     <state width="1634" height="255" key="GridCell.Tab.0.right/0.0.1920.2130@0.0.1920.2130" timestamp="1605890085245" />
-    <state width="1874" height="264" key="GridCell.Tab.0.right/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1606697551897" />
+    <state width="1634" height="254" key="GridCell.Tab.0.right/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1606839759951" />
     <state x="617" y="17" width="483" height="839" key="RollbackChangesDialog" timestamp="1605888202359">
       <screen x="0" y="0" width="1920" height="2130" />
     </state>
@@ -213,11 +233,11 @@
       <screen x="0" y="0" width="1920" height="2130" />
     </state>
     <state width="498" height="446" key="SwitcherDM/0.0.1920.2130@0.0.1920.2130" timestamp="1605886769901" />
-    <state x="541" y="93" width="804" height="633" key="Vcs.Push.Dialog.v2" timestamp="1605889593779">
-      <screen x="0" y="0" width="1920" height="2130" />
+    <state x="540" y="238" width="804" height="633" key="Vcs.Push.Dialog.v2" timestamp="1606839774927">
+      <screen x="134" y="0" width="1680" height="1050" />
     </state>
     <state x="541" y="93" width="804" height="633" key="Vcs.Push.Dialog.v2/0.0.1920.2130@0.0.1920.2130" timestamp="1605889593779" />
-    <state x="550" y="274" width="810" height="515" key="Vcs.Push.Dialog.v2/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1605282597636" />
+    <state x="540" y="238" width="810" height="515" key="Vcs.Push.Dialog.v2/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1606839774927" />
     <state x="-5" y="541" width="1930" height="539" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1605875897716">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
@@ -229,7 +249,7 @@
     <state x="731" y="435" width="438" height="163" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/134.0.1680.1050/0.1050.1920.1080@134.0.1680.1050" timestamp="1606495516283" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/BlackBlox$docs_sphinx_html.coverage" NAME="docs-sphinx-html Coverage Results" MODIFIED="1606503545776" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/BlackBlox$docs_sphinx_html.coverage" NAME="docs-sphinx-html Coverage Results" MODIFIED="1606839707394" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/BlackBlox$docs_sphinx_latex.coverage" NAME="docs-sphinx-latex Coverage Results" MODIFIED="1605888689767" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>

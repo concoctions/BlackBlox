@@ -2,7 +2,6 @@
 """
 
 from datetime import datetime
-from collections import defaultdict
 import pandas as pan
 
 from blackblox.bb_log import get_logger
@@ -11,7 +10,6 @@ import blackblox.io_functions as iof
 import blackblox.unitprocess as uni
 import blackblox.processchain as cha
 import blackblox.factory as fac
-import blackblox.industry as ind
 
 logger = get_logger("Compare")
 
@@ -26,8 +24,6 @@ def multiple_units(unit_id_list,
         unit.balance(qty, scenario=scenario, write_to_console=write_to_console)
 
 
-
-#------------------------------------------------------------------------------
 # CHAIN TESTS
 
 dummy_chain_dict = {
