@@ -244,7 +244,8 @@ class Industry:
 
 
     def run_scenarios(self, scenario_list, products_data=None, products_sheet=None, 
-                write_to_xls=True, outdir=dat.outdir, file_id='', diagrams=False):
+                write_to_xls=True, outdir=dat.outdir, file_id='', diagrams=False, 
+                upstream_outflows=False, upstream_inflows=False, aggregate_flows=False, **kwargs):
         """Balances an industry using one scenario for each factory.
 
         Args:
@@ -281,7 +282,10 @@ class Industry:
                                   write_to_xls=write_to_xls, 
                                   outdir=f'{outdir}/{scenario}', 
                                   file_id=f'{file_id}_{scenario}', 
-                                  diagrams=diagrams)
+                                  diagrams=diagrams,
+                                  upstream_outflows=False, 
+                                  upstream_inflows=False, 
+                                  aggregate_flows=False,)
             scenario_dict['i'][scenario] = s_dict['inflows']['industry totals'] 
             scenario_dict['o'][scenario] = s_dict['outflows']['industry totals'] 
 
@@ -308,7 +312,7 @@ class Industry:
     def evolve(self, start_data=None, start_sheet=None, end_data=None, end_sheet=None,
                 start_step=0, end_step=1, mass_energy=True, energy_flows=dat.energy_flows, 
                 write_to_xls=True, outdir=dat.outdir, file_id='', diagrams=True, graph_outflows=False, 
-                graph_inflows=False, **kwargs):  
+                graph_inflows=False, upstream_outflows=False, upstream_inflows=False, aggregate_flows=False, **kwargs):  
         """Calculates timestep and cumulative inflows and outflows of an industry
         using a specified starting scenario and end scenario
         
@@ -342,10 +346,13 @@ class Industry:
         kwargs = dict(write_to_xls=write_to_xls,
                       diagrams=diagrams,
                       file_id=file_id,
-                      mass_energy=True, 
-                      energy_flows=dat.energy_flows, 
+                      mass_energy=mass_energy, 
+                      energy_flows=energy_flows, 
                       subfolder=None,
-                      foldertime=False)
+                      foldertime=False,
+                      upstream_outflows=upstream_outflows, 
+                      upstream_inflows=upstream_inflows, 
+                      aggregate_flows=aggregate_flows)
 
         start_io = self.balance(production_data_file=start_data, 
                                 production_data_sheet=start_sheet, 
@@ -447,7 +454,8 @@ class Industry:
     
     def evolve_multistep(self, steps=None, production_data_files=None, step_sheets=None, 
                         file_id='', outdir=dat.outdir, write_to_xls=True, 
-                        graph_inflows=False, graph_outflows=False, **kwargs):
+                        graph_inflows=False, graph_outflows=False, 
+                        upstream_outflows=False, upstream_inflows=False, aggregate_flows=False, **kwargs):
         """the same as evolve, but takes a list of an arbitrary number of steps
         Args:
             steps (list[int]): list of numerical time steps
@@ -501,7 +509,11 @@ class Industry:
                                 energy_flows=dat.energy_flows, 
                                 write_to_xls=write_to_xls, 
                                 outdir=f"{outdir}/{prev_step}_{step}",
-                                diagrams=False)
+                                diagrams=False,
+                                upstream_outflows=upstream_outflows, 
+                                upstream_inflows=upstream_inflows, 
+                                aggregate_flows=aggregate_flows)
+
                 annual, cumulative = self.evolve(**s_kwargs)
                 if two_step is True:
                     return annual, cumulative
