@@ -111,7 +111,7 @@ def div_no_zero(qty1, qty2):
 
 
 # CALCULATION FUNCTIONS
-def Ratio(qty, var, invert=False):
+def Ratio(qty, var, invert=False, **kwargs):
     """ Multiplies or divides a quantity by a given ratio.
     The invert feature of this function is used by unitprocess.py's
     balance function to allow unit processes to be calculated 
@@ -144,7 +144,7 @@ def Ratio(qty, var, invert=False):
     return qty * var
 
 
-def Remainder(qty, var, invert=False):
+def Remainder(qty, var, invert=False, **kwargs):
     """ Multiplies a quantity by (1 - var). 
 
     The Remainder function is used by the balance function of unitprocesses.py
@@ -184,7 +184,7 @@ def Remainder(qty, var, invert=False):
         return qty * ratio_remaining
 
 
-def ReturnValue(qty):
+def ReturnValue(qty, **kwargs):
     """ Returns quantity.
 
     Useful for creating temporary duplicate values with unique names in the unit 
@@ -206,7 +206,7 @@ def ReturnValue(qty):
     return qty
 
 
-def MolMassRatio(known_substance, qty, unknown_substance, var=1.0, invert=False):
+def MolMassRatio(known_substance, qty, unknown_substance, var=1.0, invert=False, **kwargs):
     """Calculates a quantity using the molar mass ratio to a substance with known quantity
     
     Args:
@@ -240,7 +240,7 @@ def MolMassRatio(known_substance, qty, unknown_substance, var=1.0, invert=False)
     return qty * (Formula(unknown_substance).mass / Formula(known_substance).mass) * var
 
 
-def Subtraction(qty, qty2, invert=False):
+def Subtraction(qty, qty2, invert=False, **kwargs):
     """Subtracts one quantity from another.
 
     By default, that qty is the minuend and qty2 is the subtrahend. 
@@ -274,7 +274,7 @@ def Subtraction(qty, qty2, invert=False):
     return return_qty
 
 
-def Addition(qty, qty2, invert=False):
+def Addition(qty, qty2, invert=False, **kwargs):
     """Adds one quantity to another.
 
     By default, qty and qty2 are the addends and returns the sum = qty + qty2
@@ -307,7 +307,7 @@ def Addition(qty, qty2, invert=False):
     return return_qty
 
 
-def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df_fuels):
+def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df_fuels, **kwargs):
     """Ratio function, but for lookup DataFrames
 
     If the known_substance is in the index of the dataframe, multiples qty
@@ -359,7 +359,7 @@ def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df
 def Combustion(known_substance, qty, unknown_substance, var=1.0, 
                emissions_list=dat.default_emissions, emissions_dict=False,
                inflows_dict=False, fuels_df=df_fuels, LHV=True, 
-               write_energy_in=True):
+               write_energy_in=True, **kwargs):
     """Specicalized multi-lookup function for energy content and emissions of fuel combustion.
 
         Args:
