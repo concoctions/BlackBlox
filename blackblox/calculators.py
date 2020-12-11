@@ -35,14 +35,17 @@ Module Outline:
 - module variable: lookup_var_calc_list
 
 """
+from collections import defaultdict
 from math import isnan
+
 import numpy as np
 from molmass import Formula
-from collections import defaultdict
-import blackblox.io_functions as iof
+
 import blackblox.dataconfig as dat
+import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
 from blackblox.frames import df_fuels
+
 
 logger = get_logger("Calculators")
 logger.info("Logger for calculators.py initalized")
@@ -63,7 +66,7 @@ def check_qty(qty, fraction=False):
 
     if round(qty, dat.float_tol) < 0:
         raise ValueError(f'quantity should be > 0. Currently: {qty}')
-    
+
     if fraction is True:
         if qty > 1:
             raise ValueError(f'quantity should be between 0 and 1. Currently: {qty}')
@@ -86,7 +89,7 @@ def no_nan(number):
                 logger.debug("number converted from nan to 0")
         elif number == 'nan':
             number = 0
-        
+
     return number
 
 
@@ -107,10 +110,12 @@ def div_no_zero(qty1, qty2):
     elif isnan(qty1) or isnan(qty2):
         return 0
     else:
-        return qty1/qty2
+        return qty1 / qty2
 
 
 # CALCULATION FUNCTIONS
+
+# noinspection PyUnusedLocal
 def Ratio(qty, var, invert=False, **kwargs):
     """ Multiplies or divides a quantity by a given ratio.
     The invert feature of this function is used by unitprocess.py's
@@ -144,6 +149,7 @@ def Ratio(qty, var, invert=False, **kwargs):
     return qty * var
 
 
+# noinspection PyUnusedLocal
 def Remainder(qty, var, invert=False, **kwargs):
     """ Multiplies a quantity by (1 - var). 
 
@@ -179,11 +185,12 @@ def Remainder(qty, var, invert=False, **kwargs):
 
     if invert is True:
         return div_no_zero(qty, ratio_remaining)
-    
+
     else:
         return qty * ratio_remaining
 
 
+# noinspection PyUnusedLocal
 def ReturnValue(qty, **kwargs):
     """ Returns quantity.
 
@@ -206,6 +213,7 @@ def ReturnValue(qty, **kwargs):
     return qty
 
 
+# noinspection PyUnusedLocal
 def MolMassRatio(known_substance, qty, unknown_substance, var=1.0, invert=False, **kwargs):
     """Calculates a quantity using the molar mass ratio to a substance with known quantity
     
@@ -234,12 +242,13 @@ def MolMassRatio(known_substance, qty, unknown_substance, var=1.0, invert=False,
         var = 1.0
 
     if invert is True:
-        var = 1/var
+        var = 1 / var
 
     check_qty(qty)
     return qty * (Formula(unknown_substance).mass / Formula(known_substance).mass) * var
 
 
+# noinspection PyUnusedLocal
 def Subtraction(qty, qty2, invert=False, **kwargs):
     """Subtracts one quantity from another.
 
@@ -274,6 +283,7 @@ def Subtraction(qty, qty2, invert=False, **kwargs):
     return return_qty
 
 
+# noinspection PyUnusedLocal
 def Addition(qty, qty2, invert=False, **kwargs):
     """Adds one quantity to another.
 
@@ -297,7 +307,7 @@ def Addition(qty, qty2, invert=False, **kwargs):
 
     check_qty(qty)
     check_qty(qty2)
-    
+
     if invert is False:
         return_qty = qty + qty2
     else:
@@ -307,6 +317,7 @@ def Addition(qty, qty2, invert=False, **kwargs):
     return return_qty
 
 
+# noinspection PyUnusedLocal
 def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df_fuels, **kwargs):
     """Ratio function, but for lookup DataFrames
 
@@ -349,16 +360,17 @@ def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df
     else:
         substance = iof.no_suf(unknown_substance)
         return_qty = div_no_zero(qty, lookup_df.at[substance, var.lower()])
-        
+
         logger.debug(f"{return_qty} of {unknown_substance} derived from {qty} of {known_substance} using {var} ratio")
 
     check_qty(return_qty)
     return return_qty
 
 
-def Combustion(known_substance, qty, unknown_substance, var=1.0, 
+# noinspection PyUnusedLocal
+def Combustion(known_substance, qty, unknown_substance, var=1.0,
                emissions_list=dat.default_emissions, emissions_dict=False,
-               inflows_dict=False, fuels_df=df_fuels, LHV=True, 
+               inflows_dict=False, fuels_df=df_fuels, LHV=True,
                write_energy_in=True, **kwargs):
     """Specicalized multi-lookup function for energy content and emissions of fuel combustion.
 
@@ -439,11 +451,12 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
         fuel_qty = qty
         energy_qty = qty * (fuels_df.at[fuel_type, HV.lower()])  # total energy in fuel
         return_qty = energy_qty * combust_eff  # useful energy after combustion
-        logger.debug(f"energy qty ({fuel_type}) calculated at {energy_qty}, of which {return_qty} useful (Eff: {combust_eff}")
+        logger.debug(
+            f"energy qty ({fuel_type}) calculated at {energy_qty}, of which {return_qty} useful (Eff: {combust_eff}")
 
     else:
         fuel_type = iof.no_suf(unknown_substance)
-        energy_qty = qty * (1/combust_eff)  # total energy in fuel
+        energy_qty = qty * (1 / combust_eff)  # total energy in fuel
         fuel_qty = div_no_zero(energy_qty, fuels_df.at[fuel_type, HV.lower()])
         return_qty = fuel_qty
         logger.debug(f"fuel qty ({fuel_type}) calculated at {return_qty}")
@@ -473,13 +486,13 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
 
     logger.debug("Emission Data Calculated:")
     for emission in combustion_emissions:
-        logger.debug(f"{emission}: {combustion_emissions[emission]}") 
+        logger.debug(f"{emission}: {combustion_emissions[emission]}")
 
     check_qty(return_qty)
     return return_qty
 
 
-def check_balance(inflow_dict, outflow_dict, raise_imbalance=True, 
+def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
                   ignore_flows=[], only_these_flows=False, round_n=dat.float_tol):
     """Checks whether inflow and outflow dictionaries sum to same total quantity
 
@@ -531,8 +544,8 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
             for ignorable in ignore_flows:
                 if substance.startswith(ignorable) or substance.endswith(ignorable):
                     ignore = True
-            
-            if ignore is True: 
+
+            if ignore is True:
                 logger.debug(f'{substance} ({qty}) discarded')
             if ignore is False:
                 logger.debug(f'{substance} ({qty}) included')

@@ -28,16 +28,18 @@ Miscellaneous Functions
 - nested_dicts
 
 """
-import re
-import pandas as pan
-import numpy as np
-import matplotlib.pyplot as plt
-from pathlib import Path
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from datetime import datetime
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pan
+
+import blackblox.about as about
 import blackblox.dataconfig as dat
 from blackblox.bb_log import get_logger
-import blackblox.about as about
+
 
 logger = get_logger("IO")
 
@@ -48,7 +50,7 @@ logger = get_logger("IO")
 def check_type(thing, is_type=[], not_this=False, not_not=False):
     if type(is_type) is not list:
         is_type = [is_type]
-    
+
     if type(thing) not in is_type:
         raise TypeError(f"{thing} ({type(thing)}) is not an accepted type ({is_type})")
 
@@ -61,9 +63,8 @@ def check_type(thing, is_type=[], not_this=False, not_not=False):
             raise ValueError(f"{thing} must not have a Booleen value of False.")
 
 
-
 def clean_str(string_to_check, str_to_cut=False, lower=True, remove_dblnewline=True,
-                cut_whole_line_only=False):
+              cut_whole_line_only=False):
     """Multipurpose function to clean user input strings
     
     Used to clean user input. First creates a copy of the string to prevent 
@@ -91,7 +92,7 @@ def clean_str(string_to_check, str_to_cut=False, lower=True, remove_dblnewline=T
     string = ''.join(string_to_check)
 
     string = string.strip()
-    
+
     if lower is True:
         string = str.lower(string)
 
@@ -100,8 +101,8 @@ def clean_str(string_to_check, str_to_cut=False, lower=True, remove_dblnewline=T
             if string == str_to_cut:
                 string = ''
             else:
-                string = string.replace(f'{str_to_cut}\n','')
-                string = string.replace(f'\n{str_to_cut}','')
+                string = string.replace(f'{str_to_cut}\n', '')
+                string = string.replace(f'\n{str_to_cut}', '')
         else:
             string = string.replace(str_to_cut, '')
     if type(str_to_cut) is list:
@@ -110,8 +111,8 @@ def clean_str(string_to_check, str_to_cut=False, lower=True, remove_dblnewline=T
                 if string == snip:
                     string = ''
                 else:
-                    string = string.replace(f'{snip}\n','')
-                    string = string.replace(f'\n{snip}','')
+                    string = string.replace(f'{snip}\n', '')
+                    string = string.replace(f'\n{snip}', '')
             else:
                 string = string.replace(snip, '')
 
@@ -182,7 +183,7 @@ def is_energy(string, energy_strings=dat.energy_flows):
     for string in energy_strings:
         if clean_string.startswith(string) or clean_string.endswith(string):
             is_it_energy = True
-        
+
     return is_it_energy
 
 
@@ -196,8 +197,8 @@ def no_suf(str, separator=dat.ignore_sep):
 
 # DATA FRAME CONSTRUCTORS 
 
-def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta", 
-            col_order = False, T = False, drop_zero=False, sort=False, 
+def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
+            col_order=False, T=False, drop_zero=False, sort=False,
             lower_cols=True, fillna=True):
     """ Creates a Pandas dataframe from various file types
 
@@ -243,7 +244,7 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
         if df.empty:
             return df
     elif bool(data) is True:
-        if isinstance(data, (dict,list)): 
+        if isinstance(data, (dict, list)):
             df = pan.DataFrame(data)
         elif data.endswith(('.xls', 'xlsx')):
             df = pan.read_excel(data, sheet_name=sheet, index_col=index)
@@ -261,8 +262,8 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
 
     if type(col_order) is list:
         df = df[col_order]
- 
-    df = df.apply(pan.to_numeric, errors = 'ignore') #if it looks like a number, make it a number
+
+    df = df.apply(pan.to_numeric, errors='ignore')  # if it looks like a number, make it a number
 
     if T is True:
         df = df.T
@@ -270,7 +271,7 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
     if drop_zero is True:
         df = df.fillna(0)
         df = df.loc[:, (df != 0).any(axis=0)]
-        df = df[np.square(df.values).sum(axis=1) != 0] # uses square so that negative numbers aren't an issue
+        df = df[np.square(df.values).sum(axis=1) != 0]  # uses square so that negative numbers aren't an issue
 
     if sort is True:
         df.sort_index()
@@ -289,7 +290,7 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix = "meta",
 
 
 def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True, aggregate_consumed=False,
-                    units=dat.default_units):
+                   units=dat.default_units):
     """Reorders dataframe to seperate mass and energy flows
 
     Uses a list of prefix/suffixes to identify mass and energy flows
@@ -329,7 +330,7 @@ def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True, aggregate_c
                 energy_flow = True
                 break
 
-        if energy_flow is True: 
+        if energy_flow is True:
             if consumed is True and aggregate_consumed is True:
                 consumed_energy_df = consumed_energy_df.append(row)
             else:
@@ -346,7 +347,6 @@ def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True, aggregate_c
             mass_df = mass_df.append(consumed_mass_df.sum().rename(f'CONSUMED/EMBODIED/&c mass'))
         if not consumed_energy_df.empty:
             energy_df = energy_df.append(consumed_energy_df.sum().rename(f'CONSUMED/EMBODIED/&c energy'))
-
 
     if not mass_df.empty:
         mass_df['index-lowercase'] = mass_df.index.str.lower()
@@ -365,19 +365,19 @@ def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True, aggregate_c
     combined_df = pan.concat([mass_df, energy_df], keys=['Mass', 'Energy'], names=['type', 'substance'])
 
     return combined_df
-    
 
-def metadata_df(user=dat.user_data, about=about.about_blackblox, name="unknown", level="unknown", 
+
+def metadata_df(user=dat.user_data, about=about.about_blackblox, name="unknown", level="unknown",
                 product="unknown", product_qty="unknown", scenario="unknown",
-                energy_flows=dat.energy_flows, units = dat.default_units):
+                energy_flows=dat.energy_flows, units=dat.default_units):
     """Generates a metadata dataframe for use in excel file output
     """
-    
+
     if is_energy(product):
         product_type = 'energy'
     else:
         product_type = 'mass'
-              
+
     creation_date = datetime.now().strftime("%A, %d %B %Y at %H:%M")
     energy_flows = ', '.join(energy_flows)
 
@@ -401,7 +401,7 @@ def metadata_df(user=dat.user_data, about=about.about_blackblox, name="unknown",
             "17": f"For full documentation on how to use {about['name']}, visit {about['documentation_url']}",
             "18": f"{about['name']} is currently under active development. Head over to {about['github_url']} to download, fork, or contribute.",
             "19": f"{about['name']} is avaiable for use free of charge under the terms and conditions of the {about['license']} license.",
-    }
+            }
 
     meta_df = pan.DataFrame.from_dict(meta, orient='index', columns=['Workbook Information'])
 
@@ -433,8 +433,8 @@ def build_filedir(filedir, subfolder=None, file_id_list=[], time=True):
         The built file directory string.
     """
     if subfolder is not None:
-        filedir=f'{filedir}/{subfolder}'
-    
+        filedir = f'{filedir}/{subfolder}'
+
     for file_id in file_id_list:
         if file_id:
             filedir = f'{filedir}_{file_id}'
@@ -445,8 +445,8 @@ def build_filedir(filedir, subfolder=None, file_id_list=[], time=True):
     return filedir
 
 
-def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir, 
-                   filename='output', subdir=None):
+def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir,
+                 filename='output', subdir=None):
     """Writes one or more data frames to a single excel workbook.
 
     Each data frame appears on its own worksheet. Automatically creates the
@@ -464,9 +464,9 @@ def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir,
             (Defaults to 'output')
     """
     if subdir:
-        Path(filedir+'/'+subdir).mkdir(parents=True, exist_ok=True) 
+        Path(filedir + '/' + subdir).mkdir(parents=True, exist_ok=True)
     else:
-        Path(filedir).mkdir(parents=True, exist_ok=True) 
+        Path(filedir).mkdir(parents=True, exist_ok=True)
 
     logger.debug(f"attempting to create {filename} in {filedir}")
 
@@ -476,15 +476,15 @@ def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir,
     empty_df = pan.DataFrame.from_dict(empty_notice, orient='index', columns=['Empty Dataframe'])
 
     if subdir:
-        filepath = filedir+'/'+subdir+'/'+filename+'.xlsx'
-    else: 
-        filepath = filedir+'/'+filename+'.xlsx'
+        filepath = filedir + '/' + subdir + '/' + filename + '.xlsx'
+    else:
+        filepath = filedir + '/' + filename + '.xlsx'
 
     if isinstance(df_or_df_list, pan.DataFrame):
         df_or_df_list.to_excel(filepath)
-    
+
     else:
-        with pan.ExcelWriter(filepath) as writer: # pylint: disable=abstract-class-instantiated 
+        with pan.ExcelWriter(filepath) as writer:  # pylint: disable=abstract-class-instantiated
             for i, df in enumerate(df_or_df_list):
                 if sheet_list:
                     sheet = sheet_list[i]
@@ -500,10 +500,10 @@ def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir,
 
 
 def format_and_save_plot(filepath):
-   plt.style.use('tableau-colorblind10')
-   plt.grid(True)
-   plt.savefig(f"{filepath}.png", format='png', dpi=300)
-   plt.savefig(f"{filepath}.svg", format='svg')
+    plt.style.use('tableau-colorblind10')
+    plt.grid(True)
+    plt.savefig(f"{filepath}.png", format='png', dpi=300)
+    plt.savefig(f"{filepath}.svg", format='svg')
 
 
 def plot_annual_flows(df_dict, flow, outdir, file_id="", unit_dict=dat.default_units):
@@ -523,7 +523,7 @@ def plot_annual_flows(df_dict, flow, outdir, file_id="", unit_dict=dat.default_u
                 flow_series.append(s)
 
     flow_df = pan.concat(flow_series, axis=1, sort=True)
-    flow_df.index = flow_df.index.map(int) #converts year strings to integers
+    flow_df.index = flow_df.index.map(int)  # converts year strings to integers
     df_index = flow_df.index.tolist()
 
     energy_flow = is_energy(flow)
@@ -536,17 +536,17 @@ def plot_annual_flows(df_dict, flow, outdir, file_id="", unit_dict=dat.default_u
     tick_step = 1
     while ticks > 20:
         ticks = ticks / 2
-        tick_step = tick_step  * 2
+        tick_step = tick_step * 2
 
     flow_df.plot(title=f"annual outflows of {flow}")
 
-    plt.xticks(range(df_index[0], df_index[-1]+1, tick_step), rotation=90)
+    plt.xticks(range(df_index[0], df_index[-1] + 1, tick_step), rotation=90)
     plt.ylabel(f"{flow_unit} {flow}")
 
     format_and_save_plot(f'{outdir}/{flow}{file_id}')
     plt.close()
-   
-   
+
+
 # MISCELLANEOUS FUNCTIONS
 
 def nested_dicts(levels=2, final=float):
@@ -570,6 +570,5 @@ def nested_dicts(levels=2, final=float):
     Returns:
         A nested defaultdict of the specified depth.
     """
-    return (defaultdict(final) if levels <2 else
+    return (defaultdict(final) if levels < 2 else
             defaultdict(lambda: nested_dicts(levels - 1, final)))
-

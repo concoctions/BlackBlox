@@ -26,12 +26,12 @@ Module Outline:
     - for industry data
 
 """
-from blackblox.bb_log import get_logger
 from datetime import datetime
+
+from blackblox.bb_log import get_logger
 
 
 logger = get_logger("config")
-
 
 # USER DATA
 user_data = {
@@ -47,9 +47,8 @@ If a number is calculated to be less than zero, it will be rounded to the number
 in the float tolerance. An error will only be raised if it is stil less than zero.
 """
 
-
-# DEFAULT FILEPATHS 
-unit_process_library_file = "data/unitlibrary.xlsx" 
+# DEFAULT FILEPATHS
+unit_process_library_file = "data/unitlibrary.xlsx"
 """str: The filepath whre the unit process library file exists.
 """
 
@@ -58,15 +57,15 @@ unit_process_library_sheet = "Unit Processes"
 
 If not an excel worksheet, this variable should be None.
 """
-day = datetime.now().strftime("%b%d") 
-time = datetime.now().strftime("%H%M")   
+day = datetime.now().strftime("%b%d")
+time = datetime.now().strftime("%H%M")
 
-outdir = 'output'+'/'+day
+outdir = 'output' + '/' + day
 """str: The file output directory.
 
 Unless an absolute path is specified, BlackBlox will create the directory 
 as a subfolder of the current working directory.
-"""  
+"""
 
 same_xls = ['thisfile', 'same', 'here']
 """list: strings indicating the data is in the current Excel workbook
@@ -76,7 +75,6 @@ Excel workbook with multiple sheets. The correct Excel sheet must still
 be specified.
 """
 
-
 # LOOKUP VARIABLES
 fuel_dict = dict(
     filepath='data/shared/fuels.xlsx',
@@ -84,7 +82,7 @@ fuel_dict = dict(
     lookup_var='fueltype'
 )
 
-lookup_var_dict = { 
+lookup_var_dict = {
     # FUELS
     'fuel': dict(
         filepath='data/shared/fuels.xlsx',
@@ -159,7 +157,7 @@ lookup_var_dict = {
     'biofeedstock': dict(lookup_var='biofeedstock type'),
     'alloy': dict(lookup_var='alloy type'),
     'solvent': dict(lookup_var='solvent type')
-} 
+}
 """dictionary of special lookup substance names
 Lookup_var_dict is a dictionary with the names of substance, that when used
 in the unit process calculations file, will trigger the program to replace
@@ -220,7 +218,7 @@ as "CONSUMED" to indicate that it is factory-internal flow.
 """
 
 # OTHER DATA NAMING VARIABLES
-default_scenario = "default" 
+default_scenario = "default"
 """str: the index used for the default scenario of variables
 
 Usable in the unit process variables data tables. 
@@ -228,7 +226,7 @@ If present in the variables data index, the default scenario will be used
 when a scenario of variables is not otherwise specified.
 """
 
-no_var = ['None', 'none', 'false', 'na', '-', '--', '', 'nan', 0, '0', None, False, float('nan')] 
+no_var = ['None', 'none', 'false', 'na', '-', '--', '', 'nan', 0, '0', None, False, float('nan')]
 """str: indicator that no variable is used in the calculation
 
 Usable in the unit process calculation table, to indicate that the 
@@ -245,7 +243,7 @@ destination chain by the specified product, and therefore uses chain total
 numbers to balance the destination chain.
 """
 
-all_factories = ['industry', 'all', 'factories'] 
+all_factories = ['industry', 'all', 'factories']
 """list: strings indicating all factories in a given industry
 
 Useable as a row index in industry scenario tables to indicate that a
@@ -257,8 +255,7 @@ each factory producing that product should specify their production quantity
 as a fraction of that total as a decimal between 0 and 1.
 """
 
-
-# DIAGRAM LINE STYLING 
+# DIAGRAM LINE STYLING
 mass_color = 'black'
 mass_style = 'solid'
 
@@ -329,7 +326,6 @@ f_connections_sheet = "factory connections sheet"
 f_product = "factory product"
 f_product_qty = "product qty"
 f_scenario = "scenario"
-
 
 # Other Filepaths
 graphviz_path = 'C:/ProgramData/Anaconda3/Library/bin/graphviz/'

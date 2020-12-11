@@ -9,11 +9,12 @@ https://gist.github.com/nguyenkims/e92df0f8bd49973f0c94bddf36ed7fd0
 """
 import logging
 import platform
+from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
-from datetime import datetime
 
-Path("logs").mkdir(parents=True, exist_ok=True) 
+
+Path("logs").mkdir(parents=True, exist_ok=True)
 
 FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s")
 LOG_FILE = Path("logs/BlackBlox.log")
