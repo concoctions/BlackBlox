@@ -26,16 +26,18 @@ Module Outline:
     - for industry data
 
 """
-
-from blackblox.bb_log import get_logger
-logger = get_logger("config")
 from datetime import datetime
 
+from blackblox.bb_log import get_logger
+
+
+logger = get_logger("config")
 
 # USER DATA
-user_data = {"name": "Mysterious Stranger",
-             "affiliation": "Mysterious Organization",
-             "project": "Mysterious Project",
+user_data = {
+    "name": "Mysterious Stranger",
+    "affiliation": "Mysterious Organization",
+    "project": "Mysterious Project",
 }
 
 # FlOAT TOLERANCE
@@ -45,9 +47,8 @@ If a number is calculated to be less than zero, it will be rounded to the number
 in the float tolerance. An error will only be raised if it is stil less than zero.
 """
 
-
-# DEFAULT FILEPATHS 
-unit_process_library_file = "data/unitlibrary.xlsx" 
+# DEFAULT FILEPATHS
+unit_process_library_file = "data/unitlibrary.xlsx"
 """str: The filepath whre the unit process library file exists.
 """
 
@@ -56,15 +57,15 @@ unit_process_library_sheet = "Unit Processes"
 
 If not an excel worksheet, this variable should be None.
 """
-day = datetime.now().strftime("%b%d") 
-time = datetime.now().strftime("%H%M")   
+day = datetime.now().strftime("%b%d")
+time = datetime.now().strftime("%H%M")
 
-outdir = 'output'+'/'+day
+outdir = 'output' + '/' + day
 """str: The file output directory.
 
 Unless an absolute path is specified, BlackBlox will create the directory 
 as a subfolder of the current working directory.
-"""  
+"""
 
 same_xls = ['thisfile', 'same', 'here']
 """list: strings indicating the data is in the current Excel workbook
@@ -74,73 +75,89 @@ Excel workbook with multiple sheets. The correct Excel sheet must still
 be specified.
 """
 
-
 # LOOKUP VARIABLES
-fuel_dict = dict(filepath='data/shared/fuels.xlsx',
-            sheet='Fuels',
-            lookup_var='fueltype')
+fuel_dict = dict(
+    filepath='data/shared/fuels.xlsx',
+    sheet='Fuels',
+    lookup_var='fueltype'
+)
 
-lookup_var_dict = { 
-    #FUELS
-    'fuel': dict(filepath='data/shared/fuels.xlsx',
-                 sheet='Fuels',
-                 is_fuel = True,
-                 lookup_var='fueltype'),
-    'other fuel': dict(filepath='data/shared/fuels.xlsx',
-                 sheet='Fuels',
-                 is_fuel = True,
-                 lookup_var='other fuel type'),
-    'primary fuel': dict(filepath='data/shared/fuels.xlsx',
-                 sheet='Fuels',
-                 is_fuel = True,
-                 lookup_var='primary fuel type'),
-    'secondary fuel': dict(filepath='data/shared/fuels.xlsx',
-                 sheet='Fuels',
-                 is_fuel = True,
-                 lookup_var='secondary fuel type'),
-    'fossil fuel': dict(filepath='data/shared/fuels.xlsx',
-                 sheet='Fuels',
-                 is_fuel = True,
-                 lookup_var='fossil fuel type'),
-    'biofuel': dict(filepath='data/shared/fuels.xlsx',
-                 sheet='Fuels',
-                 is_fuel = True,
-                 lookup_var='biofuel type'),
-    'secondary biofuel': dict(filepath='data/shared/fuels.xlsx',
-                 sheet='Fuels',
-                 is_fuel = True,
-                 lookup_var='secondary biofuel type'),
-    'reducing agent': dict(filepath='data/shared/fuels.xlsx',
-                 sheet='Fuels',
-                 is_fuel = True,
-                 lookup_var='reducing agent'),
-    'waste fuel': dict(filepath='data/shared/fuels.xlsx',
-                 sheet='Fuels',
-                 is_fuel = True,
-                 lookup_var='waste fuel type'),
+lookup_var_dict = {
+    # FUELS
+    'fuel': dict(
+        filepath='data/shared/fuels.xlsx',
+        sheet='Fuels',
+        is_fuel=True,
+        lookup_var='fueltype'),
+    'other fuel': dict(
+        filepath='data/shared/fuels.xlsx',
+        sheet='Fuels',
+        is_fuel=True,
+        lookup_var='other fuel type'),
+    'primary fuel': dict(
+        filepath='data/shared/fuels.xlsx',
+        sheet='Fuels',
+        is_fuel=True,
+        lookup_var='primary fuel type'),
+    'secondary fuel': dict(
+        filepath='data/shared/fuels.xlsx',
+        sheet='Fuels',
+        is_fuel=True,
+        lookup_var='secondary fuel type'),
+    'fossil fuel': dict(
+        filepath='data/shared/fuels.xlsx',
+        sheet='Fuels',
+        is_fuel=True,
+        lookup_var='fossil fuel type'),
+    'biofuel': dict(
+        filepath='data/shared/fuels.xlsx',
+        sheet='Fuels',
+        is_fuel=True,
+        lookup_var='biofuel type'),
+    'secondary biofuel': dict(
+        filepath='data/shared/fuels.xlsx',
+        sheet='Fuels',
+        is_fuel=True,
+        lookup_var='secondary biofuel type'),
+    'reducing agent': dict(
+        filepath='data/shared/fuels.xlsx',
+        sheet='Fuels',
+        is_fuel=True,
+        lookup_var='reducing agent'),
+    'waste fuel': dict(
+        filepath='data/shared/fuels.xlsx',
+        sheet='Fuels',
+        is_fuel=True,
+        lookup_var='waste fuel type'),
 
-    #UPSTREAM
-    'upstream outflows': dict(lookup_var='upstream outflows',
-                     filepath='data/shared/upstream.xlsx',
-                     sheet='up-emissions'),
-    'upstream inflows': dict(lookup_var='upstream inflows',
-                     filepath='data/shared/upstream.xlsx',
-                     sheet='up-removals'),
-    #DOWNSTREAM
-    'downstream outflows': dict(lookup_var='downstream outflows',
-                     filepath='data/shared/upstream.xlsx',
-                     sheet='down-emissions'),
-    'downstream inflows': dict(lookup_var='downstream inflows',
-                     filepath='data/shared/upstream.xlsx',
-                     sheet='down-removals'),
-    #NO FURTHER DATA (only used to pass flowname from var_df)
+    # UPSTREAM
+    'upstream outflows': dict(
+        lookup_var='upstream outflows',
+        filepath='data/shared/upstream.xlsx',
+        sheet='up-emissions'),
+    'upstream inflows': dict(
+        lookup_var='upstream inflows',
+        filepath='data/shared/upstream.xlsx',
+        sheet='up-removals'),
+
+    # DOWNSTREAM
+    'downstream outflows': dict(
+        lookup_var='downstream outflows',
+        filepath='data/shared/upstream.xlsx',
+        sheet='down-emissions'),
+    'downstream inflows': dict(
+        lookup_var='downstream inflows',
+        filepath='data/shared/upstream.xlsx',
+        sheet='down-removals'),
+
+    # NO FURTHER DATA (only used to pass flowname from var_df)
     'biomass': dict(lookup_var='biomass type'),
     'feedstock': dict(lookup_var='feedstock type'),
     'fossil feedstock': dict(lookup_var='fossil feedstock type'),
     'biofeedstock': dict(lookup_var='biofeedstock type'),
     'alloy': dict(lookup_var='alloy type'),
     'solvent': dict(lookup_var='solvent type')
-} 
+}
 """dictionary of special lookup substance names
 Lookup_var_dict is a dictionary with the names of substance, that when used
 in the unit process calculations file, will trigger the program to replace
@@ -162,15 +179,16 @@ Each entry in this dictionary should be formatted with the following:
 
 """
 
-fuel_flows = ['fuel', 'other fuel', 'primary fuel', 'secondary fuel', 'fossil fuel', 'biofuel',]
+fuel_flows = ['fuel', 'other fuel', 'primary fuel', 'secondary fuel', 'fossil fuel', 'biofuel']
 """list: strings that indicate that a substance is an fuel flow
 
 Usable in flow names. Must be used at the beginning or end of the flow name.
 """
 
 # SUBSTANCE NAME VARIABLES
-default_units = {'mass': 'tonnes', 
-                 'energy':'GJ',
+default_units = {
+    'mass': 'tonnes',
+    'energy': 'GJ',
 }
 
 energy_flows = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV', 'lhv', 'hhv']
@@ -200,7 +218,7 @@ as "CONSUMED" to indicate that it is factory-internal flow.
 """
 
 # OTHER DATA NAMING VARIABLES
-default_scenario = "BASE" 
+default_scenario = "BASE"  # "default" is used in older scripts
 """str: the index used for the default scenario of variables
 
 Usable in the unit process variables data tables. 
@@ -208,7 +226,7 @@ If present in the variables data index, the default scenario will be used
 when a scenario of variables is not otherwise specified.
 """
 
-no_var = ['None', 'none', 'false', 'na', '-', '--', '', 'nan', 0, '0', None, False, float('nan')] 
+no_var = ['None', 'none', 'false', 'na', '-', '--', '', 'nan', 0, '0', None, False, float('nan')]
 """str: indicator that no variable is used in the calculation
 
 Usable in the unit process calculation table, to indicate that the 
@@ -225,7 +243,7 @@ destination chain by the specified product, and therefore uses chain total
 numbers to balance the destination chain.
 """
 
-all_factories = ['industry', 'all', 'factories'] 
+all_factories = ['industry', 'all', 'factories']
 """list: strings indicating all factories in a given industry
 
 Useable as a row index in industry scenario tables to indicate that a
@@ -237,8 +255,7 @@ each factory producing that product should specify their production quantity
 as a fraction of that total as a decimal between 0 and 1.
 """
 
-
-# DIAGRAM LINE STYLING 
+# DIAGRAM LINE STYLING
 mass_color = 'black'
 mass_style = 'solid'
 
@@ -280,7 +297,6 @@ process_col = 'process_id'
 
 # for FACTORY chain list tabular data:
 chain_name = 'chainname'
-chain_product = 'chaintype'
 chain_product = 'chainproduct'
 chain_io = 'product_io'
 chain_filepath = 'chainfile'
@@ -310,7 +326,6 @@ f_connections_sheet = "factory connections sheet"
 f_product = "factory product"
 f_product_qty = "product qty"
 f_scenario = "scenario"
-
 
 # Other Filepaths
 graphviz_path = 'C:/ProgramData/Anaconda3/Library/bin/graphviz/'

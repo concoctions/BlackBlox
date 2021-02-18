@@ -1,14 +1,15 @@
-import blackblox.io_functions as iof
-import blackblox.dataconfig as dat
 from copy import copy
+
+import blackblox.dataconfig as dat
+import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
+
 
 logger = get_logger("Frames")
 logger.info("Logger for frames.py initalized")
 
-
-df_unit_library = iof.make_df(dat.unit_process_library_file, 
-                             sheet=dat.unit_process_library_sheet)
+df_unit_library = iof.make_df(dat.unit_process_library_file,
+                              sheet=dat.unit_process_library_sheet)
 """dataframe of all unit process names and file locations
 
 This data frame provides the locations of the calculations and variable tables 
@@ -21,7 +22,7 @@ and the columns contains the location of the variable and calculation tables.
 """
 
 df_fuels = None
-if dat.fuel_dict is not None: 
+if dat.fuel_dict is not None:
     df_fuels = iof.make_df(dat.fuel_dict['filepath'], sheet=dat.fuel_dict['sheet'])
     logger.info("df_fuels created")
 """Dataframe of information regarding different fuel types, used for combustion calculations, 
@@ -41,20 +42,24 @@ for var in lookup_var_dict:
 
 df_upstream_outflows = None
 if 'upstream outflows' in dat.lookup_var_dict:
-    df_upstream_outflows = iof.make_df(dat.lookup_var_dict['upstream outflows']['filepath'], sheet=dat.lookup_var_dict['upstream outflows']['sheet'])
+    df_upstream_outflows = iof.make_df(dat.lookup_var_dict['upstream outflows']['filepath'],
+                                       sheet=dat.lookup_var_dict['upstream outflows']['sheet'])
     logger.info("df_upstream_outflows created")
 
 df_upstream_inflows = None
 if 'upstream inflows' in dat.lookup_var_dict:
-    df_upstream_inflows = iof.make_df(dat.lookup_var_dict['upstream inflows']['filepath'], sheet=dat.lookup_var_dict['upstream inflows']['sheet'])
+    df_upstream_inflows = iof.make_df(dat.lookup_var_dict['upstream inflows']['filepath'],
+                                      sheet=dat.lookup_var_dict['upstream inflows']['sheet'])
     logger.info("df_upstream_inflows created")
 
 df_downstream_outflows = None
 if 'downstream outflows' in dat.lookup_var_dict:
-    df_downstream_outflows = iof.make_df(dat.lookup_var_dict['downstream outflows']['filepath'], sheet=dat.lookup_var_dict['downstream outflows']['sheet'])
+    df_downstream_outflows = iof.make_df(dat.lookup_var_dict['downstream outflows']['filepath'],
+                                         sheet=dat.lookup_var_dict['downstream outflows']['sheet'])
     logger.info("df_downstream_outflows created")
 
 df_downstream_inflows = None
 if 'downstream inflows' in dat.lookup_var_dict:
-    df_downstream_inflows = iof.make_df(dat.lookup_var_dict['downstream inflows']['filepath'], sheet=dat.lookup_var_dict['downstream inflows']['sheet'])
+    df_downstream_inflows = iof.make_df(dat.lookup_var_dict['downstream inflows']['filepath'],
+                                        sheet=dat.lookup_var_dict['downstream inflows']['sheet'])
     logger.info("df_downstream_inflows created")

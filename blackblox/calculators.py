@@ -35,24 +35,24 @@ Module Outline:
 - module variable: lookup_var_calc_list
 
 """
-
-from math import isnan
-import numpy as np
-import pandas as pan
-from molmass import Formula
 from collections import defaultdict
-import blackblox.io_functions as iof
+from math import isnan
+
+import numpy as np
+from molmass import Formula
+
 import blackblox.dataconfig as dat
+import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
 from blackblox.frames import df_fuels
+
 
 logger = get_logger("Calculators")
 logger.info("Logger for calculators.py initalized")
 
 
-
 # DATA CHECK FUNCTIONS
-def check_qty(qty, fraction = False):
+def check_qty(qty, fraction=False):
     """Checks that a quantity is a number, > 0, and optionally < 1.
 
     Args:
@@ -66,7 +66,7 @@ def check_qty(qty, fraction = False):
 
     if round(qty, dat.float_tol) < 0:
         raise ValueError(f'quantity should be > 0. Currently: {qty}')
-    
+
     if fraction is True:
         if qty > 1:
             raise ValueError(f'quantity should be between 0 and 1. Currently: {qty}')
@@ -86,10 +86,10 @@ def no_nan(number):
         if type(number) not in [str, bool]:
             if isnan(number):
                 number = 0
-                logger.debug("number converted from nan to 0" )
+                logger.debug("number converted from nan to 0")
         elif number == 'nan':
             number = 0
-        
+
     return number
 
 
@@ -110,11 +110,13 @@ def div_no_zero(qty1, qty2):
     elif isnan(qty1) or isnan(qty2):
         return 0
     else:
-        return qty1/qty2
+        return qty1 / qty2
 
 
 # CALCULATION FUNCTIONS
-def Ratio(qty, var, invert = False, **kwargs):
+
+# noinspection PyUnusedLocal
+def Ratio(qty, var, invert=False, **kwargs):
     """ Multiplies or divides a quantity by a given ratio.
     The invert feature of this function is used by unitprocess.py's
     balance function to allow unit processes to be calculated 
@@ -142,12 +144,13 @@ def Ratio(qty, var, invert = False, **kwargs):
     check_qty(var)
 
     if invert is True:
-        var = div_no_zero(1,var)
+        var = div_no_zero(1, var)
 
-    return (qty * var)
+    return qty * var
 
 
-def Remainder(qty, var, invert = False, **kwargs):
+# noinspection PyUnusedLocal
+def Remainder(qty, var, invert=False, **kwargs):
     """ Multiplies a quantity by (1 - var). 
 
     The Remainder function is used by the balance function of unitprocesses.py
@@ -176,17 +179,18 @@ def Remainder(qty, var, invert = False, **kwargs):
     logger.debug("using qty: {}, ratio: {}, invert: {}".format(qty, var, invert))
 
     check_qty(qty)
-    check_qty(var, fraction = True)
+    check_qty(var, fraction=True)
 
-    ratioRemaining = 1 - var
+    ratio_remaining = 1 - var
 
     if invert is True:
-        return div_no_zero(qty, ratioRemaining)
-    
+        return div_no_zero(qty, ratio_remaining)
+
     else:
-        return (qty * ratioRemaining)
+        return qty * ratio_remaining
 
 
+# noinspection PyUnusedLocal
 def ReturnValue(qty, **kwargs):
     """ Returns quantity.
 
@@ -205,9 +209,11 @@ def ReturnValue(qty, **kwargs):
         5
     """
     check_qty(qty)
-    return (qty)
+
+    return qty
 
 
+# noinspection PyUnusedLocal
 def MolMassRatio(known_substance, qty, unknown_substance, var=1.0, invert=False, **kwargs):
     """Calculates a quantity using the molar mass ratio to a substance with known quantity
     
@@ -236,13 +242,14 @@ def MolMassRatio(known_substance, qty, unknown_substance, var=1.0, invert=False,
         var = 1.0
 
     if invert is True:
-        var = 1/var
+        var = 1 / var
 
     check_qty(qty)
-    return qty * (Formula(unknown_substance).mass / Formula(known_substance).mass) *  var
+    return qty * (Formula(unknown_substance).mass / Formula(known_substance).mass) * var
 
 
-def Subtraction(qty, qty2, invert = False, **kwargs):
+# noinspection PyUnusedLocal
+def Subtraction(qty, qty2, invert=False, **kwargs):
     """Subtracts one quantity from another.
 
     By default, that qty is the minuend and qty2 is the subtrahend. 
@@ -267,15 +274,17 @@ def Subtraction(qty, qty2, invert = False, **kwargs):
     check_qty(qty2)
 
     if invert is False:
-        return_qty = (qty) - (qty2)
+        return_qty = qty - qty2
     else:
-        return_qty = (qty) + (qty2)
+        return_qty = qty + qty2
 
-    check_qty(return_qty) 
+    check_qty(return_qty)
+
     return return_qty
 
 
-def Addition(qty, qty2, invert = False, **kwargs):
+# noinspection PyUnusedLocal
+def Addition(qty, qty2, invert=False, **kwargs):
     """Adds one quantity to another.
 
     By default, qty and qty2 are the addends and returns the sum = qty + qty2
@@ -298,16 +307,17 @@ def Addition(qty, qty2, invert = False, **kwargs):
 
     check_qty(qty)
     check_qty(qty2)
-    
+
     if invert is False:
-        return_qty = (qty) + (qty2)
+        return_qty = qty + qty2
     else:
-        return_qty = (qty) - (qty2)    
+        return_qty = qty - qty2
 
     check_qty(return_qty)
     return return_qty
 
 
+# noinspection PyUnusedLocal
 def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df_fuels, **kwargs):
     """Ratio function, but for lookup DataFrames
 
@@ -335,29 +345,32 @@ def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df
 
     check_qty(qty)
 
-    if (iof.no_suf(known_substance) not in lookup_df.index and iof.no_suf(unknown_substance) not in lookup_df.index):
-        raise Exception("Neither {} nor {} is in the specified lookup dataframe".format(known_substance, unknown_substance))
+    if iof.no_suf(known_substance) not in lookup_df.index and iof.no_suf(unknown_substance) not in lookup_df.index:
+        msgformat_neither = "Neither {} nor {} is in the specified lookup dataframe"
+        raise Exception(msgformat_neither.format(known_substance, unknown_substance))
 
-    if (iof.no_suf(known_substance) in lookup_df.index and iof.no_suf(unknown_substance) in lookup_df.index):
-        raise Exception("Both {} and {} are are both in the lookup dataframe.".format(known_substance, unknown_substance))
+    if iof.no_suf(known_substance) in lookup_df.index and iof.no_suf(unknown_substance) in lookup_df.index:
+        msgformat_both = "Both {} and {} are are both in the lookup dataframe."
+        raise Exception(msgformat_both.format(known_substance, unknown_substance))
 
     if iof.no_suf(known_substance) in lookup_df.index:
         substance = iof.no_suf(known_substance)
-        return_qty = (qty) * (lookup_df.at[substance, var.lower()])
+        return_qty = qty * (lookup_df.at[substance, var.lower()])
 
     else:
         substance = iof.no_suf(unknown_substance)
         return_qty = div_no_zero(qty, lookup_df.at[substance, var.lower()])
-        
+
         logger.debug(f"{return_qty} of {unknown_substance} derived from {qty} of {known_substance} using {var} ratio")
 
     check_qty(return_qty)
     return return_qty
 
 
-def Combustion(known_substance, qty, unknown_substance, var=1.0, 
-               emissions_list = dat.default_emissions, emissions_dict=False, 
-               inflows_dict=False, fuels_df=df_fuels, LHV=True, 
+# noinspection PyUnusedLocal
+def Combustion(known_substance, qty, unknown_substance, var=1.0,
+               emissions_list=dat.default_emissions, emissions_dict=False,
+               inflows_dict=False, fuels_df=df_fuels, LHV=True,
                write_energy_in=True, **kwargs):
     """Specicalized multi-lookup function for energy content and emissions of fuel combustion.
 
@@ -414,12 +427,10 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
     logger.debug(f"using {qty} of {known_substance} and efficiency of {var} to calculate {unknown_substance}")
     logger.debug(f"using dataframe with columns {fuels_df.columns}")
 
-    if (iof.no_suf(known_substance) not in fuels_df.index 
-        and iof.no_suf(unknown_substance) not in fuels_df.index):
+    if iof.no_suf(known_substance) not in fuels_df.index and iof.no_suf(unknown_substance) not in fuels_df.index:
         raise Exception("Neither {} nor {} is a known fuel type".format(known_substance, unknown_substance))
 
-    if (iof.no_suf(known_substance) in fuels_df.index 
-        and iof.no_suf(unknown_substance) in fuels_df.index):
+    if iof.no_suf(known_substance) in fuels_df.index and iof.no_suf(unknown_substance) in fuels_df.index:
         raise Exception("Both {} and {} are known fuel types.".format(known_substance, unknown_substance))
 
     check_qty(qty)
@@ -437,14 +448,15 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
 
     if iof.no_suf(known_substance) in fuels_df.index:
         fuel_type = iof.no_suf(known_substance)
-        fuel_qty = (qty)
-        energy_qty = qty * (fuels_df.at[fuel_type, HV.lower()]) # total energy in fuel
-        return_qty = energy_qty * combust_eff # useful energy after combustion
-        logger.debug(f"energy qty ({fuel_type}) calculated at {energy_qty}, of which {return_qty} useful (Eff: {combust_eff}")
+        fuel_qty = qty
+        energy_qty = qty * (fuels_df.at[fuel_type, HV.lower()])  # total energy in fuel
+        return_qty = energy_qty * combust_eff  # useful energy after combustion
+        logger.debug(
+            f"energy qty ({fuel_type}) calculated at {energy_qty}, of which {return_qty} useful (Eff: {combust_eff}")
 
     else:
         fuel_type = iof.no_suf(unknown_substance)
-        energy_qty = (qty) * ((1/combust_eff)) # total energy in fuel
+        energy_qty = qty * (1 / combust_eff)  # total energy in fuel
         fuel_qty = div_no_zero(energy_qty, fuels_df.at[fuel_type, HV.lower()])
         return_qty = fuel_qty
         logger.debug(f"fuel qty ({fuel_type}) calculated at {return_qty}")
@@ -452,31 +464,35 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
     combustion_emissions = dict()
     for emission in emissions_list:
         if emission.lower() in fuels_df:
-            combustion_emissions[f'{emission}'] = (fuels_df.at[fuel_type, emission.lower()]) * (fuel_qty)
+            combustion_emissions[f'{emission}'] = (fuels_df.at[fuel_type, emission.lower()]) * fuel_qty
         else:
             logger.warning(f'{emission} not found for {fuel_type}.')
 
     if type(emissions_dict) == defaultdict:
-        if type(inflows_dict) == defaultdict: #only writes balancing inflow O2 and energy if emissions and waste heat will be added to emission dict.
-            inflows_dict[f'O2{dat.ignore_sep}combustion'] += sum(combustion_emissions.values()) - fuel_qty # closes mass balance
+        # only writes balancing inflow O2 and energy if emissions and waste heat will be added to emission dict.
+        if type(inflows_dict) == defaultdict:
+            # closes mass balance
+            inflows_dict[f'O2{dat.ignore_sep}combustion'] += sum(combustion_emissions.values()) - fuel_qty
             logger.debug(f"{sum(combustion_emissions.values()) - fuel_qty} of O2 added to inflow dict")
+
             if write_energy_in is True:
                 inflows_dict[f'energy in combusted {fuel_type}'] = energy_qty
                 logger.debug(f"{energy_qty} of inflow energy added to inflow dict")
 
-        combustion_emissions['waste heat'] = (energy_qty) * (1 - combust_eff) 
+        combustion_emissions['waste heat'] = energy_qty * (1 - combust_eff)
+
         for emission in combustion_emissions:
             emissions_dict[emission] += combustion_emissions[emission]
 
     logger.debug("Emission Data Calculated:")
     for emission in combustion_emissions:
-        logger.debug(f"{emission}: {combustion_emissions[emission]}") 
+        logger.debug(f"{emission}: {combustion_emissions[emission]}")
 
     check_qty(return_qty)
     return return_qty
 
 
-def check_balance(inflow_dict, outflow_dict, raise_imbalance=True, 
+def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
                   ignore_flows=[], only_these_flows=False, round_n=dat.float_tol):
     """Checks whether inflow and outflow dictionaries sum to same total quantity
 
@@ -508,8 +524,8 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
 
     logger.info("checking whether dictionary value sums balance")
 
-    totals = [0,0]
-    flows = [[],[]]
+    totals = [0, 0]
+    flows = [[], []]
 
     for i, flow_dict in enumerate([inflow_dict, outflow_dict]):
 
@@ -528,12 +544,12 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
             for ignorable in ignore_flows:
                 if substance.startswith(ignorable) or substance.endswith(ignorable):
                     ignore = True
-            
-            if ignore is True: 
+
+            if ignore is True:
                 logger.debug(f'{substance} ({qty}) discarded')
             if ignore is False:
                 logger.debug(f'{substance} ({qty}) included')
-                totals[i] += (qty)
+                totals[i] += qty
                 flows[i].append(substance)
 
     total_in = round(totals[0], round_n)
@@ -559,15 +575,15 @@ calcs_dict = {
     'returnvalue': {'function': ReturnValue, 'kwargs': {}},
     'subtraction': {'function': Subtraction, 'kwargs': {}},
     'addition': {'function': Addition, 'kwargs': {}},
-    'energycontent-lhv': {'function': lookup_ratio, 'kwargs': {'lookup_df': df_fuels, 'var':'lhv'}},
-    'energycontent-hhv': {'function': lookup_ratio, 'kwargs': {'lookup_df': df_fuels, 'var':'hhv'}},
-    'energycontent':{'function': lookup_ratio, 'kwargs': {'lookup_df': df_fuels, 'var':'lhv'}},
+    'energycontent-lhv': {'function': lookup_ratio, 'kwargs': {'lookup_df': df_fuels, 'var': 'lhv'}},
+    'energycontent-hhv': {'function': lookup_ratio, 'kwargs': {'lookup_df': df_fuels, 'var': 'hhv'}},
+    'energycontent': {'function': lookup_ratio, 'kwargs': {'lookup_df': df_fuels, 'var': 'lhv'}},
     'combustion': {'function': Combustion, 'kwargs': {}},
-    'combustion-noenergyin': {'function': Combustion, 'kwargs': {'write_energy_in':False}},
-    'combustion-lhv': {'function': Combustion, 'kwargs': {'LHV':True}},
-    'combustion-lhv-noenergyin': {'function': Combustion, 'kwargs': {'LHV':True, 'write_energy_in':False}},
-    'combustion-hhv': {'function': Combustion, 'kwargs': {'LHV':False}},
-    'combustion-hhv-noenergyin': {'function': Combustion, 'kwargs': {'LHV':False, 'write_energy_in':False}},
+    'combustion-noenergyin': {'function': Combustion, 'kwargs': {'write_energy_in': False}},
+    'combustion-lhv': {'function': Combustion, 'kwargs': {'LHV': True}},
+    'combustion-lhv-noenergyin': {'function': Combustion, 'kwargs': {'LHV': True, 'write_energy_in': False}},
+    'combustion-hhv': {'function': Combustion, 'kwargs': {'LHV': False}},
+    'combustion-hhv-noenergyin': {'function': Combustion, 'kwargs': {'LHV': False, 'write_energy_in': False}},
     'lookupratio': {'function': lookup_ratio, 'kwargs': {}},
     'lookupratio-fuels': {'function': lookup_ratio, 'kwargs': {'lookup_df': df_fuels}},
 }

@@ -6,8 +6,8 @@
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="" />
     <option name="IS_MODULE_SDK" value="true" />
-    <option name="ADD_CONTENT_ROOTS" value="true" />
-    <option name="ADD_SOURCE_ROOTS" value="true" />
+    <option name="ADD_CONTENT_ROOTS" value="false" />
+    <option name="ADD_SOURCE_ROOTS" value="false" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="docutils_input_file" value="$PROJECT_DIR$/docs/source" />
     <option name="docutils_output_file" value="$PROJECT_DIR$/docs/_build/html" />

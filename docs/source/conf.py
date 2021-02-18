@@ -13,9 +13,13 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
 import sys
-sys.path.insert(0, os.path.abspath('../../blackblox'))
+from pathlib import Path
+
+# Main package from which to import things is on the root of the repo, which is 2 levels up from here.
+reporoot = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(reporoot))
+
 sys.setrecursionlimit(500)
 
 
