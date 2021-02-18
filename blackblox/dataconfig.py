@@ -177,7 +177,7 @@ energy_flows = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV', 'lhv', '
 """list: strings that, at the start or end of a flow identifier indicate an energy flow
 """
 
-default_emissions = ['CO2__fossil', 'CO2__bio', 'H2O']
+default_emissions = ['CO2__fossil', 'CO2__bio', 'H2O', 'contrib_CO2__bio-annual', 'contrib_CO2__bio-long']
 """list: emissions that the program automatically checks for factors for.
 """
 
@@ -200,7 +200,7 @@ as "CONSUMED" to indicate that it is factory-internal flow.
 """
 
 # OTHER DATA NAMING VARIABLES
-default_scenario = "default" 
+default_scenario = "BASE" 
 """str: the index used for the default scenario of variables
 
 Usable in the unit process variables data tables. 

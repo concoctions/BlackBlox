@@ -695,23 +695,25 @@ class Factory:
             original_var_dfs.append(unit.var_df.copy())
 
         if type(fixed_vars) is list:
-            for fixedvar, value in fixed_vars:
+            for fixedvar, fixedvalue in fixed_vars:
                 for unit in units:
                     if scenario in unit.var_df.index: 
-                        unit.var_df.loc[scenario, fixedvar.lower()] = value
+                        unit.var_df.loc[scenario, fixedvar.lower()] = fixedvalue
+                        logger.debug(f"{variable} for {unit} ({scenario} set to {fixedvalue}) (fixed over all sensitivity analyses)")
                     else:
-                        unit.var_df.loc[dat.default_scenario, fixedvar.lower()] = value
-                logger.debug(f"{variable} for {unit} ({scenario} set to {value}) (fixed over all sensitivity analyses)")
+                        unit.var_df.loc[dat.default_scenario, fixedvar.lower()] = fixedvalue
+                        logger.debug(f"{variable} for {unit} ({dat.default_scenario} set to {fixedvalue}) (fixed over all sensitivity analyses)")
 
 
         # evaluate over varying variables
         for value in variable_options:
             for unit in units:
                 if scenario in unit.var_df.index: 
-                 unit.var_df.loc[scenario, variable.lower()] = value
+                    unit.var_df.loc[scenario, variable.lower()] = value
+                    logger.debug(f"{variable} for {unit.name} ({scenario}) set to {value})")
                 else:
                     unit.var_df.loc[dat.default_scenario, variable.lower()] = value
-            logger.debug(f"{variable} for {unit.name} ({scenario}) set to {value})")
+                    logger.debug(f"{variable} for {unit.name} ({dat.default_scenario}) set to {value})")
 
             f_in, f_out, agg_df, net_df = self.balance(product_qty=product_qty, 
                                        product=product, 
