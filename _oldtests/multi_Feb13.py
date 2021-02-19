@@ -2,7 +2,7 @@
 """
 from datetime import datetime
 
-import blackblox.compute as com
+import blackblox.compare as com
 import blackblox.dataconfig as dat
 import blackblox.io_functions as iof
 
@@ -401,7 +401,7 @@ for flow in elec_outflow_dict:
     elec_dfs.append(df)
     elec_sheets.append(f"OUT {flow}")
 
-iof.write_to_excel(
+iof.write_to_xls(
     df_or_df_list=elec_dfs,
     sheet_list=elec_sheets,
     filedir=f"{outdir}/Electricity",

@@ -67,6 +67,20 @@ def multiple_chains(chain_dict,
 # FACTORY TESTS
 
 
+def build_factories(factory_dict):
+    built_factories = dict()
+
+    for f in factory_dict:
+        factory = fac.Factory(**factory_dict[f])
+        built_factories[f] = factory
+
+    print("Factories successfully built:")
+    for factory in built_factories:
+        print(factory)
+
+    return built_factories
+
+
 def test_factories(factory_dict,
                    qty=1.0,
                    write_to_console=False,
@@ -93,7 +107,7 @@ def test_factories(factory_dict,
         factory = built_factories[f]
         print(f"\n{str.upper(factory.name)} factory")
 
-        inflows, outflows = factory.balance(product_qty=qty,
+        inflows, outflows = factory.balance(product_qty=1.0,
                                             scenario=factory_dict[f]['scenario'],
                                             write_to_xls=write_to_xls,
                                             outdir=outdir,
@@ -156,7 +170,7 @@ def test_factory_scenarios(factory_dict,
         print(f"\n{str.upper(factory.name)} factory - multiscenario")
 
         inflows, outflows, agg_inflows, agg_outflows, net_df = factory.run_scenarios(scenario_list=scenario_list,
-                                                                                     product_qty=qty,
+                                                                                     product_qty=1.0,
                                                                                      product=scenario_product,
                                                                                      product_unit=scenario_unit,
                                                                                      product_io=scenario_io,
@@ -211,7 +225,7 @@ def test_factory_scenarios(factory_dict,
                                   level="Multi Factory",
                                   scenario=" ,".join(scenario_list),
                                   product=productname,
-                                  product_qty=qty)
+                                  product_qty=1.0)
 
         dfs = [meta_df, all_inflows, all_outflows, all_agg_inflows.T, all_agg_outflows.T, all_net_flows.T]
         sheets = ["meta", "inflows", "outflows", "agg inflows", "agg outflows", "net flows"]
@@ -235,7 +249,7 @@ def test_factory_sensitivity(factory_dict,
                              scenario_product=False,
                              scenario_unit=False,
                              scenario_io=False,
-                             qty=qty,
+                             qty=1.0,
                              upstream_outflows=False,
                              upstream_inflows=False,
                              downstream_outflows=False,
@@ -255,7 +269,7 @@ def test_factory_sensitivity(factory_dict,
         factory = built_factories[f]
         print(f"\n{str.upper(factory.name)} factory - sensitivity")
 
-        inflows, outflows, aggregate_dict = factory.run_sensitivity(product_qty=qty,
+        inflows, outflows, aggregate_dict, net_dict = factory.run_sensitivity(product_qty=1.0,
                                                                     scenario=scenario,
                                                                     chain_name=chain_name,
                                                                     unit_name=unit_name,
@@ -270,7 +284,7 @@ def test_factory_sensitivity(factory_dict,
                                                                     downstream_outflows=downstream_outflows,
                                                                     downstream_inflows=downstream_inflows,
                                                                     aggregate_flows=aggregate_flows,
-                                                                    write_to_xls=individual_xls,
+                                                                    write_to_xls=write_to_xls,
                                                                     outdir=outdir)
 
         sensitivity_dict[f"{f}_{scenario}"] = aggregate_dict
@@ -306,7 +320,7 @@ def test_factory_sensitivity(factory_dict,
                               level="Factory",
                               scenario=scenario,
                               product='default',
-                              product_qty=qty)
+                              product_qty=1.0)
 
     dfs = [meta_df]
     sheets = ["meta"]
