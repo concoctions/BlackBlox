@@ -255,7 +255,7 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
 
     if metaprefix is not None:
         if index is not None:
-            df = df[~df.index.str.startswith(metaprefix)]
+            df = df[~(df.index.str.startswith(metaprefix))]
         cols = [col for col in list(df) if not col.startswith(metaprefix)]
         logger.debug(f"if you get an error here, check that the unit name is correct and exists in the unit library")
         df = df[cols]
@@ -505,6 +505,12 @@ def format_and_save_plot(filepath):
     plt.savefig(f"{filepath}.png", format='png', dpi=300)
     plt.savefig(f"{filepath}.svg", format='svg')
 
+def plot_scenario_bars(df_dict, flow, outdir, file_id="", unit_dict=dat.default_units):
+    """
+    Compare single flow between multiple scenarios in a single factory. Each scenario is a bar.
+    Either for inflow, outflow, net flow or aggregate flow.
+    """
+    pass
 
 def plot_annual_flows(df_dict, flow, outdir, file_id="", unit_dict=dat.default_units):
     """
