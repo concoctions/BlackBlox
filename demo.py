@@ -26,6 +26,7 @@ dat.default_units = {'mass': 'tonnes',
 }
 
 dat.default_emissions = ['CO2__fossil']
+dat.default_scenario = 'default'
 print("\n\nWELCOME\n\n")
 
 print(f"\n\nblackblox.py v0.1 Demonstration")
