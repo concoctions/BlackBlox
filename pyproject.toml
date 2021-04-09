@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "blackblox"
+version = "0.1.0"
+description = "Simple simulator for black box process models"
+authors = ["Samantha Tanzer <S.E.Tanzer@tudelft.nl>", "Joao Paulo Pizani <J.P.PizaniFlor@tudelft.nl>"]
+license = "GPL3"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "^1.20"
+graphviz = "^0.16"
+molmass = "^2020.6.10"
+matplotlib = "^3.4"
+pandas = "^1.2"
+xlrd = "^2.0.1"
+openpyxl = "^3.0.7"
+seaborn = "^0.11.1"
+
+[tool.poetry.dev-dependencies]
+sphinx = "^3.5"
+recommonmark = "^0.7"
+sphinx-rtd-theme = "^0.5"
+sphinx-markdown-tables = "^0.0.15"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
