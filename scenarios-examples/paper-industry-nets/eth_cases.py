@@ -7,27 +7,20 @@ Date Created: 26 October 2020
 Date Last Modified (code or data): 26 October 2020 
 
 """
-import blackblox.unitprocess as unit
-import blackblox.processchain as cha
-import blackblox.factory as fac
+from pathlib import Path
+from datetime import datetime
+from pandas import ExcelWriter
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.sankey import Sankey
+import numpy as np
+import seaborn as sns
+
 import blackblox.dataconfig as dat
 from blackblox.io_functions import make_df
 from blackblox.io_functions import nested_dicts
 
-from datetime import datetime
-from math import sqrt
-from math import pi
-from math import e
-from pandas import ExcelWriter
-
-import matplotlib
-import seaborn as sns
-import matplotlib.pyplot as plt
-from matplotlib.ticker import AutoMinorLocator
 sns.set_style("whitegrid", {'font':'Helvetica'})
-from matplotlib.sankey import Sankey
-import numpy as np
-
 matplotlib.use('TkAgg')
 
 
