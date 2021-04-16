@@ -76,9 +76,6 @@ def clean_str(string_to_check, str_to_cut=False, lower=True, remove_dblnewline=T
             remove the cut_str string from the string_to_check. If passed a list 
             of strings, will check for and remove each from the string_to_check.
             (Defaults to False.)
-        remove_dblnewlines (bool): If True, looks for and removes instances
-            of double new lines.
-            (Defaults to True.)
         cut_whole_line_only (bool): If True, only cuts string if it begins or
             ends with a \n. 
             (Defaults to False)
@@ -121,23 +118,6 @@ def clean_str(string_to_check, str_to_cut=False, lower=True, remove_dblnewline=T
             string = string.replace('\n\n', '\n')
 
     return string
-
-
-def if_str(maybe_a_string):
-    """checks if an input is a string, returns string if so, None if not.
-
-    Args:
-        string: a thing to check if it's a string.
-    
-    Returns:
-        The string, if it was a string, otherwise returns None.
-
-    """
-
-    if type(maybe_a_string) is str:
-        return maybe_a_string
-    else:
-        return None
 
 
 def check_for_col(df, col, index):
@@ -195,8 +175,7 @@ def no_suf(str, separator=dat.ignore_sep):
     return str.split(separator)[0]
 
 
-# DATA FRAME CONSTRUCTORS 
-
+# DATA FRAME CONSTRUCTORS
 def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
             col_order=False, T=False, drop_zero=False, sort=False,
             lower_cols=True, fillna=True):
@@ -243,13 +222,20 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
         df = data
         if df.empty:
             return df
+    # Needs to at least be "truthy"
     elif bool(data) is True:
+        # Contains key-value data itself (turn it into pandas df)
         if isinstance(data, (dict, list)):
             df = pan.DataFrame(data)
-        elif data.endswith(('.xls', 'xlsx')):
-            df = pan.read_excel(data, sheet_name=sheet, index_col=index)
-        elif data.endswith('.csv', '.tsv', '.txt', '.dat'):
-            df = pan.read_csv(data, sep=',', index_col=index)
+        # Contains file path
+        elif isinstance(data, (Path, str)):
+            filepath = dat.path_data_root / data  # ensure path is absolute, anchored to dat.path_data_root
+            # Excel workbook
+            if filepath.suffix in ['.xls', '.xlsx']:
+                df = pan.read_excel(filepath, sheet_name=sheet, index_col=index)
+            # Comma-separated or equivalent (readable by pandas)
+            elif filepath.suffix in ['.csv', '.tsv', '.txt', '.dat']:
+                df = pan.read_csv(filepath, sep=',', index_col=index)
     else:
         return pan.DataFrame()
 
@@ -445,7 +431,7 @@ def build_filedir(filedir, subfolder=None, file_id_list=[], time=True):
     return filedir
 
 
-def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir,
+def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.path_outdir,
                  filename='output', subdir=None):
     """Writes one or more data frames to a single excel workbook.
 
@@ -458,27 +444,23 @@ def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir,
         sheet_list (optional, list): List of sheetnames that will be used for
             the dataframe at the same index in df_or_df_list. 
             (Defaults to None.)
-        filedir (optional, str): desired file output directory. 
-            (Defaults to current working directory.)
+        filedir (optional, Path): desired file output directory.
         filename (optional, str): desired excel file name, without extension.
             (Defaults to 'output')
     """
     if subdir:
-        Path(filedir + '/' + subdir).mkdir(parents=True, exist_ok=True)
+        (filedir / subdir).mkdir(parents=True, exist_ok=True)
     else:
-        Path(filedir).mkdir(parents=True, exist_ok=True)
+        filedir.mkdir(parents=True, exist_ok=True)
 
+    filename_ext = filename + '.xlsx'
+    filepath = filedir / (subdir if subdir else '') / filename_ext
     logger.debug(f"attempting to create {filename} in {filedir}")
 
     empty_notice = {'00': "The supplied dataframe was empty.",
                     '01': "This could happen is all the supplied values were zero",
                     '02': 'and rows with all zeros were dropped when the data frame was created.'}
     empty_df = pan.DataFrame.from_dict(empty_notice, orient='index', columns=['Empty Dataframe'])
-
-    if subdir:
-        filepath = filedir + '/' + subdir + '/' + filename + '.xlsx'
-    else:
-        filepath = filedir + '/' + filename + '.xlsx'
 
     if isinstance(df_or_df_list, pan.DataFrame):
         df_or_df_list.to_excel(filepath)
@@ -496,7 +478,7 @@ def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir,
                     df.to_excel(writer, sheet)
                 logger.debug(f"writing {sheet} sheet to workbook")
 
-    logger.debug(f"{filename} successfully created in {filedir}")
+    logger.debug(f"{filename_ext} successfully created in {filedir}")
 
 
 def format_and_save_plot(filepath):

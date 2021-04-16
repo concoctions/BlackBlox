@@ -283,7 +283,7 @@ def nh3_cases(product_name, factory_list, factory_names, f_suffix, f_kwargs, cas
 
     
 
-    with ExcelWriter(f"{dat.outdir}/{product_name}_totalsOverTime_{dat.time}.xlsx") as writer:  
+    with ExcelWriter(f"{dat.path_outdir}/{product_name}_totalsOverTime_{dat.time_str}.xlsx") as writer:
         # meta_df.to_excel(writer, sheet_name='meta')
         totals_df.to_excel(writer, sheet_name='totals')
         gate_df.to_excel(writer, sheet_name='production')
@@ -300,7 +300,7 @@ def nh3_cases(product_name, factory_list, factory_names, f_suffix, f_kwargs, cas
     min_CO2 = round(max(CO2_removed)) * -1 
 
     # Where to save figures
-    fig_path = f'{dat.outdir}/figures_base'
+    fig_path = f'{dat.path_outdir}/figures_base'
     Path(fig_path).mkdir(parents=True, exist_ok=True) 
 
     plt.rcParams["figure.figsize"] = (8,5)

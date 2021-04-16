@@ -30,8 +30,6 @@ import blackblox.unitprocess as unit
 from blackblox.bb_log import get_logger
 logger = get_logger("Chain")
 
-today_path = f'{datetime.now().strftime("%b%d")}'
-today_string = f'{datetime.now().strftime("%b%d_%H%M")}'
 
 class ProductChain:
     """Linear chain of connected unit processes.
@@ -68,19 +66,15 @@ class ProductChain:
 
     def __init__(self, chain_data, name="Product Chain", xls_sheet=None, outdir=False):
         self.name = name
-        
-        if outdir is False:
-            self.outdir = f'{dat.outdir}/{self.name}-chain_{today_path}'
-        else:
-            self.outdir = outdir
+        self.outdir = outdir if outdir else dat.path_outdir / f'{self.name}-chain_{dat.timestamp_str}'
 
         logger.info(f"PROCESS CHAIN INIT - chain name: {name}, chain data: {chain_data}, xls sheet: {xls_sheet}")
         self.process_chain_df = iof.make_df(chain_data, sheet=xls_sheet, index=None)
         self.default_product = False
-        self.process_list = [] #list of UnitProcess objects, in order (used in Factory balance)
-        self.process_names = [] #list of UnitProcess names, in order
-        self.process_ids = [] #list of UnitProcess unique IDs, in order
-        self.process_dict = dict() # keys: unit process IDs, values: unit process objects. (used in Factory balance)
+        self.process_list = []  # list of UnitProcess objects, in order (used in Factory balance)
+        self.process_names = []  # list of UnitProcess names, in order
+        self.process_ids = []  # list of UnitProcess unique IDs, in order
+        self.process_dict = dict()  # keys: unit process IDs, values: unit process objects. (used in Factory balance)
 
         # create UnitProcess objects for each unit in chain
         for index, process_row in self.process_chain_df.iterrows():
@@ -296,7 +290,7 @@ class ProductChain:
             iof.write_to_xls(df_or_df_list=dfs,
                                 sheet_list=sheets, 
                                 filedir=self.outdir, 
-                                filename=f'{self.name}_c_{scenario}_{today_string}')
+                                filename=f'{self.name}_c_{scenario}_{dat.timestamp_str}')
                 
         return io_dicts['i'], io_dicts['o'], intermediate_product_dict, internal_flows
 
@@ -359,7 +353,7 @@ class ProductChain:
             iof.write_to_xls(df_or_df_list=dfs,
                                 sheet_list=sheets, 
                                 filedir=outdir,
-                                filename=f'{self.name}_c_multi_{today_string}')
+                                filename=f'{self.name}_c_multi_{dat.timestamp_str}')
 
         
         if write_to_console is True:
@@ -370,7 +364,7 @@ class ProductChain:
         return inflows_df, outflows_df
 
 
-    def diagram(self, view=True, save=True, outdir=dat.outdir):
+    def diagram(self, view=True, save=True, outdir=dat.path_outdir):
         """diagram(self, view_diagram=True, save=True, outdir=f'{dat.outdir}/pfd')
         Generates chain flow diagrams (png and svg) using Graphviz
         

@@ -46,13 +46,11 @@ from blackblox.frames import df_upstream_outflows, df_upstream_inflows, df_downs
 from blackblox.unitprocess import lookup_var_dict
 
 
-if platform.system() is 'Windows':
+if platform.system() == 'Windows':
     import os
     os.environ["PATH"] += os.pathsep + dat.graphviz_path
 
 logger = get_logger("Factory")
-today_path = dat.time
-today_string = dat.day + dat.time
 
 
 class Factory:
@@ -161,10 +159,7 @@ class Factory:
         else:
             self.connections_df = None
 
-        if outdir is False:
-            self.outdir = f'{dat.outdir}/{today_path}_{self.name}-f'
-        else:
-            self.outdir = outdir
+        self.outdir = outdir if outdir else dat.path_outdir / f'{dat.timestamp_str}_{self.name}-f'
 
         logger.info(f"{self.name.upper()}: Initalization successful")
 
@@ -437,10 +432,10 @@ class Factory:
                 viewer. 
                 (Defaults to True)
         """
-        if outdir is False:
-            outdir = f'{self.outdir}/pfd'
 
-        filename = f'{self.name}_f_{today_string}'
+        outdir = outdir if outdir else self.outdir / 'pfd'
+
+        filename = f'{self.name}_f_{dat.timestamp_str}'
 
         factory_diagram = Digraph(name="factory")
         factory_diagram.attr('node', shape='box', color='black')
@@ -672,7 +667,7 @@ class Factory:
             iof.write_to_xls(df_or_df_list=df_list,
                              sheet_list=sheet_list,
                              filedir=outdir,
-                             filename=f'{self.name}_f_multi_{today_string}')
+                             filename=f'{self.name}_f_multi_{dat.timestamp_str}')
 
         return inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df, net_df
 
@@ -701,8 +696,7 @@ class Factory:
 
         """
 
-        if outdir is False:
-            outdir = f"{self.outdir}/{id}sensitivity/{variable}"
+        outdir = outdir if outdir else self.outdir / f'{id}sensitivity/' / f'{variable}'
 
         scenario_dict = iof.nested_dicts(3)
 
@@ -818,7 +812,7 @@ class Factory:
         iof.write_to_xls(df_or_df_list=dfs,
                          sheet_list=sheets,
                          filedir=outdir,
-                         filename=f'{self.name}_{id}f_sens_{today_string}')
+                         filename=f'{self.name}_{id}f_sens_{dat.timestamp_str}')
 
         for i, unit in enumerate(units):
             unit.var_df = original_var_dfs[i].copy()
@@ -1163,10 +1157,8 @@ class Factory:
             used in self.balance() (above)
         """
 
-        if outdir is False:
-            outdir = self.outdir
-
-        filename = f'{self.name}_f_{scenario}_{today_string}'
+        outdir = outdir if outdir else self.outdir
+        filename = f'{self.name}_f_{scenario}_{dat.timestamp_str}'
 
         meta_df = iof.metadata_df(user=dat.user_data, name=self.name,
                                   level="Factory", scenario=scenario, product=self.main_product,

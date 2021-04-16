@@ -11,8 +11,8 @@ from nh3_cases import nh3_cases
 from singlevar_sens import multi_sens
 
 
-dat.outdir = f'{dat.outdir}/{dat.time}'
-Path(dat.outdir).mkdir(parents=True, exist_ok=True)
+dat.path_outdir = f'{dat.path_outdir}/{dat.time_str}'
+Path(dat.path_outdir).mkdir(parents=True, exist_ok=True)
 
 dat.user_data = {
     "name": "S.E. Tanzer",

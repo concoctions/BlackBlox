@@ -28,7 +28,7 @@ def eth_cases(product_name, factory_list, factory_names, f_suffix, f_kwargs, cas
 
     print(f'\n#--START---################################################{datetime.now().strftime("%H%M")}\n')
     print(f'...generating cases{case_list} for {factory_names}')
-    print(dat.time)
+    print(dat.time_str)
  
 
     ## RUN all cases and get data
@@ -245,7 +245,7 @@ def eth_cases(product_name, factory_list, factory_names, f_suffix, f_kwargs, cas
     GJ_totals_df = make_df(GJ_totals_dict).sort_index()
 
 
-    with ExcelWriter(f"{dat.outdir}/{product_filestr}_totalsOverTime_{dat.time}.xlsx") as writer:  
+    with ExcelWriter(f"{dat.path_outdir}/{product_filestr}_totalsOverTime_{dat.time_str}.xlsx") as writer:
         totals_df.to_excel(writer, sheet_name='totals')
         gate_df.to_excel(writer, sheet_name='production')
         GJ_totals_df.to_excel(writer, sheet_name='per GJ')
@@ -259,7 +259,7 @@ def eth_cases(product_name, factory_list, factory_names, f_suffix, f_kwargs, cas
     min_CO2 = round(max(CO2_removed)) * -1 - 1
 
     # Where to save figures
-    fig_path = f'{dat.outdir}/figures_base'
+    fig_path = f'{dat.path_outdir}/figures_base'
     Path(fig_path).mkdir(parents=True, exist_ok=True) 
 
     plt.rcParams["figure.figsize"] = (8,5)

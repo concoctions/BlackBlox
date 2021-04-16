@@ -27,6 +27,7 @@ Module Outline:
 
 """
 from datetime import datetime
+from pathlib import Path
 
 from blackblox.bb_log import get_logger
 
@@ -45,138 +46,6 @@ float_tol = 5
 """The number of decimal places after which (floating point) differences should be ignored.
 If a number is calculated to be less than zero, it will be rounded to the number of decimal places
 in the float tolerance. An error will only be raised if it is stil less than zero.
-"""
-
-# DEFAULT FILEPATHS
-unit_process_library_file = "data/unitlibrary.xlsx"
-"""str: The filepath whre the unit process library file exists.
-"""
-
-unit_process_library_sheet = "Unit Processes"
-"""The worksheet of the unit process library, if in an Excel workbook
-
-If not an excel worksheet, this variable should be None.
-"""
-day = datetime.now().strftime("%b%d")
-time = datetime.now().strftime("%H%M")
-
-outdir = 'output' + '/' + day
-"""str: The file output directory.
-
-Unless an absolute path is specified, BlackBlox will create the directory 
-as a subfolder of the current working directory.
-"""
-
-same_xls = ['thisfile', 'same', 'here']
-"""list: strings indicating the data is in the current Excel workbook
-
-Usable as a replacement for a filepath for input data that is in an
-Excel workbook with multiple sheets. The correct Excel sheet must still
-be specified.
-"""
-
-# LOOKUP VARIABLES
-fuel_dict = dict(
-    filepath='data/shared/fuels.xlsx',
-    sheet='Fuels',
-    lookup_var='fueltype'
-)
-
-lookup_var_dict = {
-    # FUELS
-    'fuel': dict(
-        filepath='data/shared/fuels.xlsx',
-        sheet='Fuels',
-        is_fuel=True,
-        lookup_var='fueltype'),
-    'other fuel': dict(
-        filepath='data/shared/fuels.xlsx',
-        sheet='Fuels',
-        is_fuel=True,
-        lookup_var='other fuel type'),
-    'primary fuel': dict(
-        filepath='data/shared/fuels.xlsx',
-        sheet='Fuels',
-        is_fuel=True,
-        lookup_var='primary fuel type'),
-    'secondary fuel': dict(
-        filepath='data/shared/fuels.xlsx',
-        sheet='Fuels',
-        is_fuel=True,
-        lookup_var='secondary fuel type'),
-    'fossil fuel': dict(
-        filepath='data/shared/fuels.xlsx',
-        sheet='Fuels',
-        is_fuel=True,
-        lookup_var='fossil fuel type'),
-    'biofuel': dict(
-        filepath='data/shared/fuels.xlsx',
-        sheet='Fuels',
-        is_fuel=True,
-        lookup_var='biofuel type'),
-    'secondary biofuel': dict(
-        filepath='data/shared/fuels.xlsx',
-        sheet='Fuels',
-        is_fuel=True,
-        lookup_var='secondary biofuel type'),
-    'reducing agent': dict(
-        filepath='data/shared/fuels.xlsx',
-        sheet='Fuels',
-        is_fuel=True,
-        lookup_var='reducing agent'),
-    'waste fuel': dict(
-        filepath='data/shared/fuels.xlsx',
-        sheet='Fuels',
-        is_fuel=True,
-        lookup_var='waste fuel type'),
-
-    # UPSTREAM
-    'upstream outflows': dict(
-        lookup_var='upstream outflows',
-        filepath='data/shared/upstream.xlsx',
-        sheet='up-emissions'),
-    'upstream inflows': dict(
-        lookup_var='upstream inflows',
-        filepath='data/shared/upstream.xlsx',
-        sheet='up-removals'),
-
-    # DOWNSTREAM
-    'downstream outflows': dict(
-        lookup_var='downstream outflows',
-        filepath='data/shared/upstream.xlsx',
-        sheet='down-emissions'),
-    'downstream inflows': dict(
-        lookup_var='downstream inflows',
-        filepath='data/shared/upstream.xlsx',
-        sheet='down-removals'),
-
-    # NO FURTHER DATA (only used to pass flowname from var_df)
-    'biomass': dict(lookup_var='biomass type'),
-    'feedstock': dict(lookup_var='feedstock type'),
-    'fossil feedstock': dict(lookup_var='fossil feedstock type'),
-    'biofeedstock': dict(lookup_var='biofeedstock type'),
-    'alloy': dict(lookup_var='alloy type'),
-    'solvent': dict(lookup_var='solvent type')
-}
-"""dictionary of special lookup substance names
-Lookup_var_dict is a dictionary with the names of substance, that when used
-in the unit process calculations file, will trigger the program to replace
-the lookup substance name with the substance name specified in the unit 
-process's variable data table for the scenario currently in use.
-
-Each entry in this dictionary should be formatted with the following:
-
-    **key** *(str)*: the substance name to be used in the calcuations file
-
-    **value** *(dict)*: a dictionary of lookup variable attributes, containing:
-        **lookup_var** *(str)*: the header of the column in the unit process 
-        variable file that contains the value with which to replace
-        the lookup substance word.
-
-        **data_frame** *(optional)*: a data frame with additional custom data
-        about the lookup variable, such as to be used in custom functions,
-        below. These are not used elsewhere in BlackBlox.py.
-
 """
 
 fuel_flows = ['fuel', 'other fuel', 'primary fuel', 'secondary fuel', 'fossil fuel', 'biofuel']
@@ -272,10 +141,10 @@ unit_id = 'id'
 unit_name = 'display name'
 unit_product = 'product'
 unit_product_io = 'producttype'
-var_filepath = 'varfile'
 var_sheetname = 'varsheet'
-calc_filepath = 'calcfile'
 calc_sheetname = 'calcsheet'
+var_filepath = 'varfile'  # this column stores a filepath relative to path_data_root
+calc_filepath = 'calcfile'  # this column stores a filepath relative to path_data_root
 
 # for UNIT PROCESS relationship tabular data:
 known = 'knownqty'
@@ -316,7 +185,7 @@ replace = "r replacing"
 purge_fraction = "r purge %"
 max_replace_fraction = "r max replace %"
 
-# for INDUSTRY tablular data
+# for INDUSTRY tabular data
 factory_name = "factory name"
 factory_filepath = "factory file"
 f_chain_list_file = "chains file"
@@ -326,6 +195,125 @@ f_connections_sheet = "factory connections sheet"
 f_product = "factory product"
 f_product_qty = "product qty"
 f_scenario = "scenario"
+
+# DEFAULT FILEPATHS
+# full absolute path of the dir above the one containing this script
+path_project_root = Path(__file__).resolve().parent.parent
+path_data_root = path_project_root / 'data'
+path_output_root = path_project_root / 'output'
+
+unit_process_library_file = path_data_root / 'unitlibrary.xlsx'
+"""str: The filepath whre the unit process library file exists.
+"""
+
+unit_process_library_sheet = "Unit Processes"
+"""The worksheet of the unit process library, if in an Excel workbook
+
+If not an excel worksheet, this variable should be None.
+"""
+
+# ISO8601 basic format date/time standard representation. It's great
+day_str = datetime.now().strftime("%Y%m%d")
+time_str = datetime.now().strftime("%H%M")
+timestamp_str = day_str + 'T' + time_str
+
+path_outdir = path_output_root / timestamp_str
+"""str: The file output directory.
+
+Unless an absolute path is specified, BlackBlox will create the directory 
+as a subfolder of the current working directory.
+"""
+
+same_xls = ['thisfile', 'same', 'here']
+"""list: strings indicating the data is in the current Excel workbook
+
+Usable as a replacement for a filepath for input data that is in an
+Excel workbook with multiple sheets. The correct Excel sheet must still
+be specified.
+"""
+
+# LOOKUP VARIABLES
+path_data_shared = path_data_root / 'shared'
+path_shared_fuels = path_data_shared / 'fuels.xlsx'
+path_shared_upstream = path_data_shared / 'upstream.xlsx'
+
+fuel_dict = dict(
+    filepath=path_shared_fuels,
+    sheet='Fuels',
+    lookup_var='fueltype',
+)
+
+
+common_fuel_info = dict(
+    filepath=path_shared_fuels,
+    sheet='Fuels',
+    is_fuel=True,
+)
+
+lookup_var_dict = {
+    # FUELS
+    'fuel': dict(common_fuel_info, lookup_var='fueltype'),
+    'other fuel': dict(common_fuel_info, lookup_var='other fuel type'),
+    'primary fuel': dict(common_fuel_info, lookup_var='primary fuel type'),
+    'secondary fuel': dict(common_fuel_info, lookup_var='secondary fuel type'),
+    'fossil fuel': dict(common_fuel_info, lookup_var='fossil fuel type'),
+    'biofuel': dict(common_fuel_info, lookup_var='biofuel type'),
+    'secondary biofuel': dict(common_fuel_info, lookup_var='secondary biofuel type'),
+    'reducing agent': dict(common_fuel_info, lookup_var='reducing agent'),
+    'waste fuel': dict(common_fuel_info, lookup_var='waste fuel type'),
+
+    # UPSTREAM
+    'upstream outflows': dict(
+        filepath=path_shared_upstream,
+        sheet='up-emissions',
+        lookup_var='upstream outflows',
+    ),
+    'upstream inflows': dict(
+        filepath=path_shared_upstream,
+        sheet='up-removals',
+        lookup_var='upstream inflows',
+    ),
+
+    # DOWNSTREAM
+    'downstream outflows': dict(
+        filepath=path_shared_upstream,
+        sheet='down-emissions',
+        lookup_var='downstream outflows',
+    ),
+    'downstream inflows': dict(
+        filepath=path_shared_upstream,
+        sheet='down-removals',
+        lookup_var='downstream inflows',
+    ),
+
+    # NO FURTHER DATA (only used to pass flowname from var_df)
+    'biomass': dict(lookup_var='biomass type'),
+    'feedstock': dict(lookup_var='feedstock type'),
+    'fossil feedstock': dict(lookup_var='fossil feedstock type'),
+    'biofeedstock': dict(lookup_var='biofeedstock type'),
+    'alloy': dict(lookup_var='alloy type'),
+    'solvent': dict(lookup_var='solvent type')
+}
+"""dictionary of special lookup substance names
+Lookup_var_dict is a dictionary with the names of substance, that when used
+in the unit process calculations file, will trigger the program to replace
+the lookup substance name with the substance name specified in the unit 
+process's variable data table for the scenario currently in use.
+
+Each entry in this dictionary should be formatted with the following:
+
+    **key** *(str)*: the substance name to be used in the calcuations file
+
+    **value** *(dict)*: a dictionary of lookup variable attributes, containing:
+        **lookup_var** *(str)*: the header of the column in the unit process 
+        variable file that contains the value with which to replace
+        the lookup substance word.
+
+        **data_frame** *(optional)*: a data frame with additional custom data
+        about the lookup variable, such as to be used in custom functions,
+        below. These are not used elsewhere in BlackBlox.py.
+
+"""
 
 # Other Filepaths
 graphviz_path = 'C:/ProgramData/Anaconda3/Library/bin/graphviz/'

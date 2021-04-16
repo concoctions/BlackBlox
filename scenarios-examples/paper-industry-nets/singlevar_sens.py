@@ -26,7 +26,7 @@ import numpy as np
 def multi_sens(product, factory_list, case_list, sdict=None):
     print(f'\n#--START---################################################{datetime.now().strftime("%H%M")}\n')
 
-    Path(f'{dat.outdir}/figures_sens/').mkdir(parents=True, exist_ok=True)
+    Path(f'{dat.path_outdir}/figures_sens/').mkdir(parents=True, exist_ok=True)
 
     if not sdict:
         sdict = nested_dicts(2)
@@ -177,7 +177,7 @@ def multi_sens(product, factory_list, case_list, sdict=None):
         plt.axhline(y=0, color='black')
         plt.legend(fontsize="8")
 
-        plt.savefig(f'{dat.outdir}/figures_sens/{product}_{s}_{dat.time}.png')
+        plt.savefig(f'{dat.path_outdir}/figures_sens/{product}_{s}_{dat.time_str}.png')
 
         print(f'...{s} graphs saved to file')
 

@@ -44,7 +44,7 @@ pause_between_tests = False
 
 # for all tests
 write_to_console = True
-dat.outdir = f'output/test_{datetime.now().strftime("%b%d")}/{datetime.now().strftime("%H%M")}'
+dat.path_outdir = f'output/test_{datetime.now().strftime("%b%d")}/{datetime.now().strftime("%H%M")}'
 
 # for chain, factory, and industry tests
 view_diagrams = False
@@ -294,11 +294,11 @@ if test_factories is True:
         factory = built_factories[f]
         print(f"\n{str.upper(factory.name)} factory")
         
-        inflows, outflows = factory.balance(product_qty = qty, 
-                                            scenario=factory_dict[f]['scenario'], 
-                                            write_to_xls=write_to_xls, 
-                                            outdir=dat.outdir, 
-                                            mass_energy=True, 
+        inflows, outflows = factory.balance(product_qty = qty,
+                                            scenario=factory_dict[f]['scenario'],
+                                            write_to_xls=write_to_xls,
+                                            outdir=dat.path_outdir,
+                                            mass_energy=True,
                                             energy_flows=dat.energy_flows)
 
         if write_to_console is True:
@@ -310,7 +310,7 @@ if test_factories is True:
             print(totals)
 
         if write_to_xls is True:
-            print(f"\n FACTORY: Full results available in {dat.outdir} directory.")
+            print(f"\n FACTORY: Full results available in {dat.path_outdir} directory.")
 
         if pause_between_tests is True:
             dummy_continue = input("Press any key to continue")
@@ -336,7 +336,7 @@ if test_factory_scenarios is True:
             print(f"\n{factory.name} outflows")
             print(outflows)
 
-        print(f"\n FACTORY (multi-scenario): Full results available in {dat.outdir} directory.")
+        print(f"\n FACTORY (multi-scenario): Full results available in {dat.path_outdir} directory.")
 
         if pause_between_tests is True:
             dummy_continue = input("Press any key to continue")
@@ -400,18 +400,18 @@ if test_industry_evolve is True:
                 df_list.append(df)
                 sheet_list.append(sheet_name)
         
-        iof.write_to_excel(df_list, sheet_list=sheet_list, filedir=dat.outdir, filename=filename)
+        iof.write_to_excel(df_list, sheet_list=sheet_list, filedir=dat.path_outdir, filename=filename)
 
         if type(compare_outflows) is list:
             for flow in compare_outflows:
-                iof.plot_annual_flows(df_dict['o'], flow, dat.outdir, file_id=f"_{compare_industry_name}-comparison")
+                iof.plot_annual_flows(df_dict['o'], flow, dat.path_outdir, file_id=f"_{compare_industry_name}-comparison")
 
         if type(compare_inflows) is list:
             for flow in compare_outflows:
-                iof.plot_annual_flows(df_dict['i'], flow, dat.outdir, file_id=f"_{compare_industry_name}-comparison")
+                iof.plot_annual_flows(df_dict['i'], flow, dat.path_outdir, file_id=f"_{compare_industry_name}-comparison")
 
     
-        print(f"\n INDUSTRY COMPARISON - Full results available in {dat.outdir} directory.")
+        print(f"\n INDUSTRY COMPARISON - Full results available in {dat.path_outdir} directory.")
 
         if pause_between_tests is True:
             dummy_continue = input("Press any key to continue")

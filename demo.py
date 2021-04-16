@@ -10,30 +10,37 @@ import blackblox.processchain as cha
 import blackblox.factory as fac
 import blackblox.industry as ind
 
-factory_file = "data/demo/factories/cementFactory_withCCS.xlsx"
+
+path_data_demo = dat.path_data_root / 'demo'
+path_demo_factories = path_data_demo / 'factories'
+path_factory_file = path_demo_factories / 'cementFactory_withCCS.xlsx'
 scenario_list = ['EU-1990', 'EU-2000', 'EU-2010']
 
-
 # USER DATA CONFIG
-dat.outdir = 'output/demo'
-dat.user_data = {"name": "S.E. Tanzer",
-             "affiliation": "TU Delft",
-             "project": f"BlackBlox Demo - {datetime.now().strftime('%d %B %Y')}",
+dat.path_outdir = dat.path_output_root / (dat.timestamp_str + '_demo')
+
+dat.user_data = {
+    "name": "S.E. Tanzer",
+    "affiliation": "TU Delft",
+    "project": f"BlackBlox Demo - {dat.timestamp_str}",
 }
 
-dat.default_units = {'mass': 'tonnes', 
-                 'energy':'GJ',
+dat.default_units = {
+    'mass': 'tonnes',
+    'energy':'GJ',
 }
 
 dat.default_emissions = ['CO2__fossil']
 dat.default_scenario = 'default'
+
+
 print("\n\nWELCOME\n\n")
 
 print(f"\n\nblackblox.py v0.1 Demonstration")
-print(f"{datetime.now().strftime('%A, %d %B %Y at %H:%M')}")
+print(f"{dat.timestamp_str}")
 
 print(f"\nThis demo uses unit process data from {dat.unit_process_library_file}")
-print(f"and outputting any files to {dat.outdir}")
+print(f"and outputting any files to {dat.path_outdir}")
 
 input("\nPress enter to start demo: ") 
 
@@ -46,7 +53,6 @@ print('It represents a single "black box" process with a set of inflows and outf
 
 stop = input("\nPress enter to create the KILN unit process: ")
 
-unit_list =uni.df_unit_library.index.tolist()
 kiln = uni.UnitProcess('demo_kiln')
 
 print(f"\n{str.upper(kiln.name)}")
@@ -73,7 +79,6 @@ s = 'EU-2010' # random.choice(scenarios)
 
 u_in, u_out = kiln.balance(qty, scenario=s, write_to_console=True)
 
-    # stop = True
 
 stop = input("\nPress enter to continue\n")
 
@@ -87,7 +92,7 @@ stop = input(f"\n\nPress enter to balance {kiln.name} on a random inflow: ")
 print(f"\nselecting random inflow...")
 product = random.choice(tuple(kiln.inflows))
 if product == 'fuel':
-        qty = u_in[kiln.var_df.at[s, 'fueltype']]
+    qty = u_in[kiln.var_df.at[s, 'fueltype']]
 else:
     qty = u_in[product]
 print(f"\nnow balacing {kiln.name} on {qty} {dat.default_units['mass']} of {product} ({'inflow'}) using {s} values")
@@ -111,8 +116,8 @@ print("with one another.")
 
 stop = input(f"\nPress enter to test 1-to-1 recycle on {product} (inflow): ")
 
-qty_recycled = 5.0 # round(qty*random.uniform(0.01, 0.99),2)
-max_replace_fraction = 0.5 #round(random.uniform(0.01, 1.0),2)
+qty_recycled = 5.0  # round(qty*random.uniform(0.01, 0.99),2)
+max_replace_fraction = 0.5  # round(random.uniform(0.01, 1.0),2)
 print(f"\nRecycling {qty_recycled} of RECYCLED FLOW 1-to-1 for not more than {max_replace_fraction*100}% of {product}") 
 
 r1_in, r1_out, leftover = kiln.recycle_1to1(original_inflows_dict=u_in,
@@ -191,8 +196,8 @@ print("Inflows and outflows are calculated for each unit and the overall chain."
 
 stop = input('\nPress enter to create a CEMENT production chain object: ')
 
-cement_chain = cha.ProductChain(chain_data=factory_file, 
-                                name= "Cement", 
+cement_chain = cha.ProductChain(chain_data=path_factory_file,
+                                name= "Cement",
                                 xls_sheet='Cement Chain')
 
 
@@ -216,7 +221,7 @@ inflows, outflows, int_flows, int_rows = cement_chain.balance(0.8, product="clin
 
 stop = input(f"\n\n\nPress enter to balance the cement chain on 1.0 of cement out for scenarios {scenario_list} ") 
 
-cement_chain.run_scenarios(scenario_list=scenario_list,write_to_console=True, write_to_xls=True)
+cement_chain.run_scenarios(scenario_list=scenario_list, write_to_console=True, write_to_xls=True)
 
 stop = 'stop'
 
@@ -231,10 +236,10 @@ print("Flows from one unit process can be be recycled within the factory.")
 
 stop = input('\nPress enter to create a CEMENT factory object: ')
 
-cement_factory = fac.Factory(chain_list_file=factory_file,
-                                chain_list_sheet='Chain List', 
-                                connections_sheet='Connections', 
-                                name="Demo")
+cement_factory = fac.Factory(chain_list_file=path_factory_file,
+                             chain_list_sheet='Chain List',
+                             connections_sheet='Connections',
+                             name="Demo")
 
 print(f"\n{cement_factory.name} factory")
 print(f"\nchains in this factory:")
@@ -262,7 +267,7 @@ totals = pan.DataFrame(totals)
 totals = iof.mass_energy_df(totals)
 print(f"\n{cement_factory.name} total inflows and outflows")
 print(totals)
-print(f"\n Full results available in {dat.outdir} directory.")
+print(f"\n Full results available in {dat.path_outdir} directory.")
 
 
 stop = input("\n\n\nPress enter to balance the factory on 13.9535 tonnes of fuel inflow to kiln (outputs to file): ")
@@ -279,7 +284,7 @@ totals = iof.mass_energy_df(totals)
 
 print(f"\n{cement_factory.name} total inflows and outflows")
 print(totals, "\n")
-print(f"\n Full results available in {dat.outdir} directory")
+print(f"\n Full results available in {dat.path_outdir} directory")
 
 
 ###############################################################################
@@ -287,16 +292,16 @@ print(f"\n Full results available in {dat.outdir} directory")
 ###############################################################################
 # input('\n\n\nPress enter to continue: ') 
 
-industry_file = "data/demo/cementIndustry.xlsx"
+industry_file = path_data_demo / 'cementIndustry.xlsx'
 
 print('\n\n\nINDUSTRY TEST - outputs to file.')
 stop = input('\nPress enter or type a character to skip: ')
 
-i_kwargs = dict(factory_list_file=industry_file,
-                factory_list_sheet='Factory List', 
-                name='Cement Industry')
-
-industry = ind.Industry(**i_kwargs)
+industry = ind.Industry(
+    factory_list_file=industry_file,
+    factory_list_sheet='Factory List',
+    name='Cement Industry',
+)
 
 industry.build()
 
@@ -314,7 +319,7 @@ while stop == '':
     ioDicts= industry.balance(production_data_sheet='2000', write_to_xls=True, 
                     file_id='2010', diagrams=True)
             
-    print(f"\nDone. Files available in {dat.outdir} directory.")
+    print(f"\nDone. Files available in {dat.path_outdir} directory.")
 
     stop = input("\n\n\nPress enter to compare scenarios of production in the cement industry: ")
     if stop != '':
@@ -336,7 +341,7 @@ while stop == '':
 
     industry.run_scenarios(**s_kwargs)
 
-    print(f"\nDone. Files available in {dat.outdir} directory.")
+    print(f"\nDone. Files available in {dat.path_outdir} directory.")
 
     stop = input("\n\n\nPress enter to model the cement industry from 1990 to 2010 and generate outflow graphs for cement and CO2: ")
     if stop != '':
@@ -352,23 +357,23 @@ while stop == '':
                     graph_outflows = ['CO2', 'cement'])
     industry.evolve(**e_kwargs)
 
-    print(f"Done. Files available in {dat.outdir} directory.")
+    print(f"Done. Files available in {dat.path_outdir} directory.")
 
     stop = input("\n\n\nPress enter to model the cement industry from 1990 to 2000 to 2010 and generate outflow graphs for cement and CO2: ")
     if stop != '':
         break 
     print("\nworking....")
 
-    m_kwargs = dict(steps=[1990,2000,2010], 
-                    production_data_files=None, 
-                    step_sheets=['1990', '2000', '2010'], 
+    m_kwargs = dict(steps=[1990,2000,2010],
+                    production_data_files=None,
+                    step_sheets=['1990', '2000', '2010'],
                     file_id='',
-                    outdir=dat.outdir, 
-                    write_to_xls=True, 
+                    outdir=dat.path_outdir,
+                    write_to_xls=True,
                     graph_outflows = ['CO2', 'cement'])
     industry.evolve_multistep(**m_kwargs)
 
-    print(f"\nDone. Files available in {dat.outdir} directory.")
+    print(f"\nDone. Files available in {dat.path_outdir} directory.")
     stop = 'stop'
 
 input("\n\n\nPress enter to end demo. \n")
