@@ -195,7 +195,7 @@ energy_flows = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV', 'lhv', '
 """list: strings that, at the start or end of a flow identifier indicate an energy flow
 """
 
-default_emissions = ['CO2__fossil', 'CO2__bio', 'H2O']
+default_emissions = ["CO2__bio", "CO2__fossil",] # "contrib_CO2__bio-annual", "contrib_CO2__bio-long"]
 """list: emissions that the program automatically checks for factors for.
 """
 

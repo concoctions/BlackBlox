@@ -199,7 +199,7 @@ def no_suf(str, separator=dat.ignore_sep):
 
 def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
             col_order=False, T=False, drop_zero=False, sort=False,
-            lower_cols=True, fillna=True):
+            lower_cols=True, fillna=True, str_index=False,):
     """ Creates a Pandas dataframe from various file types
 
     Numbers that are initially read as strings will be converted to 
@@ -231,6 +231,7 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
             (Defaults to False)
         fillna (bool): If true, will convert NaNs to zeros.
             (Defualts to True)
+        str_index (bool): Forces index values to strings
 
     Returns:
         The generated dataframe.
@@ -253,10 +254,13 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
     else:
         return pan.DataFrame()
 
+    if str_index is True:
+        df.index = df.index.astype('str')
+
     if metaprefix is not None:
         if index is not None:
             df = df[~df.index.str.startswith(metaprefix)]
-        cols = [col for col in list(df) if not col.startswith(metaprefix)]
+        cols = [col for col in list(df) if not str(col).startswith(metaprefix)]
         logger.debug(f"if you get an error here, check that the unit name is correct and exists in the unit library")
         df = df[cols]
 
@@ -277,7 +281,7 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
         df.sort_index()
 
     if lower_cols is True:
-        df.columns = [clean_str(c) for c in df.columns]
+        df.columns = [clean_str(str(c)) for c in df.columns]
 
     if fillna is True:
         df = df.fillna(0)
@@ -468,6 +472,8 @@ def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir,
     else:
         Path(filedir).mkdir(parents=True, exist_ok=True)
 
+    filename = filename.replace('/', '')
+
     logger.debug(f"attempting to create {filename} in {filedir}")
 
     empty_notice = {'00': "The supplied dataframe was empty.",
@@ -490,6 +496,8 @@ def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.outdir,
                     sheet = sheet_list[i]
                 else:
                     sheet = i
+                if len(sheet) > 30:
+                    sheet=sheet[0:28]
                 if df.empty:
                     empty_df.to_excel(writer, sheet)
                 else:
