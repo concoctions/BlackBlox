@@ -27,7 +27,7 @@ def get_file_handler():
     the filename. However, if the program is run over multiple days, the log file
     name will  not automatically switch.
     """
-    if platform.system() is 'Windows':
+    if platform.system() == 'Windows':
         file_handler = logging.FileHandler(f"{LOG_FILE}_{datetime.now().strftime('%Y-%m-%d')}")
     else:
         file_handler = TimedRotatingFileHandler(LOG_FILE, when='midnight')
