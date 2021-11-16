@@ -1,4 +1,6 @@
 import random
+from pathlib import Path
+
 import pandas as pan
 from pprint import pprint
 
@@ -11,12 +13,15 @@ import blackblox.industry as ind
 
 
 # USER DATA CONFIG
-path_data_demo = dat.path_data_root / 'demo'
+
+# full absolute path of the dir containing this script
+path_script_dir = Path(__file__).resolve().parent
+path_data_demo = path_script_dir / 'data'
 path_demo_factories = path_data_demo / 'factories'
 path_factory_file = path_demo_factories / 'cementFactory_withCCS.xlsx'
 scenario_list = ['EU-1990', 'EU-2000', 'EU-2010']
 
-dat.path_outdir = dat.path_output_root / (dat.timestamp_str + '_demo')
+dat.path_outdir = dat.path_output_root / 'demo' / dat.timestamp_str
 
 dat.user_data = {
     "name": "S.E. Tanzer",
@@ -39,10 +44,10 @@ print("\n\nWELCOME\n\n")
 print(f"\n\nblackblox.py v0.1 Demonstration")
 print(f"{dat.timestamp_str}")
 
-print(f"\nThis demo uses unit process data from {dat.unit_process_library_file}")
+print(f"\nThis data uses unit process data from {path_data_demo}")
 print(f"and outputting any files to {dat.path_outdir}")
 
-input("\nPress enter to start demo: ") 
+input("\nPress enter to start data: ")
 
 
 # UNIT PROCESS TEST
@@ -52,7 +57,11 @@ print('It represents a single "black box" process with a set of inflows and outf
 
 stop = input("\nPress enter to create the KILN unit process: ")
 
-kiln = uni.UnitProcess('demo_kiln')
+units_df = iof.make_df(path_data_demo / 'unitlibrary.xlsx', 'Unit Processes')
+units_df_basedir = path_data_demo
+
+
+kiln = uni.UnitProcess(u_id='demo_kiln', units_df=units_df, units_df_basedir=units_df_basedir)
 
 print(f"\n{str.upper(kiln.name)}")
 print("inflows:", ', '.join(kiln.inflows))
@@ -191,7 +200,13 @@ print("Inflows and outflows are calculated for each unit and the overall chain."
 
 input('\nPress enter to create a CEMENT production chain object: ')
 
-cement_chain = cha.ProductChain(chain_data=path_factory_file, name='Cement', xls_sheet='Cement Chain')
+cement_chain = cha.ProductChain(
+    chain_data=path_factory_file,
+    name='Cement',
+    xls_sheet='Cement Chain',
+    units_df=units_df,
+    units_df_basedir=units_df_basedir,
+)
 
 print('\nCEMENT Chain Data:')
 pprint(cement_chain.process_chain_df)
@@ -225,7 +240,9 @@ cement_factory = fac.Factory(
     chain_list_file=path_factory_file,
     chain_list_sheet='Chain List',
     connections_sheet='Connections',
-    name="Demo",
+    name='Demo',
+    units_df=units_df,
+    units_df_basedir=units_df_basedir,
 )
 
 print(f"\n{cement_factory.name} factory")
@@ -284,6 +301,8 @@ industry = ind.Industry(
     factory_list_file=industry_file,
     factory_list_sheet='Factory List',
     name='Cement Industry',
+    units_df=units_df,
+    units_df_basedir=units_df_basedir,
 )
 
 industry.build()
@@ -299,7 +318,7 @@ while stop == '':
     print("\nworking....")
 
     ioDicts = industry.balance(production_data_sheet='2000', write_to_xls=True, file_id='2010', diagrams=True)
-    print(f"\nDone. Files available in {dat.path_outdir} directory.")
+    print(f"\nDone. Files available under the \"{industry.outdir}\" directory.")
 
     stop = input("\n\n\nPress enter to compare scenarios of production in the cement industry: ")
     if stop != '':
@@ -312,33 +331,30 @@ while stop == '':
 
     print("\nworking...")
 
-    s_kwargs = dict(scenario_list=s_list, products_sheet='2010', write_to_xls=True, file_id='2010', diagrams=False)
-    industry.run_scenarios(**s_kwargs)
-    print(f"\nDone. Files available in {dat.path_outdir} directory.")
+    industry.run_scenarios(scenario_list=s_list, products_sheet='2010', write_to_xls=True, file_id='2010', diagrams=False)
+    print(f"\nDone. Files available under the \"{industry.outdir}\" directory.")
 
     stop = input("\n\n\nPress enter to model the cement industry from 1990 to 2010 and generate outflow graphs for cement and CO2: ")
     if stop != '':
         break  
     print("\nworking....\n")
 
-    e_kwargs = dict(start_sheet='1990', end_sheet='2010', start_step=1990, end_step=2010, write_to_xls=True,
+    industry.evolve(start_sheet='1990', end_sheet='2010', start_step=1990, end_step=2010, write_to_xls=True,
                     diagrams=True, graph_outflows=['CO2', 'cement'])
-    industry.evolve(**e_kwargs)
-    print(f"Done. Files available in {dat.path_outdir} directory.")
+    print(f"Done. Files available under the \"{industry.outdir}\" directory.")
 
     stop = input("\n\n\nPress enter to model the cement industry from 1990 to 2000 to 2010 and generate outflow graphs for cement and CO2: ")
     if stop != '':
         break 
     print("\nworking....")
 
-    m_kwargs = dict(steps=[1990, 2000, 2010], step_sheets=['1990', '2000', '2010'],
-                    production_data_files=None, file_id='', outdir=dat.path_outdir,
-                    write_to_xls=True, graph_outflows=['CO2', 'cement'])
-    industry.evolve_multistep(**m_kwargs)
-    print(f"\nDone. Files available in {dat.path_outdir} directory.")
+    industry.evolve_multistep(
+        steps=[1990, 2000, 2010], step_sheets=['1990', '2000', '2010'],
+        production_data_files=None, file_id='', write_to_xls=True, graph_outflows=['CO2', 'cement'])
+    print(f"Done. Files available under the \"{industry.outdir}\" directory.")
     stop = 'stop'
 
 
-input("\n\n\nPress enter to end demo. \n")
+input("\n\n\nPress enter to end data. \n")
 
 print('\n\n\nGOOD BYE.\n\n')

@@ -42,7 +42,8 @@ import blackblox.io_functions as iof
 import blackblox.processchain as cha
 import blackblox.unitprocess as unit
 from blackblox.bb_log import get_logger
-from blackblox.frames import df_upstream_outflows, df_upstream_inflows, df_downstream_outflows, df_downstream_inflows
+from blackblox.frames import (df_upstream_outflows, df_upstream_inflows, df_downstream_outflows, df_downstream_inflows,
+                              df_unit_library)
 from blackblox.unitprocess import lookup_var_dict
 
 
@@ -100,7 +101,9 @@ class Factory:
 
     # noinspection PyUnusedLocal
     def __init__(self, chain_list_file, chain_list_sheet=None, connections_file=None,
-                 connections_sheet=None, name="Factory", outdir=False, **kwargs):
+                 connections_sheet=None, name="Factory", outdir=False,
+                 units_df=df_unit_library, units_df_basedir=dat.unit_process_library_file.parent,
+                 **kwargs):
 
         logger.info(f"{name.upper()}: Initializing factory")
         self.name = name
@@ -144,7 +147,11 @@ class Factory:
             logger.debug(f"{self.name.upper()}: building {name} chain using file: {chain_file}, sheet: {chain_sheet}")
 
             # intialize chain and store in chain dictionary with chain metadata
-            self.chain_dict[name] = dict(chain=cha.ProductChain(chain_file, name=name, xls_sheet=chain_sheet),
+            self.chain_dict[name] = dict(chain=cha.ProductChain(chain_file,
+                                         name=name,
+                                         xls_sheet=chain_sheet,
+                                         units_df=units_df,
+                                         units_df_basedir=units_df_basedir),
                                          name=name,
                                          product=c[dat.chain_product],
                                          i_o=iof.clean_str(c[dat.chain_io][0]))
@@ -159,7 +166,7 @@ class Factory:
         else:
             self.connections_df = None
 
-        self.outdir = outdir if outdir else dat.path_outdir / f'{dat.timestamp_str}_{self.name}-f'
+        self.outdir = outdir if outdir else dat.path_outdir / f'{dat.timestamp_str}__factory_{self.name}'
 
         logger.info(f"{self.name.upper()}: Initalization successful")
 
@@ -433,8 +440,7 @@ class Factory:
                 (Defaults to True)
         """
 
-        outdir = outdir if outdir else self.outdir / 'pfd'
-
+        outdir = outdir if outdir else self.outdir
         filename = f'{self.name}_f_{dat.timestamp_str}'
 
         factory_diagram = Digraph(name="factory")

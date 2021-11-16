@@ -67,16 +67,16 @@ f_kwargs = dict(
 
 # Starch ethanol factories
 eth_factory = fac.Factory(chain_list_file='data/chemicals/ethanol_factory.xlsx',
-                    chain_list_sheet='chains', 
-                    connections_sheet='connections', 
+                    chain_list_sheet='chains',
+                    connections_sheet='connections',
                     name='ethanol')
 eth_CCS_factory = fac.Factory(chain_list_file='data/chemicals/ethanol_factory_CCS.xlsx',
-                    chain_list_sheet='chains', 
-                    connections_sheet='connections', 
+                    chain_list_sheet='chains',
+                    connections_sheet='connections',
                     name='ethanol-CCS')
 eth_factory_pure_CCS = fac.Factory(chain_list_file='/Users/Tanzer/GitHub/Industry-NETs-Paper/data/chemicals/ethanol_factory_CCS-pure.xlsx',
-                                 chain_list_sheet='chains', 
-                                 connections_sheet='connections', 
+                                 chain_list_sheet='chains',
+                                 connections_sheet='connections',
                                  name="Ethanol pure CO2 CCS")
 # eth_factory_flue_CCS = fac.Factory(chain_list_file='/Users/Tanzer/GitHub/Industry-NETs-Paper/data/chemicals/ethanol_factory_CCS-flue.xlsx',
 #                                  chain_list_sheet='chains', 
@@ -104,16 +104,16 @@ multi_sens("ethanol (maize)", [eth_CCS_factory], case_list, sdict_CO2)
 
 # lignocellulosic ethanol factories
 leth_factory = fac.Factory(chain_list_file='data/chemicals/ligno_ethanol_factory.xlsx',
-                    chain_list_sheet='chains', 
-                    connections_sheet='connections', 
+                    chain_list_sheet='chains',
+                    connections_sheet='connections',
                     name='lingoethanol')
 leth_CCS_factory = fac.Factory(chain_list_file='data/chemicals/ligno_ethanol_factory_CCS.xlsx',
-                    chain_list_sheet='chains', 
-                    connections_sheet='connections', 
+                    chain_list_sheet='chains',
+                    connections_sheet='connections',
                     name='lignoethanol-CCS')
 leth_factory_pure_CCS = fac.Factory(chain_list_file='data/chemicals/ligno_ethanol_factory_CCS-pure.xlsx',
-                    chain_list_sheet='chains', 
-                    connections_sheet='connections', 
+                    chain_list_sheet='chains',
+                    connections_sheet='connections',
                     name='lignoethanol pure CO2 CCS')
 # leth_factory_flue_CCS = fac.Factory(chain_list_file='data/chemicals/ligno_ethanol_factory_CCS-flue.xlsx',
 #                     chain_list_sheet='chains', 
@@ -152,20 +152,20 @@ multi_sens("ethanol (stover)", [leth_CCS_factory], case_list, sdict_CO2)
 
 # Ammonia Factories
 NH3_factory = fac.Factory(chain_list_file='/Users/Tanzer/GitHub/Industry-NETs-Paper/data/chemicals/NH3_factory.xlsx',
-                                 chain_list_sheet='chains', 
-                                 connections_sheet='connections', 
+                                 chain_list_sheet='chains',
+                                 connections_sheet='connections',
                                  name="NH3")
 NH3_factory_pure = fac.Factory(chain_list_file='/Users/Tanzer/GitHub/Industry-NETs-Paper/data/chemicals/NH3_factory_CCS-pure.xlsx',
-                                 chain_list_sheet='chains', 
-                                 connections_sheet='connections', 
+                                 chain_list_sheet='chains',
+                                 connections_sheet='connections',
                                  name="NH3 with CCS on pure CO2 only")
 # NH3_factory_flue = fac.Factory(chain_list_file='/Users/Tanzer/GitHub/Industry-NETs-Paper/data/chemicals/NH3_factory_CCS-flue.xlsx',
 #                                  chain_list_sheet='chains', 
 #                                  connections_sheet='connections', 
 #                                  name="NH3 with CCS on flue gas only")
 NH3_factory_CCS = fac.Factory(chain_list_file='/Users/Tanzer/GitHub/Industry-NETs-Paper/data/chemicals/NH3_factory_CCS.xlsx',
-                                 chain_list_sheet='chains', 
-                                 connections_sheet='connections', 
+                                 chain_list_sheet='chains',
+                                 connections_sheet='connections',
                                  name="NH3 with CCS")
 
 
@@ -200,16 +200,16 @@ multi_sens("NH3", [NH3_factory_CCS], NH3_case_list, sdict_CO2)
 
 # Urea Factories
 urea_factory = fac.Factory(chain_list_file='/Users/Tanzer/GitHub/Industry-NETs-Paper/data/chemicals/Urea_factory.xlsx',
-                                 chain_list_sheet='chains', 
-                                 connections_sheet='connections', 
+                                 chain_list_sheet='chains',
+                                 connections_sheet='connections',
                                  name="Urea")
 # urea_factory_flue = fac.Factory(chain_list_file='/Users/Tanzer/GitHub/Industry-NETs-Paper/data/chemicals/Urea_factory_CCS-flue.xlsx',
 #                                  chain_list_sheet='chains', 
 #                                  connections_sheet='connections', 
 #                                  name="Urea with CCS on flue gas only")
 urea_factory_CCS = fac.Factory(chain_list_file='/Users/Tanzer/GitHub/Industry-NETs-Paper/data/chemicals/Urea_factory_CCS.xlsx',
-                                 chain_list_sheet='chains', 
-                                 connections_sheet='connections', 
+                                 chain_list_sheet='chains',
+                                 connections_sheet='connections',
                                  name="Urea with CCS")
 
 
@@ -235,20 +235,20 @@ multi_sens("Urea", [urea_factory_CCS], NH3_case_list, sdict_CO2)
 
 # Hydrogen Factories
 H2_factory = fac.Factory(chain_list_file='/Users/Tanzer/GitHub/Industry-NETs-Paper/data/chemicals/H2_factory.xlsx',
-                                 chain_list_sheet='chains', 
-                                 connections_sheet='connections', 
+                                 chain_list_sheet='chains',
+                                 connections_sheet='connections',
                                  name="H2")
 H2_factory_pure = fac.Factory(chain_list_file='/Users/Tanzer/GitHub/Industry-NETs-Paper/data/chemicals/H2_factory_CCS-pure.xlsx',
-                                 chain_list_sheet='chains', 
-                                 connections_sheet='connections', 
+                                 chain_list_sheet='chains',
+                                 connections_sheet='connections',
                                  name="H2 with CCS on pure CO2 only")
 # H2_factory_flue = fac.Factory(chain_list_file='/Users/Tanzer/GitHub/Industry-NETs-Paper/data/chemicals/H2_factory_CCS-flue.xlsx',
 #                                  chain_list_sheet='chains', 
 #                                  connections_sheet='connections', 
 #                                  name="H2 with CCS on flue gas only")
 H2_factory_CCS = fac.Factory(chain_list_file='/Users/Tanzer/GitHub/Industry-NETs-Paper/data/chemicals/H2_factory_CCS.xlsx',
-                                 chain_list_sheet='chains', 
-                                 connections_sheet='connections', 
+                                 chain_list_sheet='chains',
+                                 connections_sheet='connections',
                                  name="H2 with CCS")
 
 

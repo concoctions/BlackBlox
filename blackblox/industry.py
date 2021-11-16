@@ -3,12 +3,14 @@
 """
 
 from collections import defaultdict
+from typing import List
 
 import blackblox.calculators as calc
 import blackblox.dataconfig as dat
 import blackblox.factory as fac
 import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
+from blackblox.frames import df_unit_library
 
 
 logger = get_logger("Industry")
@@ -41,12 +43,17 @@ class Industry:
 
     """
 
-    def __init__(self, factory_list_file, factory_list_sheet=None, name='Industry', **kwargs):
+    def __init__(self, factory_list_file, factory_list_sheet=None, name='Industry', outdir=None,
+                 units_df=df_unit_library, units_df_basedir=dat.unit_process_library_file.parent,
+                 **kwargs):
         self.name = name
+        self.outdir = outdir if outdir else dat.path_outdir / f'{dat.timestamp_str}__industry_{self.name}'
         self.factory_file = factory_list_file
         self.factories_df = iof.make_df(factory_list_file, factory_list_sheet, index=None)
         self.product_list = None
         self.factory_dict = None
+        self.units_df = units_df
+        self.units_df_basedir = units_df_basedir
 
     def build(self):
         """ generates the factory, chain, and process objects in the industry
@@ -58,31 +65,35 @@ class Industry:
 
         for i, f in self.factories_df.iterrows():
             name = f[dat.factory_name]
+
             if dat.factory_filepath in self.factories_df:
-                f_chains_file = f[dat.factory_filepath]
-                if f[dat.factory_filepath] in dat.no_var:
-                    f_connections_file = None
-                else:
-                    f_connections_file = f[dat.factory_filepath]
+                f_chains_file_rel = f[dat.factory_filepath]
+                f_connections_file_rel = None if f[dat.factory_filepath] in dat.no_var else f[dat.factory_filepath]
             else:
-                f_chains_file = f[dat.f_chain_list_file]
-                f_connections_file = f[dat.f_connections_file]
+                f_chains_file_rel = f[dat.f_chain_list_file]
+                f_connections_file_rel = f[dat.f_connections_file]
+
+            f_chains_file = self.units_df_basedir / f_chains_file_rel
+            f_connections_file = self.units_df_basedir / f_connections_file_rel
 
             f_chains_sheet = iof.check_for_col(self.factories_df, dat.f_chains_sheet, i)
             f_connections_sheet = iof.check_for_col(self.factories_df, dat.f_connections_sheet, i)
 
-            f_kwargs = dict(chain_list_file=f_chains_file,
-                            connections_file=f_connections_file,
-                            chain_list_sheet=f_chains_sheet,
-                            connections_sheet=f_connections_sheet,
-                            name=name)
+            factory = fac.Factory(
+                chain_list_file=f_chains_file,
+                connections_file=f_connections_file,
+                chain_list_sheet=f_chains_sheet,
+                connections_sheet=f_connections_sheet,
+                name=name,
+                units_df=self.units_df,
+                units_df_basedir=self.units_df_basedir,
+            )
 
-            factory = fac.Factory(**f_kwargs)
-            # factory.build()
-
-            factory_dict[name] = dict(factory=factory,
-                                      product=factory.main_product,
-                                      name=name)
+            factory_dict[name] = dict(
+                factory=factory,
+                product=factory.main_product,
+                name=name,
+            )
 
             product_list.add(factory.main_product)
 
@@ -93,7 +104,7 @@ class Industry:
                 upstream_outflows=False, upstream_inflows=False,
                 aggregate_flows=False, mass_energy=True,
                 energy_flows=dat.energy_flows, force_scenario=None,
-                write_to_xls=True, outdir=dat.path_outdir, subfolder=True,
+                write_to_xls=True, outdir=None, subfolder=True,
                 foldertime=True, file_id='', diagrams=True, **kwargs):
         """Balances an industry using one scenario for each factory.
 
@@ -130,6 +141,8 @@ class Industry:
 
         """
         logger.debug(f"attempting to balance {self.name}industry")
+
+        outdir = outdir if outdir else self.outdir
 
         if self.factory_dict is None:
             self.build()
@@ -235,13 +248,13 @@ class Industry:
 
         return io_dicts  # io_dicts[flow i_o][factory][substance] = qty
 
-    def run_scenarios(self, scenario_list, products_data=None, products_sheet=None,
-                      write_to_xls=True, outdir=dat.path_outdir, file_id='', diagrams=False,
+    def run_scenarios(self, scenario_list: List[str], products_data=None, products_sheet=None,
+                      write_to_xls=True, outdir=None, file_id='', diagrams=False,
                       upstream_outflows=False, upstream_inflows=False, aggregate_flows=False, **kwargs):
         """Balances an industry using one scenario for each factory.
 
         Args:
-            scenario_list (str): List of scenarios to use to balance industry
+            scenario_list: List of scenarios to use to balance industry
                 on, forcing that scenario for each factory in the industry
             products_data (str/None): location of per-factory production 
                 tabular data. If None, uses self.factory_file.
@@ -261,9 +274,9 @@ class Industry:
 
         """
 
-        # outdir = iof.build_filedir(outdir, subfolder=self.name,
-        #                             file_id_list=['multiscenario', file_id],
-        #                             time=True)
+        outdir_base = outdir if outdir else self.outdir
+        outdir = iof.build_filedir(
+            outdir_base, subfolder=self.name, file_id_list=['multiscenario', file_id], time=True)
 
         scenario_dict = iof.nested_dicts(4)
 
@@ -302,7 +315,7 @@ class Industry:
 
     def evolve(self, start_data=None, start_sheet=None, end_data=None, end_sheet=None,
                start_step=0, end_step=1, mass_energy=True, energy_flows=dat.energy_flows,
-               write_to_xls=True, outdir=dat.path_outdir, file_id='', diagrams=True, graph_outflows=False,
+               write_to_xls=True, outdir=None, file_id='', diagrams=True, graph_outflows=False,
                graph_inflows=False, upstream_outflows=False, upstream_inflows=False, aggregate_flows=False, **kwargs):
         """Calculates timestep and cumulative inflows and outflows of an industry
         using a specified starting scenario and end scenario
@@ -330,9 +343,9 @@ class Industry:
                 change over time, with one line for each factory
         """
 
-        # outdir = iof.build_filedir(outdir, subfolder=self.name,
-        #                             file_id_list=['evolve', start_step, end_step, file_id],
-        #                             time=True)
+        outdir_base = outdir if outdir else self.outdir
+        outdir = iof.build_filedir(
+            outdir_base, subfolder=self.name, file_id_list=['evolve', start_step, end_step, file_id], time=True)
 
         kwargs = dict(write_to_xls=write_to_xls,
                       diagrams=diagrams,
@@ -347,12 +360,12 @@ class Industry:
 
         start_io = self.balance(production_data_file=start_data,
                                 production_data_sheet=start_sheet,
-                                outdir=outdir / 'start_{start_step}',
+                                outdir=outdir / f'start_{start_step}',
                                 **kwargs)
 
         end_io = self.balance(production_data_file=end_data,
                               production_data_sheet=end_sheet,
-                              outdir=outdir / 'end_{end_step}',
+                              outdir=outdir / f'end_{end_step}',
                               **kwargs)
 
         # io_dicts are in the form of:
@@ -439,7 +452,7 @@ class Industry:
         return annual_flows, cumulative_dict
 
     def evolve_multistep(self, steps=None, production_data_files=None, step_sheets=None,
-                         file_id='', outdir=dat.path_outdir, write_to_xls=True,
+                         file_id='', outdir=None, write_to_xls=True,
                          graph_inflows=False, graph_outflows=False,
                          upstream_outflows=False, upstream_inflows=False, aggregate_flows=False, **kwargs):
         """the same as evolve, but takes a list of an arbitrary number of steps
@@ -458,9 +471,9 @@ class Industry:
                 change over time, with one line for each factory
         """
 
-        # outdir = iof.build_filedir(outdir, subfolder=self.name,
-        #                             file_id_list=['evolve_multistep', steps[0], steps[-1], file_id],
-        #                             time=True)       
+        outdir_base = outdir if outdir else self.outdir
+        outdir = iof.build_filedir(
+            outdir_base, subfolder=self.name, file_id_list=['evolve_multistep', steps[0], steps[-1], file_id], time=True)
 
         step_annual_flows = []
         step_cumulative_flows = []
@@ -492,7 +505,7 @@ class Industry:
                                 mass_energy=True,
                                 energy_flows=dat.energy_flows,
                                 write_to_xls=write_to_xls,
-                                outdir=outdir / '{prev_step}_{step}',
+                                outdir=outdir / f'{prev_step}_{step}',
                                 diagrams=False,
                                 upstream_outflows=upstream_outflows,
                                 upstream_inflows=upstream_inflows,

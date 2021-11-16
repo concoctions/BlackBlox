@@ -23,11 +23,14 @@ from datetime import datetime
 from graphviz import Digraph
 import pandas as pan
 
+from blackblox.bb_log import get_logger
+
 import blackblox.io_functions as iof
 import blackblox.dataconfig as dat
 import blackblox.unitprocess as unit
+from blackblox.frames import df_unit_library
 
-from blackblox.bb_log import get_logger
+
 logger = get_logger("Chain")
 
 
@@ -64,9 +67,10 @@ class ProductChain:
 
     """
 
-    def __init__(self, chain_data, name="Product Chain", xls_sheet=None, outdir=False):
+    def __init__(self, chain_data, name="Product Chain", xls_sheet=None, outdir=False
+                 , units_df=df_unit_library, units_df_basedir=dat.unit_process_library_file.parent):
         self.name = name
-        self.outdir = outdir if outdir else dat.path_outdir / f'{self.name}-chain_{dat.timestamp_str}'
+        self.outdir = outdir if outdir else dat.path_outdir / f'{dat.timestamp_str}__chain_{self.name}'
 
         logger.info(f"PROCESS CHAIN INIT - chain name: {name}, chain data: {chain_data}, xls sheet: {xls_sheet}")
         self.process_chain_df = iof.make_df(chain_data, sheet=xls_sheet, index=None)
@@ -78,7 +82,7 @@ class ProductChain:
 
         # create UnitProcess objects for each unit in chain
         for index, process_row in self.process_chain_df.iterrows():
-            process = unit.UnitProcess(process_row[dat.process_col])
+            process = unit.UnitProcess(process_row[dat.process_col], units_df=units_df, units_df_basedir=units_df_basedir)
             logger.debug(f"{self.name.upper()}: UnitProcess object created for {process.name}")
             inflow = process_row[dat.inflow_col]
             outflow = process_row[dat.outflow_col]
@@ -364,7 +368,7 @@ class ProductChain:
         return inflows_df, outflows_df
 
 
-    def diagram(self, view=True, save=True, outdir=dat.path_outdir):
+    def diagram(self, view=True, save=True, outdir=False):
         """diagram(self, view_diagram=True, save=True, outdir=f'{dat.outdir}/pfd')
         Generates chain flow diagrams (png and svg) using Graphviz
         
@@ -389,12 +393,12 @@ class ProductChain:
             nodes with concatanated chain, process, and flowtype (e.g.
             chainunitprocessinflows)
         """
-   
-        c = self.name # used for building identifiers
 
+        c = self.name  # used for building identifiers
+        outdir = outdir if outdir else self.outdir
         filename = f'{c}_{datetime.now().strftime("%b%d_%H%M")}'
 
-        chain_diagram = Digraph(name=filename, directory=f'{outdir}/pfd', format='png')
+        chain_diagram = Digraph(name=filename, directory=outdir, format='png')
         product_flow = Digraph('mainflow_'+self.name)
         product_flow.graph_attr.update(rank='same')
         product_flow.attr('node', shape='box')

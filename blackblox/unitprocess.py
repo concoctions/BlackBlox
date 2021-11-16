@@ -93,7 +93,8 @@ class UnitProcess:
                  display_name=False,
                  var_df=False,
                  calc_df=False,
-                 units_df=df_unit_library):
+                 units_df=df_unit_library,
+                 units_df_basedir=dat.unit_process_library_file.parent):
 
         logger.info(f"creating unit process object for {u_id} ({display_name})")
 
@@ -110,13 +111,14 @@ class UnitProcess:
             self.var_df = iof.make_df(var_df)
         else:
             v_sheet = iof.check_for_col(units_df, dat.var_sheetname, u_id)
-            self.var_df = iof.make_df(units_df.at[u_id, dat.var_filepath], sheet=v_sheet, lower_cols=True, fillna=True)
+            self.var_df = iof.make_df(units_df_basedir / units_df.at[u_id, dat.var_filepath]
+                                      , sheet=v_sheet, lower_cols=True, fillna=True)
 
         if calc_df is not False:
             self.calc_df = calc_df
         else:
             c_sheet = iof.check_for_col(units_df, dat.calc_sheetname, u_id)
-            self.calc_df = iof.make_df(units_df.at[u_id, dat.calc_filepath], sheet=c_sheet, index=None)
+            self.calc_df = iof.make_df(units_df_basedir / units_df.at[u_id, dat.calc_filepath], sheet=c_sheet, index=None)
 
         # use default value if available, otherwise none
         self.default_product = iof.check_for_col(units_df, dat.unit_product, u_id)

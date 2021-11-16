@@ -229,8 +229,8 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
             df = pan.DataFrame(data)
         # Contains file path
         elif isinstance(data, (Path, str)):
-            filepath = dat.path_data_root / data  # ensure path is absolute, anchored to dat.path_data_root
             # Excel workbook
+            filepath = Path(data)
             if filepath.suffix in ['.xls', '.xlsx']:
                 df = pan.read_excel(filepath, sheet_name=sheet, index_col=index)
             # Comma-separated or equivalent (readable by pandas)
@@ -400,12 +400,12 @@ def metadata_df(user=dat.user_data, about=about.about_blackblox, name="unknown",
 
 # WRITERS TO FILES
 
-def build_filedir(filedir, subfolder=None, file_id_list=[], time=True):
+def build_filedir(filedir: Path, subfolder=None, file_id_list=[], time=True) -> Path:
     """ Builds complicated file directory names.
     Used for allowing file to be output to unique directories.
 
     Args:
-        filedir (str): the base file directory
+        filedir (Path): the basename file directory
         subfolder (str): optional subfolder(s)
             (Defaults to None.)
         file_id_list (list of str): list of strings to append to the directory
@@ -416,19 +416,23 @@ def build_filedir(filedir, subfolder=None, file_id_list=[], time=True):
             (Defaults to True.)
 
     Returns:
-        The built file directory string.
+        The built file directory Path.
     """
+
     if subfolder is not None:
-        filedir = f'{filedir}/{subfolder}'
+        filedir = filedir / subfolder
+
+    parent = filedir.parent
+    basename = filedir.name
 
     for file_id in file_id_list:
         if file_id:
-            filedir = f'{filedir}_{file_id}'
+            basename = f'{basename}_{file_id}'
 
-    if time is True:
-        filedir = f'{filedir}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
+    if time:
+        basename = f'{basename}_{datetime.now().strftime("%Y-%m-%d_%H%M")}'
 
-    return filedir
+    return parent / basename
 
 
 def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.path_outdir,

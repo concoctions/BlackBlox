@@ -196,6 +196,7 @@ f_product = "factory product"
 f_product_qty = "product qty"
 f_scenario = "scenario"
 
+
 # DEFAULT FILEPATHS
 # full absolute path of the dir above the one containing this script
 path_project_root = Path(__file__).resolve().parent.parent
