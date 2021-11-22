@@ -33,7 +33,7 @@ from datetime import datetime
 
 import numpy as np
 
-import blackblox.calculators  as calc
+import blackblox.calculators as calc
 import blackblox.dataconfig as dat
 import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
@@ -88,12 +88,8 @@ class UnitProcess:
             from calc_df.
     """
 
-    def __init__(self,
-                 u_id,
-                 display_name=False,
-                 var_df=False,
-                 calc_df=False,
-                 units_df=df_unit_library,
+    def __init__(self, u_id, display_name=False, var_df=False, calc_df=False,
+                 outdir=None, units_df=df_unit_library,
                  units_df_basedir=dat.unit_process_library_file.parent):
 
         logger.info(f"creating unit process object for {u_id} ({display_name})")
@@ -119,6 +115,8 @@ class UnitProcess:
         else:
             c_sheet = iof.check_for_col(units_df, dat.calc_sheetname, u_id)
             self.calc_df = iof.make_df(units_df_basedir / units_df.at[u_id, dat.calc_filepath], sheet=c_sheet, index=None)
+
+        self.outdir = outdir if outdir else dat.path_outdir / f'{dat.timestamp_str}__unit_{self.name}'
 
         # use default value if available, otherwise none
         self.default_product = iof.check_for_col(units_df, dat.unit_product, u_id)
@@ -369,9 +367,12 @@ class UnitProcess:
         return io_dicts['i'], io_dicts['o']
 
     def run_scenarios(self, scenario_list=[], qty=1.0, product=False, i_o=False, product_alt_name=False,
-                      balance_energy=True, raise_imbalance=False, write_to_xls=True, write_to_console=False):
+                      balance_energy=True, raise_imbalance=False, write_to_xls=True, write_to_console=False,
+                      outdir=None):
         """Runs UnitProcess.balance over multiple scenarions of varaibles. Outputs to Excel.
         """
+        outdir = outdir if outdir else self.outdir
+
         iof.check_type(scenario_list, is_type=[list], not_not=True)
         scenario_dict = iof.nested_dicts(3)
 
@@ -411,6 +412,7 @@ class UnitProcess:
 
             iof.write_to_xls(df_or_df_list=dfs,
                              sheet_list=sheets,
+                             outdir=outdir,
                              filename=f'{self.name}_u_multi_{datetime.now().strftime("%b%d_%H%M")}')
 
         if write_to_console is True:

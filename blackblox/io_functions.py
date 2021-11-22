@@ -435,7 +435,7 @@ def build_filedir(filedir: Path, subfolder=None, file_id_list=[], time=True) -> 
     return parent / basename
 
 
-def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.path_outdir,
+def write_to_xls(df_or_df_list, sheet_list=None, outdir=None,
                  filename='output', subdir=None):
     """Writes one or more data frames to a single excel workbook.
 
@@ -452,6 +452,8 @@ def write_to_xls(df_or_df_list, sheet_list=None, filedir=dat.path_outdir,
         filename (optional, str): desired excel file name, without extension.
             (Defaults to 'output')
     """
+    filedir = outdir if outdir else dat.path_outdir
+
     if subdir:
         (filedir / subdir).mkdir(parents=True, exist_ok=True)
     else:

@@ -242,7 +242,7 @@ class Industry:
             sheet_list = ["meta", f'{self.name} inflows', f'{self.name} outflows']
 
             iof.write_to_xls(df_list, sheet_list=sheet_list,
-                             filedir=outdir, filename=filename)
+                             outdir=outdir, filename=filename)
 
         logger.debug(f"successfully balanced {self.name}industry")
 
@@ -310,7 +310,7 @@ class Industry:
         if write_to_xls is True:
             iof.write_to_xls(df_or_df_list=[meta_df, inflows_df, outflows_df],
                              sheet_list=["meta", "inflows", "outflows"],
-                             filedir=outdir,
+                             outdir=outdir,
                              filename=f'{self.name}_multiscenario_{dat.timestamp_str}')
 
     def evolve(self, start_data=None, start_sheet=None, end_data=None, end_sheet=None,
@@ -439,7 +439,7 @@ class Industry:
                         sheet_list.append(sheet_name)
 
             iof.write_to_xls(df_list, sheet_list=sheet_list,
-                             filedir=outdir, filename=filename)
+                             outdir=outdir, filename=filename)
 
         if type(graph_outflows) is list:
             for flow in graph_outflows:
@@ -566,7 +566,7 @@ class Industry:
                         sheet_list.append(sheet_name)
 
             iof.write_to_xls(df_list, sheet_list=sheet_list,
-                             filedir=outdir, filename=filename)
+                             outdir=outdir, filename=filename)
 
         if type(graph_outflows) is list:
             for flow in graph_outflows:

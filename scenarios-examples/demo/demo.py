@@ -300,7 +300,7 @@ input('\nPress enter or type a character to skip: ')
 industry = ind.Industry(
     factory_list_file=industry_file,
     factory_list_sheet='Factory List',
-    name='Cement Industry',
+    name='Cement',
     units_df=units_df,
     units_df_basedir=units_df_basedir,
 )

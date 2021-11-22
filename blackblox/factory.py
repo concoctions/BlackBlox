@@ -672,7 +672,7 @@ class Factory:
 
             iof.write_to_xls(df_or_df_list=df_list,
                              sheet_list=sheet_list,
-                             filedir=outdir,
+                             outdir=outdir,
                              filename=f'{self.name}_f_multi_{dat.timestamp_str}')
 
         return inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df, net_df
@@ -701,7 +701,6 @@ class Factory:
             Dataframe of compared outflows
 
         """
-
         outdir = outdir if outdir else self.outdir / f'{id}sensitivity/' / f'{variable}'
 
         scenario_dict = iof.nested_dicts(3)
@@ -817,7 +816,7 @@ class Factory:
 
         iof.write_to_xls(df_or_df_list=dfs,
                          sheet_list=sheets,
-                         filedir=outdir,
+                         outdir=outdir,
                          filename=f'{self.name}_{id}f_sens_{dat.timestamp_str}')
 
         for i, unit in enumerate(units):
@@ -1240,7 +1239,7 @@ class Factory:
 
         # output to all Dataframes to single Excel file
         iof.write_to_xls(df_list, sheet_list=sheet_list,
-                         filedir=outdir, filename=filename, subdir=subdir)
+                         outdir=outdir, filename=filename, subdir=subdir)
 
     def aggregate_flows(self, aggregate_flows, inflow_dict, outflow_dict):
         """Creates dataframe of specified aggregated flows

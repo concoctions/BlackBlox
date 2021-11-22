@@ -67,8 +67,8 @@ class ProductChain:
 
     """
 
-    def __init__(self, chain_data, name="Product Chain", xls_sheet=None, outdir=False
-                 , units_df=df_unit_library, units_df_basedir=dat.unit_process_library_file.parent):
+    def __init__(self, chain_data, name="Product Chain", xls_sheet=None, outdir=None,
+                 units_df=df_unit_library, units_df_basedir=dat.unit_process_library_file.parent):
         self.name = name
         self.outdir = outdir if outdir else dat.path_outdir / f'{dat.timestamp_str}__chain_{self.name}'
 
@@ -292,15 +292,15 @@ class ProductChain:
             sheets = ["meta", "inflows", "outflows", "internal_flows"]
 
             iof.write_to_xls(df_or_df_list=dfs,
-                                sheet_list=sheets, 
-                                filedir=self.outdir, 
-                                filename=f'{self.name}_c_{scenario}_{dat.timestamp_str}')
+                             sheet_list=sheets,
+                             outdir=self.outdir,
+                             filename=f'{self.name}_c_{scenario}_{dat.timestamp_str}')
                 
         return io_dicts['i'], io_dicts['o'], intermediate_product_dict, internal_flows
 
-
     def run_scenarios(self, scenario_list=[], qty=1.0, product=False, i_o=False, product_alt_name=False, 
-        balance_energy=True, raise_imbalance=False, write_to_xls=True, write_to_console=False, outdir=False):
+                      balance_energy=True, raise_imbalance=False, write_to_xls=True, write_to_console=False,
+                      outdir=None):
         """Runs UnitProcess.balance over multiple scenarions of varaibles. Outputs to Excel.
 
         """
@@ -351,22 +351,19 @@ class ProductChain:
             dfs.extend(chain_dfs)
             sheets.extend(chain_sheets)
 
-            if outdir is False:
-                outdir = self.outdir
+            outdir = outdir if outdir else self.outdir
 
             iof.write_to_xls(df_or_df_list=dfs,
-                                sheet_list=sheets, 
-                                filedir=outdir,
-                                filename=f'{self.name}_c_multi_{dat.timestamp_str}')
+                             sheet_list=sheets,
+                             outdir=outdir,
+                             filename=f'{self.name}_c_multi_{dat.timestamp_str}')
 
-        
         if write_to_console is True:
             print(f"\n{str.upper(self.name)} balanced on {qty} of {product} for scenarios of {scenario_list}.\n")
             print("\nINFLOWS\n", inflows_df)
             print("\nOUTFLOWS\n", outflows_df, "\n")
         
         return inflows_df, outflows_df
-
 
     def diagram(self, view=True, save=True, outdir=False):
         """diagram(self, view_diagram=True, save=True, outdir=f'{dat.outdir}/pfd')
