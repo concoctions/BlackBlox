@@ -10,6 +10,8 @@
       <excludeFolder url="file://$MODULE_DIR$/docs/_build/html/_static" />
       <excludeFolder url="file://$MODULE_DIR$/docs/_build/latex/.doctrees" />
       <excludeFolder url="file://$MODULE_DIR$/scenarios-examples/paper-industry-nets/logs" />
+      <excludeFolder url="file://$MODULE_DIR$/docs/logs" />
+      <excludeFolder url="file://$MODULE_DIR$/docs/_build/doctrees" />
     </content>
     <orderEntry type="jdk" jdkName="Poetry (BlackBlox)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
