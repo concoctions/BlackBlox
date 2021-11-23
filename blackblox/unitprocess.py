@@ -116,7 +116,7 @@ class UnitProcess:
             c_sheet = iof.check_for_col(units_df, dat.calc_sheetname, u_id)
             self.calc_df = iof.make_df(units_df_basedir / units_df.at[u_id, dat.calc_filepath], sheet=c_sheet, index=None)
 
-        self.outdir = outdir if outdir else dat.path_outdir / f'{dat.timestamp_str}__unit_{self.name}'
+        self.outdir = (outdir if outdir else dat.path_outdir) / f'{dat.timestamp_str}__unit_{self.name}'
 
         # use default value if available, otherwise none
         self.default_product = iof.check_for_col(units_df, dat.unit_product, u_id)

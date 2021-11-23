@@ -166,7 +166,7 @@ class Factory:
         else:
             self.connections_df = None
 
-        self.outdir = outdir if outdir else dat.path_outdir / f'{dat.timestamp_str}__factory_{self.name}'
+        self.outdir = (outdir if outdir else dat.path_outdir) / f'{dat.timestamp_str}__factory_{self.name}'
 
         logger.info(f"{self.name.upper()}: Initalization successful")
 
@@ -174,7 +174,7 @@ class Factory:
                 product_io=False,
                 upstream_outflows=False, upstream_inflows=False,
                 downstream_outflows=False, downstream_inflows=False,
-                aggregate_flows=False, net_flows=False, write_to_xls=True, outdir=False, subdir=False):
+                aggregate_flows=False, net_flows=False, write_to_xls=True, outdir=None, subdir=False):
         """Calculates the mass balance of the factory using qty of main product
 
         Balances all UnitProcesses and Chains in the factory
@@ -414,6 +414,8 @@ class Factory:
         net_df = self.net_flows(net_flows, factory_totals, aggregated_df)
 
         # output to file
+        outdir = outdir if outdir else self.outdir
+
         if write_to_xls is True:
             self.factory_to_excel(io_dicts, factory_totals, internal_flows,
                                   scenario, product_qty, aggregated_df, net_df, outdir, subdir)
@@ -422,7 +424,7 @@ class Factory:
 
         return factory_totals['i'], factory_totals['o'], aggregated_df, net_df
 
-    def diagram(self, view=False, save=True, outdir=False):
+    def diagram(self, view=False, save=True, outdir=None):
         """ Outputs a diagram of factory flows to file using Graphviz
 
         Using Graphviz, takes the unit process names, sets of inflows and 
@@ -560,7 +562,7 @@ class Factory:
                       product_qty=1.0, product=False, product_unit=False, product_io=False,
                       upstream_outflows=False, upstream_inflows=False, downstream_outflows=False,
                       downstream_inflows=False, aggregate_flows=False, net_flows=False, write_to_xls=True,
-                      factory_xls=True, outdir=False, file_id='', subdir='scenario factories'):
+                      factory_xls=True, outdir=None, file_id='', subdir='scenario factories'):
         """Balances the Factory using different sets of variable values.
         Creates a spreadsheet comparing inflows and outflows for the factory for each scenario.
 
@@ -579,8 +581,7 @@ class Factory:
             Dataframe of compared outflows
 
         """
-        if outdir is False:
-            outdir = self.outdir
+        outdir = outdir if outdir else self.outdir
 
         scenario_dict = iof.nested_dicts(3)
 
@@ -682,7 +683,7 @@ class Factory:
                         product=False, product_unit=False, product_io=False, upstream_outflows=False,
                         upstream_inflows=False,
                         downstream_outflows=False, downstream_inflows=False, aggregate_flows=False, net_flows=False,
-                        write_to_xls=True, individual_xls=False, outdir=False, id=''):
+                        write_to_xls=True, individual_xls=False, outdir=None, id=''):
         """Balances the factory on the same quantity for a list of different scenarios.
         Outputs a file with total inflows and outflows for the factory for each scenario.
 
@@ -701,7 +702,7 @@ class Factory:
             Dataframe of compared outflows
 
         """
-        outdir = outdir if outdir else self.outdir / f'{id}sensitivity/' / f'{variable}'
+        outdir = (outdir if outdir else self.outdir) / f'{id}sensitivity/' / f'{variable}'
 
         scenario_dict = iof.nested_dicts(3)
 
@@ -1157,7 +1158,7 @@ class Factory:
         return factory_totals
 
     def factory_to_excel(self, io_dicts, factory_totals, internal_flows, scenario, product_qty, aggregated_df, net_df,
-                         outdir=False, subdir=False):
+                         outdir=None, subdir=False):
         """formats factory data to datafames and outputs to excel file
             used in self.balance() (above)
         """

@@ -202,7 +202,6 @@ f_scenario = "scenario"
 # path_project_root = Path(__file__).resolve().parent.parent
 path_project_root = Path()
 path_data_root = path_project_root / 'data'
-path_output_root = path_project_root / 'output'
 
 unit_process_library_file = path_data_root / 'unitlibrary.xlsx'
 """str: The filepath whre the unit process library file exists.
@@ -219,7 +218,7 @@ day_str = datetime.now().strftime("%Y%m%d")
 time_str = datetime.now().strftime("%H%M")
 timestamp_str = day_str + 'T' + time_str
 
-path_outdir = path_output_root / timestamp_str
+path_outdir = path_project_root / 'output'
 """str: The file output directory.
 
 Unless an absolute path is specified, BlackBlox will create the directory 

@@ -70,7 +70,7 @@ class ProductChain:
     def __init__(self, chain_data, name="Product Chain", xls_sheet=None, outdir=None,
                  units_df=df_unit_library, units_df_basedir=dat.unit_process_library_file.parent):
         self.name = name
-        self.outdir = outdir if outdir else dat.path_outdir / f'{dat.timestamp_str}__chain_{self.name}'
+        self.outdir = (outdir if outdir else dat.path_outdir) / f'{dat.timestamp_str}__chain_{self.name}'
 
         logger.info(f"PROCESS CHAIN INIT - chain name: {name}, chain data: {chain_data}, xls sheet: {xls_sheet}")
         self.process_chain_df = iof.make_df(chain_data, sheet=xls_sheet, index=None)
@@ -365,7 +365,7 @@ class ProductChain:
         
         return inflows_df, outflows_df
 
-    def diagram(self, view=True, save=True, outdir=False):
+    def diagram(self, view=True, save=True, outdir=None):
         """diagram(self, view_diagram=True, save=True, outdir=f'{dat.outdir}/pfd')
         Generates chain flow diagrams (png and svg) using Graphviz
         

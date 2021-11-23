@@ -47,7 +47,7 @@ class Industry:
                  units_df=df_unit_library, units_df_basedir=dat.unit_process_library_file.parent,
                  **kwargs):
         self.name = name
-        self.outdir = outdir if outdir else dat.path_outdir / f'{dat.timestamp_str}__industry_{self.name}'
+        self.outdir = (outdir if outdir else dat.path_outdir) / f'{dat.timestamp_str}__industry_{self.name}'
         self.factory_file = factory_list_file
         self.factories_df = iof.make_df(factory_list_file, factory_list_sheet, index=None)
         self.product_list = None

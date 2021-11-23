@@ -21,7 +21,7 @@ path_demo_factories = path_data_demo / 'factories'
 path_factory_file = path_demo_factories / 'cementFactory_withCCS.xlsx'
 scenario_list = ['EU-1990', 'EU-2000', 'EU-2010']
 
-dat.path_outdir = dat.path_output_root / 'demo' / dat.timestamp_str
+path_outdir = path_script_dir / 'output' / dat.timestamp_str
 
 dat.user_data = {
     "name": "S.E. Tanzer",
@@ -45,7 +45,7 @@ print(f"\n\nblackblox.py v0.1 Demonstration")
 print(f"{dat.timestamp_str}")
 
 print(f"\nThis data uses unit process data from {path_data_demo}")
-print(f"and outputting any files to {dat.path_outdir}")
+print(f"and outputting any files to {path_outdir}")
 
 input("\nPress enter to start data: ")
 
@@ -61,7 +61,8 @@ units_df = iof.make_df(path_data_demo / 'unitlibrary.xlsx', 'Unit Processes')
 units_df_basedir = path_data_demo
 
 
-kiln = uni.UnitProcess(u_id='demo_kiln', units_df=units_df, units_df_basedir=units_df_basedir)
+kiln = uni.UnitProcess(u_id='demo_kiln', units_df=units_df, units_df_basedir=units_df_basedir,
+                       outdir=path_outdir)
 
 print(f"\n{str.upper(kiln.name)}")
 print("inflows:", ', '.join(kiln.inflows))
@@ -206,6 +207,7 @@ cement_chain = cha.ProductChain(
     xls_sheet='Cement Chain',
     units_df=units_df,
     units_df_basedir=units_df_basedir,
+    outdir=path_outdir,
 )
 
 print('\nCEMENT Chain Data:')
@@ -243,6 +245,7 @@ cement_factory = fac.Factory(
     name='Demo',
     units_df=units_df,
     units_df_basedir=units_df_basedir,
+    outdir=path_outdir,
 )
 
 print(f"\n{cement_factory.name} factory")
@@ -272,7 +275,7 @@ totals = pan.DataFrame(totals)
 totals = iof.mass_energy_df(totals)
 print(f"\n{cement_factory.name} total inflows and outflows")
 print(totals)
-print(f"\n Full results available in {dat.path_outdir} directory.")
+print(f"\n Full results available in {path_outdir} directory.")
 
 input("\n\n\nPress enter to balance the factory on 13.9535 tonnes of fuel inflow to kiln (outputs to file): ")
 inflows, outflows, _, _ = cement_factory.balance(
@@ -289,7 +292,7 @@ totals = pan.DataFrame(totals)
 totals = iof.mass_energy_df(totals)
 print(f"\n{cement_factory.name} total inflows and outflows")
 print(totals, "\n")
-print(f"\n Full results available in {dat.path_outdir} directory")
+print(f"\n Full results available in {path_outdir} directory")
 
 
 # INDUSTRY TEST - NOT UPDATED AT REFACTOR
@@ -303,6 +306,7 @@ industry = ind.Industry(
     name='Cement',
     units_df=units_df,
     units_df_basedir=units_df_basedir,
+    outdir=path_outdir,
 )
 
 industry.build()
