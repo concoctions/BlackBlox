@@ -101,7 +101,7 @@ class Factory:
 
     # noinspection PyUnusedLocal
     def __init__(self, chain_list_file, chain_list_sheet=None, connections_file=None,
-                 connections_sheet=None, name="Factory", outdir=False,
+                 connections_sheet=None, name="Factory", outdir=None,
                  units_df=df_unit_library, units_df_basedir=dat.unit_process_library_file.parent,
                  **kwargs):
 
