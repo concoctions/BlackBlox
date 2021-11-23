@@ -199,7 +199,8 @@ f_scenario = "scenario"
 
 # DEFAULT FILEPATHS
 # full absolute path of the dir above the one containing this script
-path_project_root = Path(__file__).resolve().parent.parent
+# path_project_root = Path(__file__).resolve().parent.parent
+path_project_root = Path()
 path_data_root = path_project_root / 'data'
 path_output_root = path_project_root / 'output'
 
