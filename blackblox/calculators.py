@@ -476,7 +476,7 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
             logger.debug(f"{sum(combustion_emissions.values()) - fuel_qty} of O2 added to inflow dict")
 
             if write_energy_in is True:
-                inflows_dict[f'energy in combusted {fuel_type}'] = energy_qty
+                inflows_dict[f'energy in combusted {fuel_type}'] += energy_qty
                 logger.debug(f"{energy_qty} of inflow energy added to inflow dict")
 
         combustion_emissions['waste heat'] = energy_qty * (1 - combust_eff)

@@ -174,7 +174,7 @@ class Factory:
                 product_io=False,
                 upstream_outflows=False, upstream_inflows=False,
                 downstream_outflows=False, downstream_inflows=False,
-                aggregate_flows=False, net_flows=False, write_to_xls=True, outdir=None, subdir=False):
+                aggregate_flows=False, net_flows=False, write_to_xls=True, outdir=None, subdir=False, id=''):
         """Calculates the mass balance of the factory using qty of main product
 
         Balances all UnitProcesses and Chains in the factory
@@ -418,7 +418,7 @@ class Factory:
 
         if write_to_xls is True:
             self.factory_to_excel(io_dicts, factory_totals, internal_flows,
-                                  scenario, product_qty, aggregated_df, net_df, outdir, subdir)
+                                  scenario, product_qty, aggregated_df, net_df, outdir, subdir, id)
 
         logger.debug(f"successfully balanced factory on {product_qty} of {self.chain_dict[self.main_chain]['product']}")
 
@@ -1158,13 +1158,13 @@ class Factory:
         return factory_totals
 
     def factory_to_excel(self, io_dicts, factory_totals, internal_flows, scenario, product_qty, aggregated_df, net_df,
-                         outdir=None, subdir=False):
+                         outdir=None, subdir=False, id=''):
         """formats factory data to datafames and outputs to excel file
             used in self.balance() (above)
         """
 
         outdir = outdir if outdir else self.outdir
-        filename = f'{self.name}_f_{scenario}_{dat.timestamp_str}'
+        filename = f'{self.name}_f_{scenario}_{dat.timestamp_str}{id}'
 
         meta_df = iof.metadata_df(user=dat.user_data, name=self.name,
                                   level="Factory", scenario=scenario, product=self.main_product,
@@ -1260,7 +1260,7 @@ class Factory:
                     aggregated_dict['outflows'][flow] += outflow_dict[outflow]
 
         # make aggregate flows dataframe
-        return iof.make_df(aggregated_dict, drop_zero=True)
+        return iof.make_df(aggregated_dict, drop_zero=False)
 
     def net_flows(self, net_tuples, io_dicts, aggregated_df=None):
         """ Calculates net flows given specified minuend and subtrahend

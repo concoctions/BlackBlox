@@ -478,6 +478,8 @@ def write_to_xls(df_or_df_list, sheet_list=None, outdir=None,
                     sheet = sheet_list[i]
                 else:
                     sheet = i
+                if len(sheet) > 30:
+                    sheet=sheet[0:28]
                 if df.empty:
                     empty_df.to_excel(writer, sheet)
                 else:
