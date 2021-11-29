@@ -29,13 +29,13 @@ dat.user_data = {
     "project": f"BlackBlox Demo - {dat.timestamp_str}",
 }
 
-dat.default_units = {
+dat.units = {
     'mass': 'tonnes',
     'energy': 'GJ',
 }
 
-dat.default_emissions = ['CO2__fossil']
-dat.default_scenario = 'default'
+dat.emissions = ['CO2__fossil']
+dat.scenario = 'default'
 
 
 # BEGIN OF THE DEMO
@@ -104,7 +104,7 @@ if product == 'fuel':
     qty = u_in[kiln.var_df.at[s, 'fueltype']]
 else:
     qty = u_in[product]
-print(f"\nnow balacing {kiln.name} on {qty} {dat.default_units['mass']} of {product} ({'inflow'}) using {s} values")
+print(f"\nnow balacing {kiln.name} on {qty} {dat.units['mass']} of {product} ({'inflow'}) using {s} values")
 
 u1_in, u1_out = kiln.balance(qty, product, 'i', s, write_to_console=True) 
     
@@ -162,7 +162,7 @@ print("any combustion emissions are recalculated as well.")
 
 input(f"\n\n\nPress enter to recycle energy to replace {fuel_type} (inflow) in  {kiln.name}")
 
-print(f"\nRecycling {recycled_energy_qty} {dat.default_units['energy']} of RECYCLED ENERGY into {kiln.name} replacing no more than {max_replace_fraction*100}% of {fuel_type})") 
+print(f"\nRecycling {recycled_energy_qty} {dat.units['energy']} of RECYCLED ENERGY into {kiln.name} replacing no more than {max_replace_fraction * 100}% of {fuel_type})")
 
 r1_in, r1_out, leftover = kiln.recycle_energy_replacing_fuel(
     original_inflows_dict=u_in,
@@ -174,7 +174,7 @@ r1_in, r1_out, leftover = kiln.recycle_energy_replacing_fuel(
     max_replace_fraction=max_replace_fraction,
     combustion_eff=dat.combustion_efficiency_var,
     scenario=s,
-    emissions_list=dat.default_emissions,
+    emissions_list=dat.emissions,
     write_to_console=True,
 )
 
@@ -268,7 +268,7 @@ cement_factory.diagram(view=True, save=False)
 print("\nDiagram sent to system viewer.")
 
 input("\n\n\nPress enter to balance the factory on 100.0 tonnes of cement (outputs to file): ")
-inflows, outflows, _, _ = cement_factory.balance(product_qty=100, scenario=dat.default_scenario, write_to_xls=False)
+inflows, outflows, _, _ = cement_factory.balance(product_qty=100, scenario=dat.scenario, write_to_xls=False)
 
 totals = {'factory inflows': inflows, 'factory outflows': outflows}
 totals = pan.DataFrame(totals)
@@ -283,7 +283,7 @@ inflows, outflows, _, _ = cement_factory.balance(
     product='fuel',
     product_io='inflow',
     product_unit='demo_kiln',
-    scenario=dat.default_scenario,
+    scenario=dat.scenario,
     write_to_xls=True,
 )
 

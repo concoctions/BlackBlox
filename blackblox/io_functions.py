@@ -276,7 +276,7 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
 
 
 def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True, aggregate_consumed=False,
-                   units=dat.default_units):
+                   units=dat.units):
     """Reorders dataframe to seperate mass and energy flows
 
     Uses a list of prefix/suffixes to identify mass and energy flows
@@ -355,7 +355,7 @@ def mass_energy_df(df, energy_strings=dat.energy_flows, totals=True, aggregate_c
 
 def metadata_df(user=dat.user_data, about=about.about_blackblox, name="unknown", level="unknown",
                 product="unknown", product_qty="unknown", scenario="unknown",
-                energy_flows=dat.energy_flows, units=dat.default_units):
+                energy_flows=dat.energy_flows, units=dat.units):
     """Generates a metadata dataframe for use in excel file output
     """
 
@@ -495,14 +495,14 @@ def format_and_save_plot(filepath):
     plt.savefig(f"{filepath}.png", format='png', dpi=300)
     plt.savefig(f"{filepath}.svg", format='svg')
 
-def plot_scenario_bars(df_dict, flow, outdir, file_id="", unit_dict=dat.default_units):
+def plot_scenario_bars(df_dict, flow, outdir, file_id="", unit_dict=dat.units):
     """
     Compare single flow between multiple scenarios in a single factory. Each scenario is a bar.
     Either for inflow, outflow, net flow or aggregate flow.
     """
     pass
 
-def plot_annual_flows(df_dict, flow, outdir, file_id="", unit_dict=dat.default_units):
+def plot_annual_flows(df_dict, flow, outdir, file_id="", unit_dict=dat.units):
     """
     Generated a line plot for each column of a dataframe, using the index
     as the x-axis labels (which should be a list of years).

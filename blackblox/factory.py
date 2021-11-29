@@ -170,7 +170,7 @@ class Factory:
 
         logger.info(f"{self.name.upper()}: Initalization successful")
 
-    def balance(self, scenario=dat.default_scenario, product_qty=1.0, product=False, product_unit=False,
+    def balance(self, scenario=dat.scenario, product_qty=1.0, product=False, product_unit=False,
                 product_io=False,
                 upstream_outflows=False, upstream_inflows=False,
                 downstream_outflows=False, downstream_inflows=False,
@@ -727,8 +727,8 @@ class Factory:
                         unit.var_df.loc[scenario, fixedvar.lower()] = fixedvalue
                         logger.debug(f"{variable} for {unit} ({scenario} set to {fixedvalue}) (fixed over all sensitivity analyses)")
                     else:
-                        unit.var_df.loc[dat.default_scenario, fixedvar.lower()] = fixedvalue
-                        logger.debug(f"{variable} for {unit} ({dat.default_scenario} set to {fixedvalue}) (fixed over all sensitivity analyses)")
+                        unit.var_df.loc[dat.scenario, fixedvar.lower()] = fixedvalue
+                        logger.debug(f"{variable} for {unit} ({dat.scenario} set to {fixedvalue}) (fixed over all sensitivity analyses)")
 
         # evaluate over varying variables
         for value in variable_options:
@@ -737,8 +737,8 @@ class Factory:
                     unit.var_df.loc[scenario, variable.lower()] = value
                     logger.debug(f"{variable} for {unit.name} ({scenario}) set to {value})")
                 else:
-                    unit.var_df.loc[dat.default_scenario, variable.lower()] = value
-                    logger.debug(f"{variable} for {unit.name} ({dat.default_scenario}) set to {value})")
+                    unit.var_df.loc[dat.scenario, variable.lower()] = value
+                    logger.debug(f"{variable} for {unit.name} ({dat.scenario}) set to {value})")
 
             f_in, f_out, agg_df, net_df = self.balance(product_qty=product_qty,
                                                        product=product,
@@ -842,14 +842,14 @@ class Factory:
                         scenario, lookup_var_dict[origin_product.split(dat.ignore_sep)[0]]['lookup_var']]
                 else:
                     lookup_substance = orig_unit.var_df.at[
-                        dat.default_scenario, lookup_var_dict[origin_product.split(dat.ignore_sep)[0]]['lookup_var']]
+                        dat.scenario, lookup_var_dict[origin_product.split(dat.ignore_sep)[0]]['lookup_var']]
                 origin_product = lookup_substance + dat.ignore_sep + origin_product.split(dat.ignore_sep)[1]
         elif origin_product in lookup_var_dict:
             if scenario in orig_unit.var_df.index:
                 origin_product = orig_unit.var_df.at[scenario, lookup_var_dict[origin_product]['lookup_var']]
             else:
                 origin_product = orig_unit.var_df.at[
-                    dat.default_scenario, lookup_var_dict[origin_product]['lookup_var']]
+                    dat.scenario, lookup_var_dict[origin_product]['lookup_var']]
         return origin_product
 
     def check_product_qty(self, product, product_io, chain_name, unit_name, io_dicts, remaining_product_dict):
@@ -915,7 +915,7 @@ class Factory:
             if scenario in unit.var_df.index:
                 flow = unit.var_df.at[scenario, lookup_var_dict[df[col]]['lookup_var']]
             else:
-                flow = unit.var_df.at[dat.default_scenario, lookup_var_dict[df[col]]['lookup_var']]
+                flow = unit.var_df.at[dat.scenario, lookup_var_dict[df[col]]['lookup_var']]
             if type(check_if_in_list) is list:
                 if df[col] in check_if_in_list:
                     in_list = True

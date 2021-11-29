@@ -108,8 +108,8 @@ class ProductChain:
                 logger.debug(f"{self.name.upper()}: No default product found for {self.name}.")
 
     
-    def balance(self, qty=1.0, product=False, i_o=False, unit_process=False, 
-                product_alt_name=False, scenario=dat.default_scenario,
+    def balance(self, qty=1.0, product=False, i_o=False, unit_process=False,
+                product_alt_name=False, scenario=dat.scenario,
                 write_to_console=False, write_to_xls = False):
         """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario)
         Calculates the mass balance of the product chain

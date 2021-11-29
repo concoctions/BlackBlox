@@ -369,7 +369,7 @@ def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df
 
 # noinspection PyUnusedLocal
 def Combustion(known_substance, qty, unknown_substance, var=1.0,
-               emissions_list=dat.default_emissions, emissions_dict=False,
+               emissions_list=dat.emissions, emissions_dict=False,
                inflows_dict=False, fuels_df=df_fuels, LHV=True,
                write_energy_in=True, **kwargs):
     """Specicalized multi-lookup function for energy content and emissions of fuel combustion.

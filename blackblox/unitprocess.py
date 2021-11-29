@@ -154,7 +154,7 @@ class UnitProcess:
 
                     if 'combustion' in self.calc_df.at[
                         i, dat.calc_type]:  # adds combustion emissions and balancing energy flows
-                        for emission in dat.default_emissions:
+                        for emission in dat.emissions:
                             self.outflows.add(emission)
                             self.mass_outflows.add(emission)
                         self.energy_inflows.add(f"energy embodied in fuels")
@@ -164,7 +164,7 @@ class UnitProcess:
                 qty=1.0,
                 product=False,
                 i_o=False,
-                scenario=dat.default_scenario,
+                scenario=dat.scenario,
                 product_alt_name=False,
                 balance_energy=True,
                 raise_imbalance=False,
@@ -221,7 +221,7 @@ class UnitProcess:
 
         if scenario not in self.var_df.index.values:
             logger.info(
-                f'ALERT! {self.name.upper()}: {scenario} not found in variables file. {dat.default_scenario} values will be used instead')
+                f'ALERT! {self.name.upper()}: {scenario} not found in variables file. {dat.scenario} values will be used instead')
 
         product = self.check_product(product)
         if product in lookup_var_dict:
@@ -430,7 +430,7 @@ class UnitProcess:
                      recyclate_flow,
                      toBeReplaced_flow,
                      max_replace_fraction=1.0,
-                     scenario=dat.default_scenario,
+                     scenario=dat.scenario,
                      write_to_console=False,
                      **kwargs):
         """Replaces a calculated flow within a unit process with another flow, either wholly or partially
@@ -511,8 +511,8 @@ class UnitProcess:
                                       toBeReplaced_flow,
                                       max_replace_fraction=1.0,
                                       combustion_eff=dat.combustion_efficiency_var,
-                                      scenario=dat.default_scenario,
-                                      emissions_list=dat.default_emissions,
+                                      scenario=dat.scenario,
+                                      emissions_list=dat.emissions,
                                       write_to_console=False,
                                       **kwargs):
         """recycle_energy_replacing_fuel(original_inflows_dict, original_outflows_dict, recycled_qty, recycle_io, recyclate_flow, toBeReplaced_flow, max_replace_fraction=1.0, combustion_eff = dat.combustion_efficiency_var, scenario=dat.default_scenario, emissions_list = ['CO2', 'H2O', 'SO2'], **kwargs)
@@ -700,9 +700,9 @@ class UnitProcess:
             return self.var_df.at[scenario, iof.clean_str(var)]  # from the relevant scenario
         else:
             logger.debug(
-                f"using {self.var_df.at[dat.default_scenario, iof.clean_str(var)]} from {dat.default_scenario} for {var}")
+                f"using {self.var_df.at[dat.scenario, iof.clean_str(var)]} from {dat.scenario} for {var}")
             return self.var_df.at[
-                dat.default_scenario, iof.clean_str(var)]  # if not available, return from default string
+                dat.scenario, iof.clean_str(var)]  # if not available, return from default string
 
     def check_var(self, var, calc_type, scenario):
         """checks that the variable is valid and returns the correct variable for the calc type

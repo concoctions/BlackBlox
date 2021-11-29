@@ -34,48 +34,49 @@ from blackblox.bb_log import get_logger
 
 logger = get_logger("config")
 
+
 # USER DATA
-user_data = {
-    "name": "Mysterious Stranger",
-    "affiliation": "Mysterious Organization",
-    "project": "Mysterious Project",
+user_data_default = {
+    "name": "Anonymous",
+    "affiliation": "",
+    "project": "",
 }
 
 # FlOAT TOLERANCE
-float_tol = 5
+float_tol_default = 5
 """The number of decimal places after which (floating point) differences should be ignored.
 If a number is calculated to be less than zero, it will be rounded to the number of decimal places
 in the float tolerance. An error will only be raised if it is stil less than zero.
 """
 
-fuel_flows = ['fuel', 'other fuel', 'primary fuel', 'secondary fuel', 'fossil fuel', 'biofuel']
+fuel_flows_default = ['fuel', 'other fuel', 'primary fuel', 'secondary fuel', 'fossil fuel', 'biofuel']
 """list: strings that indicate that a substance is an fuel flow
 
 Usable in flow names. Must be used at the beginning or end of the flow name.
 """
 
 # SUBSTANCE NAME VARIABLES
-default_units = {
+units_default = {
     'mass': 'tonnes',
     'energy': 'GJ',
 }
 
-energy_flows = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV', 'lhv', 'hhv']
+energy_flows_default = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV', 'lhv', 'hhv']
 """list: strings that, at the start or end of a flow identifier indicate an energy flow
 """
 
-default_emissions = ['CO2__fossil', 'CO2__bio', 'H2O', 'contrib_CO2__bio-annual', 'contrib_CO2__bio-long']
+emissions_default = ['CO2__fossil', 'CO2__bio', 'H2O', 'contrib_CO2__bio-annual', 'contrib_CO2__bio-long']
 """list: emissions that the program automatically checks for factors for.
 """
 
-ignore_sep = '__'
+ignore_sep_default = '__'
 """str: indicator to ignore text after this string when performing calculations
 This is useful when the calculation is sensitive to the substance name (e.g. in
 MolMassRatio calculations or Combustion calculations), but when the substance
 name needs to be unique (e.g. fuel__from place A, fuel__from place B)
 """
 
-consumed_indicator = 'CONSUMED'
+consumed_indicator_default = 'CONSUMED'
 """str: when this string begins a substance name (case sensitive), the substance
 is ignored in the unit process inflows/outflows list and in the diagram. However,
 it will still show up in the mass/energy balance.
@@ -87,7 +88,7 @@ as "CONSUMED" to indicate that it is factory-internal flow.
 """
 
 # OTHER DATA NAMING VARIABLES
-default_scenario = "BASE"  # "default" is used in older scripts
+scenario_default = "BASE"  # "default" is used in older scripts
 """str: the index used for the default scenario of variables
 
 Usable in the unit process variables data tables. 
@@ -95,7 +96,7 @@ If present in the variables data index, the default scenario will be used
 when a scenario of variables is not otherwise specified.
 """
 
-no_var = ['None', 'none', 'false', 'na', '-', '--', '', 'nan', 0, '0', None, False, float('nan')]
+no_var_default = ['None', 'none', 'false', 'na', '-', '--', '', 'nan', 0, '0', None, False, float('nan')]
 """str: indicator that no variable is used in the calculation
 
 Usable in the unit process calculation table, to indicate that the 
@@ -103,7 +104,7 @@ calculation type requires no variable beyond the names of the substances.
 (e.g. MolMassRatio)
 """
 
-connect_all = 'all'
+connect_all_default = 'all'
 """str: indicator that all processes of a chain connect to the destination
 
 Usable in the factory connections table, for the "origin process" column.
@@ -112,7 +113,7 @@ destination chain by the specified product, and therefore uses chain total
 numbers to balance the destination chain.
 """
 
-all_factories = ['industry', 'all', 'factories']
+all_factories_default = ['industry', 'all', 'factories']
 """list: strings indicating all factories in a given industry
 
 Useable as a row index in industry scenario tables to indicate that a
@@ -125,107 +126,107 @@ as a fraction of that total as a decimal between 0 and 1.
 """
 
 # DIAGRAM LINE STYLING
-mass_color = 'black'
-mass_style = 'solid'
+mass_color_default = 'black'
+mass_style_default = 'solid'
 
-energy_color = 'darkorange'
-energy_style = 'dashed'
+energy_color_default = 'darkorange'
+energy_style_default = 'dashed'
 
-recycled_color = 'blue'
+recycled_color_default = 'blue'
 
 # COLUMN HEADERS:
 # These should all be lower case here. In the file itself, case does not matter (though spaces do)
 
 # for UNIT LIBRARY tabular data:
-unit_id = 'id'
-unit_name = 'display name'
-unit_product = 'product'
-unit_product_io = 'producttype'
-var_sheetname = 'varsheet'
-calc_sheetname = 'calcsheet'
-var_filepath = 'varfile'  # this column stores a filepath relative to path_data_root
-calc_filepath = 'calcfile'  # this column stores a filepath relative to path_data_root
+unit_id_default = 'id'
+unit_name_default = 'display name'
+unit_product_default = 'product'
+unit_product_io_default = 'producttype'
+var_sheetname_default = 'varsheet'
+calc_sheetname_default = 'calcsheet'
+var_filepath_default = 'varfile'  # this column stores a filepath relative to path_data_root
+calc_filepath_default = 'calcfile'  # this column stores a filepath relative to path_data_root
 
 # for UNIT PROCESS relationship tabular data:
-known = 'knownqty'
-known_io = 'k_qtyfrom'
-unknown = 'unknownqty'
-unknown_io = 'u_qtyto'
-calc_type = 'calculation'
-calc_var = 'variable'
-known2 = '2nd known substance'
-known2_io = '2qty origin'
+known_default = 'knownqty'
+known_io_default = 'k_qtyfrom'
+unknown_default = 'unknownqty'
+unknown_io_default = 'u_qtyto'
+calc_type_default = 'calculation'
+calc_var_default = 'variable'
+known2_default = '2nd known substance'
+known2_io_default = '2qty origin'
 
 # for UNIT PROCESS scenario values tabular data:
-combustion_efficiency_var = 'combustion eff'
+combustion_efficiency_var_default = 'combustion eff'
 
 # for production CHAIN linkages tabular data:
-inflow_col = 'inflow'
-outflow_col = 'outflow'
-process_col = 'process_id'
+inflow_col_default = 'inflow'
+outflow_col_default = 'outflow'
+process_col_default = 'process_id'
 
 # for FACTORY chain list tabular data:
-chain_name = 'chainname'
-chain_product = 'chainproduct'
-chain_io = 'product_io'
-chain_filepath = 'chainfile'
-chain_sheetname = 'chainsheet'
-single_unit_chain = 'this unit only'
+chain_name_default = 'chainname'
+chain_product_default = 'chainproduct'
+chain_io_default = 'product_io'
+chain_filepath_default = 'chainfile'
+chain_sheetname_default = 'chainsheet'
+single_unit_chain_default = 'this unit only'
 
 # for FACTORY connections tabular data:
-origin_chain = "o chain"
-origin_unit = "o unit"
-origin_io = "o flowtype"
-origin_product = "o product"
-dest_chain = "d chain"
-dest_unit = "d unit"
-dest_product = "d product"
-dest_io = "d flowtype"
-replace = "r replacing"
-purge_fraction = "r purge %"
-max_replace_fraction = "r max replace %"
+origin_chain_default = "o chain"
+origin_unit_default = "o unit"
+origin_io_default = "o flowtype"
+origin_product_default = "o product"
+dest_chain_default = "d chain"
+dest_unit_default = "d unit"
+dest_product_default = "d product"
+dest_io_default = "d flowtype"
+replace_default = "r replacing"
+purge_fraction_default = "r purge %"
+max_replace_fraction_default = "r max replace %"
 
 # for INDUSTRY tabular data
-factory_name = "factory name"
-factory_filepath = "factory file"
-f_chain_list_file = "chains file"
-f_chains_sheet = "factory chains sheet"
-f_connections_file = "connections file"
-f_connections_sheet = "factory connections sheet"
-f_product = "factory product"
-f_product_qty = "product qty"
-f_scenario = "scenario"
+factory_name_default = "factory name"
+factory_filepath_default = "factory file"
+f_chain_list_file_default = "chains file"
+f_chains_sheet_default = "factory chains sheet"
+f_connections_file_default = "connections file"
+f_connections_sheet_default = "factory connections sheet"
+f_product_default = "factory product"
+f_product_qty_default = "product qty"
+f_scenario_default = "scenario"
 
 
 # DEFAULT FILEPATHS
 # full absolute path of the dir above the one containing this script
 # path_project_root = Path(__file__).resolve().parent.parent
-path_project_root = Path()
-path_data_root = path_project_root / 'data'
+path_project_root_default = Path()
+path_data_root_default = path_project_root_default / 'data'
 
-unit_process_library_file = path_data_root / 'unitlibrary.xlsx'
+unit_process_library_file_default = path_data_root_default / 'unitlibrary.xlsx'
 """str: The filepath whre the unit process library file exists.
 """
 
-unit_process_library_sheet = "Unit Processes"
+unit_process_library_sheet_default = "Unit Processes"
 """The worksheet of the unit process library, if in an Excel workbook
 
 If not an excel worksheet, this variable should be None.
 """
 
 # ISO8601 basic format date/time standard representation. It's great
-day_str = datetime.now().strftime("%Y%m%d")
-time_str = datetime.now().strftime("%H%M")
-timestamp_str = day_str + 'T' + time_str
+day_str_default = datetime.now().strftime("%Y%m%d")
+time_str_default = datetime.now().strftime("%H%M")
+timestamp_str_default = day_str_default + 'T' + time_str_default
 
-path_outdir = path_project_root / 'output'
+path_outdir_default = path_project_root_default / 'output'
 """str: The file output directory.
 
 Unless an absolute path is specified, BlackBlox will create the directory 
 as a subfolder of the current working directory.
 """
 
-same_xls = ['thisfile', 'same', 'here']
+same_xls_default = ['thisfile', 'same', 'here']
 """list: strings indicating the data is in the current Excel workbook
 
 Usable as a replacement for a filepath for input data that is in an
@@ -234,55 +235,55 @@ be specified.
 """
 
 # LOOKUP VARIABLES
-path_data_shared = path_data_root / 'shared'
-path_shared_fuels = path_data_shared / 'fuels.xlsx'
-path_shared_upstream = path_data_shared / 'upstream.xlsx'
+path_data_shared_default = path_data_root_default / 'shared'
+path_shared_fuels_default = path_data_shared_default / 'fuels.xlsx'
+path_shared_upstream_default = path_data_shared_default / 'upstream.xlsx'
 
-fuel_dict = dict(
-    filepath=path_shared_fuels,
+fuel_dict_default = dict(
+    filepath=path_shared_fuels_default,
     sheet='Fuels',
     lookup_var='fueltype',
 )
 
 
-common_fuel_info = dict(
-    filepath=path_shared_fuels,
+common_fuel_info_default = dict(
+    filepath=path_shared_fuels_default,
     sheet='Fuels',
     is_fuel=True,
 )
 
 lookup_var_dict = {
     # FUELS
-    'fuel': dict(common_fuel_info, lookup_var='fueltype'),
-    'other fuel': dict(common_fuel_info, lookup_var='other fuel type'),
-    'primary fuel': dict(common_fuel_info, lookup_var='primary fuel type'),
-    'secondary fuel': dict(common_fuel_info, lookup_var='secondary fuel type'),
-    'fossil fuel': dict(common_fuel_info, lookup_var='fossil fuel type'),
-    'biofuel': dict(common_fuel_info, lookup_var='biofuel type'),
-    'secondary biofuel': dict(common_fuel_info, lookup_var='secondary biofuel type'),
-    'reducing agent': dict(common_fuel_info, lookup_var='reducing agent'),
-    'waste fuel': dict(common_fuel_info, lookup_var='waste fuel type'),
+    'fuel': dict(common_fuel_info_default, lookup_var='fueltype'),
+    'other fuel': dict(common_fuel_info_default, lookup_var='other fuel type'),
+    'primary fuel': dict(common_fuel_info_default, lookup_var='primary fuel type'),
+    'secondary fuel': dict(common_fuel_info_default, lookup_var='secondary fuel type'),
+    'fossil fuel': dict(common_fuel_info_default, lookup_var='fossil fuel type'),
+    'biofuel': dict(common_fuel_info_default, lookup_var='biofuel type'),
+    'secondary biofuel': dict(common_fuel_info_default, lookup_var='secondary biofuel type'),
+    'reducing agent': dict(common_fuel_info_default, lookup_var='reducing agent'),
+    'waste fuel': dict(common_fuel_info_default, lookup_var='waste fuel type'),
 
     # UPSTREAM
     'upstream outflows': dict(
-        filepath=path_shared_upstream,
+        filepath=path_shared_upstream_default,
         sheet='up-emissions',
         lookup_var='upstream outflows',
     ),
     'upstream inflows': dict(
-        filepath=path_shared_upstream,
+        filepath=path_shared_upstream_default,
         sheet='up-removals',
         lookup_var='upstream inflows',
     ),
 
     # DOWNSTREAM
     'downstream outflows': dict(
-        filepath=path_shared_upstream,
+        filepath=path_shared_upstream_default,
         sheet='down-emissions',
         lookup_var='downstream outflows',
     ),
     'downstream inflows': dict(
-        filepath=path_shared_upstream,
+        filepath=path_shared_upstream_default,
         sheet='down-removals',
         lookup_var='downstream inflows',
     ),
@@ -317,4 +318,4 @@ Each entry in this dictionary should be formatted with the following:
 """
 
 # Other Filepaths
-graphviz_path = 'C:/ProgramData/Anaconda3/Library/bin/graphviz/'
+graphviz_path_default = 'C:/ProgramData/Anaconda3/Library/bin/graphviz/'
