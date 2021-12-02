@@ -23,6 +23,7 @@ Module Outline:
 
 """
 from pathlib import Path
+from datetime import datetime
 
 from blackblox.dataconfig_format import UserConfig, UnitsDefaultConfig, DiagramConfig, ColumnConfig, PathConfig, SharedVarConfig, Config
 
@@ -151,6 +152,7 @@ paths_default = PathConfig(
 # LOOKUP VARIABLES
 path_data_shared_default = path_data_root_default / 'shared'
 path_shared_fuels_default = path_data_shared_default / 'fuels.xlsx'
+path_shared_upstream_default = path_data_shared_default / 'upstream.xlsx'
 
 common_fuel_info_default = dict(
     filepath=path_shared_fuels_default,
