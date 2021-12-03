@@ -68,9 +68,10 @@ class ProductChain:
     """
 
     def __init__(self, chain_data, name="Product Chain", xls_sheet=None, outdir=None,
-                 units_df=df_unit_library, units_df_basedir=bbcfg.paths.unit_process_library_file.parent):
+                 units_df=df_unit_library, units_df_basedir=None):
         self.name = name
         self.outdir = (outdir if outdir else bbcfg.paths.path_outdir) / f'{bbcfg.timestamp_str}__chain_{self.name}'
+        units_df_basedir = units_df_basedir if units_df_basedir else bbcfg.paths.unit_process_library_file.parent
 
         logger.info(f"PROCESS CHAIN INIT - chain name: {name}, chain data: {chain_data}, xls sheet: {xls_sheet}")
         self.process_chain_df = iof.make_df(chain_data, sheet=xls_sheet, index=None)
@@ -109,7 +110,7 @@ class ProductChain:
 
     
     def balance(self, qty=1.0, product=False, i_o=False, unit_process=False,
-                product_alt_name=False, scenario=bbcfg.scenario_default,
+                product_alt_name=False, scenario=None,
                 write_to_console=False, write_to_xls = False):
         """balance(self, qty, product=False, i_o=False, scenario=bbcfg.scenario_default)
         Calculates the mass balance of the product chain
@@ -202,6 +203,8 @@ class ProductChain:
                 i_o = 'i'
             else:
                 raise KeyError(f"{product} not found as input or outflow of chain.")
+
+        scenario = scenario if scenario else bbcfg.scenario_default
 
         # create dictionaries of chain inflows, outflows, and flows between chain UnitProcesses
         io_dicts = {

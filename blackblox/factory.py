@@ -101,7 +101,7 @@ class Factory:
     # noinspection PyUnusedLocal
     def __init__(self, chain_list_file, chain_list_sheet=None, connections_file=None,
                  connections_sheet=None, name="Factory", outdir=None,
-                 units_df=df_unit_library, units_df_basedir=bbcfg.paths.unit_process_library_file.parent,
+                 units_df=df_unit_library, units_df_basedir=None,
                  **kwargs):
 
         logger.info(f"{name.upper()}: Initializing factory")
@@ -109,6 +109,8 @@ class Factory:
 
         chain_list_df = iof.make_df(chain_list_file, chain_list_sheet, index=None)
         self.chain_dict = defaultdict(dict)
+
+        units_df_basedir = units_df_basedir if units_df_basedir else bbcfg.paths.unit_process_library_file.parent
 
         # initalize individual chains
         for i, c in chain_list_df.iterrows():
@@ -169,7 +171,7 @@ class Factory:
 
         logger.info(f"{self.name.upper()}: Initalization successful")
 
-    def balance(self, scenario=bbcfg.scenario_default, product_qty=1.0, product=False, product_unit=False,
+    def balance(self, scenario=None, product_qty=1.0, product=False, product_unit=False,
                 product_io=False,
                 upstream_outflows=False, upstream_inflows=False,
                 downstream_outflows=False, downstream_inflows=False,
@@ -212,8 +214,9 @@ class Factory:
             dictionary of factory outflow substances and total quantities
         """
 
-        logger.info(
-            f"{self.name.upper()}: attempting to balance on {product_qty} of {self.chain_dict[self.main_chain]['product']}")
+        logger.info(f"{self.name.upper()}: attempting to balance on {product_qty} of {self.chain_dict[self.main_chain]['product']}")
+
+        scenario = scenario if scenario else bbcfg.scenario_default
 
         # create flow dictionaries
         io_dicts = {
@@ -235,11 +238,13 @@ class Factory:
         (io_dicts['i'][main['name']],
          io_dicts['o'][main['name']],
          chain_intermediates_dict[main['name']],
-         main_chain_internal_flows) = main['chain'].balance(product_qty,
-                                                            product=product,
-                                                            i_o=product_io,
-                                                            unit_process=product_unit,
-                                                            scenario=scenario)
+         main_chain_internal_flows) = main['chain'].balance(
+            product_qty,
+            product=product,
+            i_o=product_io,
+            unit_process=product_unit,
+            scenario=scenario
+        )
 
         logger.debug(f"{self.name.upper()}: balanced main chain {main['name']} on {product_qty} of {product}")
         internal_flows.extend(main_chain_internal_flows)  # keeps track of flows betwen units

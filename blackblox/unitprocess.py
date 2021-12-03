@@ -90,7 +90,7 @@ class UnitProcess:
 
     def __init__(self, u_id, display_name=False, var_df=False, calc_df=False,
                  outdir=None, units_df=df_unit_library,
-                 units_df_basedir=bbcfg.paths.unit_process_library_file.parent):
+                 units_df_basedir=None):
 
         logger.info(f"creating unit process object for {u_id} ({display_name})")
 
@@ -102,6 +102,8 @@ class UnitProcess:
             self.name = units_df.at[u_id, bbcfg.columns.unit_name]
         else:
             self.name = u_id
+
+        units_df_basedir = units_df_basedir if units_df_basedir else bbcfg.paths.unit_process_library_file.parent
 
         if var_df is not False:
             self.var_df = iof.make_df(var_df)
@@ -430,7 +432,7 @@ class UnitProcess:
                      recyclate_flow,
                      toBeReplaced_flow,
                      max_replace_fraction=1.0,
-                     scenario=bbcfg.scenario_default,
+                     scenario=None,
                      write_to_console=False,
                      **kwargs):
         """Replaces a calculated flow within a unit process with another flow, either wholly or partially
@@ -453,12 +455,12 @@ class UnitProcess:
             - *dictionary* of rebalanced outflows
             - *float* of the remaining quantity of the recycle stream
         """
+        scenario = scenario if scenario else bbcfg.scenario_default
+
         logger.info(f'{self.name.upper()}: attempting to replace {toBeReplaced_flow} with {recyclate_flow}')
 
-        original_flows = dict(i=original_inflows_dict,
-                              o=original_outflows_dict)
-        rebalanced_flows = dict(i=copy(original_inflows_dict),
-                                o=copy(original_outflows_dict))
+        original_flows = dict(i=original_inflows_dict, o=original_outflows_dict)
+        rebalanced_flows = dict(i=copy(original_inflows_dict), o=copy(original_outflows_dict))
 
         i_o = iof.clean_str(recycle_io[0])
 
@@ -510,9 +512,9 @@ class UnitProcess:
                                       recyclate_flow,
                                       toBeReplaced_flow,
                                       max_replace_fraction=1.0,
-                                      combustion_eff=bbcfg.columns.combustion_efficiency_var,
-                                      scenario=bbcfg.scenario_default,
-                                      emissions_list=bbcfg.emissions,
+                                      combustion_eff=None,
+                                      scenario=None,
+                                      emissions_list=None,
                                       write_to_console=False,
                                       **kwargs):
         """recycle_energy_replacing_fuel(original_inflows_dict, original_outflows_dict, recycled_qty, recycle_io, recyclate_flow, toBeReplaced_flow, max_replace_fraction=1.0, combustion_eff = bbcfg.columns.combustion_efficiency_var, scenario=bbcfg.scenario_default, emissions_list = ['CO2', 'H2O', 'SO2'], **kwargs)
@@ -542,12 +544,14 @@ class UnitProcess:
         """
         logger.info(f"{self.name.upper()}: Attempting to replace {toBeReplaced_flow} (energy) with {recyclate_flow}.")
 
-        original_flows = dict(i=original_inflows_dict,
-                              o=original_outflows_dict)
-        rebalanced_flows = dict(i=copy(original_inflows_dict),
-                                o=copy(original_outflows_dict))
+        original_flows = dict(i=original_inflows_dict, o=original_outflows_dict)
+        rebalanced_flows = dict(i=copy(original_inflows_dict), o=copy(original_outflows_dict))
         replaced_emissions_dict = defaultdict(float)
         replaced_inflows_dict = defaultdict(float)
+
+        combustion_eff = combustion_eff if combustion_eff else bbcfg.columns.combustion_efficiency_var
+        scenario = scenario if scenario else bbcfg.scenario_default
+        emissions_list = emissions_list if emissions_list else bbcfg.emissions
 
         i_o = iof.clean_str(recycle_io[0])
         if i_o not in ['i', 'o']:
