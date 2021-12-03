@@ -143,7 +143,7 @@ path_data_root_default = path_project_root_default / 'data'
 
 paths_default = PathConfig(
     unit_process_library_file=path_data_root_default / 'unitlibrary.xlsx',
-    unit_process_library_sheet="Unit Processes",
+    unit_process_library_sheet='Unit Processes',
     path_outdir=path_project_root_default / 'output',
     same_xls=['thisfile', 'same', 'here'],
 )

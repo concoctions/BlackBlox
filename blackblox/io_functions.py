@@ -345,9 +345,9 @@ def mass_energy_df(df, energy_strings=bbcfg.energy_flows, totals=True, aggregate
 
     if totals is True:
         if not mass_df.empty:
-            mass_df = mass_df.append(mass_df.sum().rename(f'TOTAL MASS, in {units["mass"]}'))
+            mass_df = mass_df.append(mass_df.sum().rename(f'TOTAL MASS, in {units.mass}'))
         if not energy_df.empty:
-            energy_df = energy_df.append(energy_df.sum().rename(f'TOTAL ENERGY, in {units["energy"]}'))
+            energy_df = energy_df.append(energy_df.sum().rename(f'TOTAL ENERGY, in {units.energy}'))
     combined_df = pan.concat([mass_df, energy_df], keys=['Mass', 'Energy'], names=['type', 'substance'])
 
     return combined_df
@@ -358,12 +358,6 @@ def metadata_df(user=bbcfg.user, about=about.about_blackblox, name="unknown", le
                 energy_flows=bbcfg.energy_flows, units=bbcfg.units_default):
     """Generates a metadata dataframe for use in excel file output
     """
-
-    if is_energy(product):
-        product_type = 'energy'
-    else:
-        product_type = 'mass'
-
     creation_date = datetime.now().strftime("%A, %d %B %Y at %H:%M")
     energy_flows = ', '.join(energy_flows)
 
@@ -376,8 +370,8 @@ def metadata_df(user=bbcfg.user, about=about.about_blackblox, name="unknown", le
             "06": f"by {user['name']} of {user['affiliation']}",
             "07": f"for use in {user['project']}",
             "08": f"and contains {level}-level results data for {name}",
-            "09": f"balanced on {product_qty} {units[product_type]} of {product} using the variable values from the {scenario} scenario(s).",
-            "10": f"Mass quantites are given in {units['mass']} and energy quantities in {units['energy']}",
+            "09": f"balanced on {product_qty} {units.energy if is_energy(product) else units.mass} of {product} using the variable values from the {scenario} scenario(s).",
+            "10": f"Mass quantites are given in {units.mass} and energy quantities in {units.energy}",
             "11": " ",
             "12": f"Note: Substances beginning or ending with any of the following strings were assumed by {about['name']} to be energy flows:",
             "13": f"{energy_flows}",
@@ -502,7 +496,7 @@ def plot_scenario_bars(df_dict, flow, outdir, file_id="", unit_dict=bbcfg.units_
     """
     pass
 
-def plot_annual_flows(df_dict, flow, outdir, file_id="", unit_dict=bbcfg.units_default):
+def plot_annual_flows(df_dict, flow, outdir, file_id="", units=bbcfg.units_default):
     """
     Generated a line plot for each column of a dataframe, using the index
     as the x-axis labels (which should be a list of years).
@@ -522,12 +516,6 @@ def plot_annual_flows(df_dict, flow, outdir, file_id="", unit_dict=bbcfg.units_d
     flow_df.index = flow_df.index.map(int)  # converts year strings to integers
     df_index = flow_df.index.tolist()
 
-    energy_flow = is_energy(flow)
-    if energy_flow is True:
-        flow_unit = unit_dict['energy']
-    else:
-        flow_unit = unit_dict['mass']
-
     ticks = len(df_index)
     tick_step = 1
     while ticks > 20:
@@ -536,6 +524,7 @@ def plot_annual_flows(df_dict, flow, outdir, file_id="", unit_dict=bbcfg.units_d
 
     flow_df.plot(title=f"annual outflows of {flow}")
 
+    flow_unit = units.energy if is_energy(flow) else units.mass
     plt.xticks(range(df_index[0], df_index[-1] + 1, tick_step), rotation=90)
     plt.ylabel(f"{flow_unit} {flow}")
 

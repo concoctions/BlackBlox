@@ -1324,17 +1324,17 @@ class Factory:
             d_io = iof.clean_str(c[bbcfg.columns.dest_io][0])
 
             # line style for mass flows
-            connection_color = bbcfg.diagrams.mass_color
-            line_style = bbcfg.diagrams.mass_style
+            connection_color = bbcfg.diagram.mass_color
+            line_style = bbcfg.diagram.mass_style
 
             # line style energy flows
             if iof.is_energy(product):
-                connection_color = bbcfg.diagrams.energy_color
-                line_style = bbcfg.diagrams.energy_style
+                connection_color = bbcfg.diagram.energy_color
+                line_style = bbcfg.diagram.energy_style
 
             # line style for recycled flows
             if bbcfg.columns.replace in c and type(c[bbcfg.columns.replace]) is str and c[bbcfg.columns.replace] not in bbcfg.no_var:
-                connection_color = bbcfg.diagrams.recycled_color  # recycled energy flows will still have energy line style
+                connection_color = bbcfg.diagram.recycled_color  # recycled energy flows will still have energy line style
                 product = product + "\n(recycled)"
 
             # determine connection ends
@@ -1376,8 +1376,8 @@ class Factory:
             io_diagram.node(chain + process + flows, label=flows)
 
             if io == 'o':
-                factory_diagram.edge(chain + process, chain + process + flows, color=bbcfg.diagrams.mass_color)
+                factory_diagram.edge(chain + process, chain + process + flows, color=bbcfg.diagram.mass_color)
             else:
-                factory_diagram.edge(chain + process + flows, chain + process, color=bbcfg.diagrams.mass_color)
+                factory_diagram.edge(chain + process + flows, chain + process, color=bbcfg.diagram.mass_color)
 
         return io_diagram, factory_diagram

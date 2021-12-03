@@ -97,20 +97,10 @@ class ColumnConfig:
 
 @dataclass
 class PathConfig:
-    unit_process_library_file: Path
-    """str: The filepath whre the unit process library file exists."""
-
     unit_process_library_sheet: str
     """The worksheet of the unit process library, if in an Excel workbook
 
     If not an excel worksheet, this variable should be None.
-    """
-
-    path_outdir: Path
-    """str: The file output directory.
-
-    Unless an absolute path is specified, BlackBlox will create the directory 
-    as a subfolder of the current working directory.
     """
 
     same_xls: List[str]
@@ -120,6 +110,33 @@ class PathConfig:
     Excel workbook with multiple sheets. The correct Excel sheet must still
     be specified.
     """
+
+    unit_process_library_file: Path
+    """str: The filepath whre the unit process library file exists."""
+
+    path_outdir: Path
+    """str: The file output directory.
+
+    Unless an absolute path is specified, BlackBlox will create the directory 
+    as a subfolder of the current working directory.
+    """
+
+    @staticmethod
+    def convention_paths_scenario_root(
+            scenario: Path,
+            unit_process_library_sheet: str,
+            same_xls: List[str],
+            unit_process_library_file_suffix: Path,
+            path_outdir_suffix: Path,
+    ):
+        data_subdirname_default = 'data'
+        output_subdirname_default = 'output'
+        return PathConfig(
+            unit_process_library_sheet=unit_process_library_sheet,
+            same_xls=same_xls,
+            unit_process_library_file=scenario / data_subdirname_default / unit_process_library_file_suffix,
+            path_outdir=scenario / output_subdirname_default / path_outdir_suffix,
+        )
 
 
 @dataclass

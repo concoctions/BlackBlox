@@ -408,8 +408,8 @@ class ProductChain:
             product_flow.node(c+name, label=name)
 
             # default line styling
-            connection_color = bbcfg.diagrams.mass_color
-            line_style = bbcfg.diagrams.mass_style
+            connection_color = bbcfg.diagram.mass_color
+            line_style = bbcfg.diagram.mass_style
 
 
             if i == 0: # for first UnitProcess in chain
@@ -420,8 +420,8 @@ class ProductChain:
                 
                 # line styling if energy flow
                 if iof.is_energy(unit['i']):
-                    connection_color = bbcfg.diagrams.energy_color
-                    line_style = bbcfg.diagrams.energy_style
+                    connection_color = bbcfg.diagram.energy_color
+                    line_style = bbcfg.diagram.energy_style
 
                 product_flow.edge(c+prevunit, c+name, label=unit['i'], color=connection_color, fontcolor=connection_color, style=line_style)
 
