@@ -37,7 +37,7 @@ import numpy as np
 import pandas as pan
 
 import blackblox.about as about
-import blackblox.dataconfig as dat
+from blackblox.dataconfig import bbcfg
 from blackblox.bb_log import get_logger
 
 
@@ -145,8 +145,8 @@ def check_for_col(df, col, index):
     return None
 
 
-def is_energy(string, energy_strings=dat.bbcfg.energy_flows):
-    """is_energy(string, energy_strings=dat.bbcfg.energy_flows)
+def is_energy(string, energy_strings=bbcfg.energy_flows):
+    """is_energy(string, energy_strings=bbcfg.energy_flows)
     checks if a string refers to an energy flow
 
     Args:
@@ -167,7 +167,7 @@ def is_energy(string, energy_strings=dat.bbcfg.energy_flows):
     return is_it_energy
 
 
-def no_suf(str, separator=dat.bbcfg.ignore_sep):
+def no_suf(str, separator=bbcfg.ignore_sep):
     """Returns string before separator
     Ignores unique-identifier suffixes, e.g. so substance name can be
     used for molmassratio calculations or in lookup tables.
@@ -275,8 +275,8 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
     return df
 
 
-def mass_energy_df(df, energy_strings=dat.bbcfg.energy_flows, totals=True, aggregate_consumed=False,
-                   units=dat.bbcfg.units_default):
+def mass_energy_df(df, energy_strings=bbcfg.energy_flows, totals=True, aggregate_consumed=False,
+                   units=bbcfg.units_default):
     """Reorders dataframe to seperate mass and energy flows
 
     Uses a list of prefix/suffixes to identify mass and energy flows
@@ -286,7 +286,7 @@ def mass_energy_df(df, energy_strings=dat.bbcfg.energy_flows, totals=True, aggre
     Args:
         energy_strings (list): contains strings of prefix/suffix to substance
             names that indicate an energy flow
-            (Defaults to dat.bbcfg.energy_flows)
+            (Defaults to bbcfg.energy_flows)
         totals (bool): Appends summation rows for mass and energy seperately.
             (Defaults to True)
         units (dict): dictionary with keys of "mass" and "energy", and
@@ -304,11 +304,11 @@ def mass_energy_df(df, energy_strings=dat.bbcfg.energy_flows, totals=True, aggre
     consumed_energy_df = pan.DataFrame(columns=cols)
 
     for i, row in df.iterrows():
-        if i.startswith(dat.bbcfg.consumed_indicator):
+        if i.startswith(bbcfg.consumed_indicator):
             consumed = True
         else:
             consumed = False
-        clean_i = clean_str(i, str_to_cut=dat.bbcfg.consumed_indicator)
+        clean_i = clean_str(i, str_to_cut=bbcfg.consumed_indicator)
         energy_flow = False
 
         for string in energy_strings:
@@ -353,9 +353,9 @@ def mass_energy_df(df, energy_strings=dat.bbcfg.energy_flows, totals=True, aggre
     return combined_df
 
 
-def metadata_df(user=dat.bbcfg.user, about=about.about_blackblox, name="unknown", level="unknown",
+def metadata_df(user=bbcfg.user, about=about.about_blackblox, name="unknown", level="unknown",
                 product="unknown", product_qty="unknown", scenario="unknown",
-                energy_flows=dat.bbcfg.energy_flows, units=dat.bbcfg.units_default):
+                energy_flows=bbcfg.energy_flows, units=bbcfg.units_default):
     """Generates a metadata dataframe for use in excel file output
     """
 
@@ -452,7 +452,7 @@ def write_to_xls(df_or_df_list, sheet_list=None, outdir=None,
         filename (optional, str): desired excel file name, without extension.
             (Defaults to 'output')
     """
-    filedir = outdir if outdir else dat.bbcfg.path_outdir
+    filedir = outdir if outdir else bbcfg.path_outdir
 
     if subdir:
         (filedir / subdir).mkdir(parents=True, exist_ok=True)
@@ -495,14 +495,14 @@ def format_and_save_plot(filepath):
     plt.savefig(f"{filepath}.png", format='png', dpi=300)
     plt.savefig(f"{filepath}.svg", format='svg')
 
-def plot_scenario_bars(df_dict, flow, outdir, file_id="", unit_dict=dat.bbcfg.units_default):
+def plot_scenario_bars(df_dict, flow, outdir, file_id="", unit_dict=bbcfg.units_default):
     """
     Compare single flow between multiple scenarios in a single factory. Each scenario is a bar.
     Either for inflow, outflow, net flow or aggregate flow.
     """
     pass
 
-def plot_annual_flows(df_dict, flow, outdir, file_id="", unit_dict=dat.bbcfg.units_default):
+def plot_annual_flows(df_dict, flow, outdir, file_id="", unit_dict=bbcfg.units_default):
     """
     Generated a line plot for each column of a dataframe, using the index
     as the x-axis labels (which should be a list of years).
