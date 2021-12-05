@@ -102,7 +102,7 @@ class Factory:
     # noinspection PyUnusedLocal
     def __init__(self, chain_list_file, chain_list_sheet=None, connections_file=None,
                  connections_sheet=None, name="Factory", outdir=None,
-                 units_df=df_unit_library, units_df_basedir=dat.unit_process_library_file.parent,
+                 units_df=df_unit_library,
                  **kwargs):
 
         logger.info(f"{name.upper()}: Initializing factory")
@@ -150,8 +150,7 @@ class Factory:
             self.chain_dict[name] = dict(chain=cha.ProductChain(chain_file,
                                          name=name,
                                          xls_sheet=chain_sheet,
-                                         units_df=units_df,
-                                         ),
+                                         units_df=units_df),
                                          name=name,
                                          product=c[dat.chain_product],
                                          i_o=iof.clean_str(c[dat.chain_io][0]))

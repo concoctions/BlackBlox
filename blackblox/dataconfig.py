@@ -243,19 +243,18 @@ be specified.
 """
 
 # LOOKUP VARIABLES
-path_data_shared = path_data_root 
-path_shared_fuels = path_data_shared / 'fuels.xlsx'
-path_shared_upstream = path_data_shared / 'upstream.xlsx'
+path_fuels_data = path_data_root / 'fuels.xlsx'
+path_upstream_data = path_data_root / 'upstream.xlsx'
 
 fuel_dict = dict(
-    filepath=path_shared_fuels,
+    filepath=path_fuels_data,
     sheet='Fuels',
     lookup_var='fueltype',
 )
 
 
 common_fuel_info = dict(
-    filepath=path_shared_fuels,
+    filepath=path_fuels_data,
     sheet='Fuels',
     is_fuel=True,
 )
@@ -274,24 +273,24 @@ lookup_var_dict = {
 
     # UPSTREAM
     'upstream outflows': dict(
-        filepath=path_shared_upstream,
+        filepath=path_upstream_data,
         sheet='up-emissions',
         lookup_var='upstream outflows',
     ),
     'upstream inflows': dict(
-        filepath=path_shared_upstream,
+        filepath=path_upstream_data,
         sheet='up-removals',
         lookup_var='upstream inflows',
     ),
 
     # DOWNSTREAM
     'downstream outflows': dict(
-        filepath=path_shared_upstream,
+        filepath=path_upstream_data,
         sheet='down-emissions',
         lookup_var='downstream outflows',
     ),
     'downstream inflows': dict(
-        filepath=path_shared_upstream,
+        filepath=path_upstream_data,
         sheet='down-removals',
         lookup_var='downstream inflows',
     ),
