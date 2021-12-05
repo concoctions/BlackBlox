@@ -178,8 +178,8 @@ def no_suf(str, separator=dat.ignore_sep):
 # DATA FRAME CONSTRUCTORS
 def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
             col_order=False, T=False, drop_zero=False, sort=False,
-            lower_cols=True, fillna=True):
-    """ Creates a Pandas dataframe from various file types
+            lower_cols=True, fillna=True, r_index=False):
+   """ Creates a Pandas dataframe from various file types
 
     Numbers that are initially read as strings will be converted to 
     numeric values when possible (errors are ignored).
@@ -210,6 +210,7 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
             (Defaults to False)
         fillna (bool): If true, will convert NaNs to zeros.
             (Defualts to True)
+         str_index (bool): Forces index values to strings
 
     Returns:
         The generated dataframe.
@@ -238,6 +239,9 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
                 df = pan.read_csv(filepath, sep=',', index_col=index)
     else:
         return pan.DataFrame()
+
+    if str_index is True:
+        df.index = df.index.astype('str')
 
     if metaprefix is not None:
         if index is not None:
@@ -560,6 +564,7 @@ def write_to_xls(df_or_df_list, sheet_list=None, outdir=None,
     else:
         filedir.mkdir(parents=True, exist_ok=True)
 
+    filename = filename.replace('/', '')
     filename_ext = filename + '.xlsx'
     filepath = filedir / (subdir if subdir else '') / filename_ext
     logger.debug(f"attempting to create {filename} in {filedir}")
