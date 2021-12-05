@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/Users/Tanzer/GitHub/BlackBlox/')
+
 import random
 from pathlib import Path
 
@@ -44,10 +47,10 @@ print("\n\nWELCOME\n\n")
 print(f"\n\nblackblox.py v0.1 Demonstration")
 print(f"{dat.timestamp_str}")
 
-print(f"\nThis data uses unit process data from {path_data_demo}")
+print(f"\nThis demo uses unit process data from {path_data_demo}")
 print(f"and outputting any files to {path_outdir}")
 
-input("\nPress enter to start data: ")
+input("\nPress enter to start demo: ")
 
 
 # UNIT PROCESS TEST
@@ -57,12 +60,7 @@ print('It represents a single "black box" process with a set of inflows and outf
 
 stop = input("\nPress enter to create the KILN unit process: ")
 
-units_df = iof.make_df(path_data_demo / 'unitlibrary.xlsx', 'Unit Processes')
-units_df_basedir = path_data_demo
-
-
-kiln = uni.UnitProcess(u_id='demo_kiln', units_df=units_df, units_df_basedir=units_df_basedir,
-                       outdir=path_outdir)
+kiln = uni.UnitProcess(u_id='demo_kiln', outdir=path_outdir)
 
 print(f"\n{str.upper(kiln.name)}")
 print("inflows:", ', '.join(kiln.inflows))
@@ -205,8 +203,6 @@ cement_chain = cha.ProductChain(
     chain_data=path_factory_file,
     name='Cement',
     xls_sheet='Cement Chain',
-    units_df=units_df,
-    units_df_basedir=units_df_basedir,
     outdir=path_outdir,
 )
 
@@ -243,8 +239,6 @@ cement_factory = fac.Factory(
     chain_list_sheet='Chain List',
     connections_sheet='Connections',
     name='Demo',
-    units_df=units_df,
-    units_df_basedir=units_df_basedir,
     outdir=path_outdir,
 )
 
@@ -299,13 +293,11 @@ print(f"\n Full results available in {path_outdir} directory")
 industry_file = path_data_demo / 'cementIndustry.xlsx'
 
 print('\n\n\nINDUSTRY TEST - outputs to file.')
-input('\nPress enter or type a character to skip: ')
+stop = input('\nPress enter or type a character to skip: ')
 industry = ind.Industry(
     factory_list_file=industry_file,
     factory_list_sheet='Factory List',
     name='Cement',
-    units_df=units_df,
-    units_df_basedir=units_df_basedir,
     outdir=path_outdir,
 )
 
@@ -359,6 +351,6 @@ while stop == '':
     stop = 'stop'
 
 
-input("\n\n\nPress enter to end data. \n")
+input("\n\n\nPress enter to end demo. \n")
 
 print('\n\n\nGOOD BYE.\n\n')
