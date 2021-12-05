@@ -137,6 +137,15 @@ recycled_color = 'blue'
 # These should all be lower case here. In the file itself, case does not matter (though spaces do)
 
 # for UNIT LIBRARY tabular data:
+var_filename_prefix = 'var_' 
+"""str: files with this prefix in path_data_root or a direct subdirectory will be 
+    evaluated as containing unit process variable data
+"""
+calc_filename_prefix = 'calc_'
+"""str: files with this prefix in path_data_root or a direct subdirectory will be 
+    evaluated as containing unit process calculation data
+"""
+
 unit_id = 'id'
 unit_name = 'display name'
 unit_product = 'product'
@@ -234,7 +243,7 @@ be specified.
 """
 
 # LOOKUP VARIABLES
-path_data_shared = path_data_root / 'shared'
+path_data_shared = path_data_root 
 path_shared_fuels = path_data_shared / 'fuels.xlsx'
 path_shared_upstream = path_data_shared / 'upstream.xlsx'
 

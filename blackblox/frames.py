@@ -8,8 +8,10 @@ from blackblox.bb_log import get_logger
 logger = get_logger("Frames")
 logger.info("Logger for frames.py initalized")
 
-df_unit_library = iof.make_df(dat.unit_process_library_file,
+
+df_unit_library = iof.build_unit_library(dat.unit_process_library_file,
                               sheet=dat.unit_process_library_sheet)
+
 """dataframe of all unit process names and file locations
 
 This data frame provides the locations of the calculations and variable tables 
@@ -63,3 +65,4 @@ if 'downstream inflows' in dat.lookup_var_dict:
     df_downstream_inflows = iof.make_df(dat.lookup_var_dict['downstream inflows']['filepath'],
                                         sheet=dat.lookup_var_dict['downstream inflows']['sheet'])
     logger.info("df_downstream_inflows created")
+

@@ -89,8 +89,7 @@ class UnitProcess:
     """
 
     def __init__(self, u_id, display_name=False, var_df=False, calc_df=False,
-                 outdir=None, units_df=df_unit_library,
-                 units_df_basedir=dat.unit_process_library_file.parent):
+                 outdir=None, units_df=df_unit_library):
 
         logger.info(f"creating unit process object for {u_id} ({display_name})")
 
@@ -107,14 +106,14 @@ class UnitProcess:
             self.var_df = iof.make_df(var_df)
         else:
             v_sheet = iof.check_for_col(units_df, dat.var_sheetname, u_id)
-            self.var_df = iof.make_df(units_df_basedir / units_df.at[u_id, dat.var_filepath]
+            self.var_df = iof.make_df(units_df.at[u_id, dat.var_filepath]
                                       , sheet=v_sheet, lower_cols=True, fillna=True)
 
         if calc_df is not False:
             self.calc_df = calc_df
         else:
             c_sheet = iof.check_for_col(units_df, dat.calc_sheetname, u_id)
-            self.calc_df = iof.make_df(units_df_basedir / units_df.at[u_id, dat.calc_filepath], sheet=c_sheet, index=None)
+            self.calc_df = iof.make_df(units_df.at[u_id, dat.calc_filepath], sheet=c_sheet, index=None)
 
         self.outdir = (outdir if outdir else dat.path_outdir) / f'{dat.timestamp_str}__unit_{self.name}'
 
@@ -781,7 +780,7 @@ class UnitProcess:
         known2_proxy = None
 
         if calc_type not in calc.calcs_dict:
-            raise Exception(f"{self.name.upper()}: {calc_type} is an unknown calculation type")
+            raise Exception(f"{self.name.upper()}: {calc_type} is an unknown calculation type in\n{calc_df.iloc[i]}")
 
         if known_substance in io_dicts[known_io]:
             invert = False

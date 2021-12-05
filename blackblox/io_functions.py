@@ -31,7 +31,7 @@ Miscellaneous Functions
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pan
@@ -397,6 +397,107 @@ def metadata_df(user=dat.user_data, about=about.about_blackblox, name="unknown",
 
     return meta_df
 
+def build_unit_library(file=dat.unit_process_library_file,
+                       sheet=dat.unit_process_library_sheet):
+
+    df_unit_library_partial = make_df(dat.unit_process_library_file,
+                              sheet=dat.unit_process_library_sheet)
+
+
+    var_id_col = []
+    var_file_col = []
+    var_sheet_col = []
+
+
+    calc_id_col = []
+    calc_file_col = []
+    calc_sheet_col = []
+
+    dir_list = [f.path for f in os.scandir(dat.path_data_root) if f.is_dir()]
+    dir_list.append(dat.path_data_root)
+
+    for d in dir_list:
+
+        data_dir = Path(d)
+
+        dir_files = os.listdir(data_dir)
+        var_files = []
+        calc_files = []
+        unused_files = []
+
+        for file in dir_files:
+            if file.startswith(dat.var_filename_prefix):
+                var_files.append(file)
+            elif file.startswith(dat.calc_filename_prefix):
+                calc_files.append(file)
+            else:
+                unused_files.append(file)
+
+        for file in var_files:
+            filepath = data_dir / file
+
+            if filepath.suffix in ['.xls', '.xlsx']:
+                xls = pan.ExcelFile(filepath)
+
+                for sheet in xls.sheet_names:
+                    if sheet in var_id_col:
+                        pass
+                    else:
+                        var_id_col.append(sheet)
+                        var_sheet_col.append(sheet)
+                        var_file_col.append(filepath)
+            elif filepath.suffix in ['.csv', '.tsv', '.txt', '.dat']:
+                if file.strip(dat.var_filename_prefix).split('.', 1)[0] in var_id_col:
+                    pass
+                else:
+                    var_id_col.append(file.strip(dat.var_filename_prefix).split('.', 1)[0])
+                    var_sheet_col.append(0)
+                    var_file_col.append(filepath)
+            else:
+                print(f"{filepath.suffix} files not supported. Skipping {file}.")
+
+
+        for file in calc_files:
+            filepath = data_dir / file
+
+            if filepath.suffix in ['.xls', '.xlsx']:
+                xls = pan.ExcelFile(filepath)
+                for sheet in xls.sheet_names:
+                    if sheet in calc_id_col:
+                        pass
+                    else:
+                        calc_id_col.append(sheet)
+                        calc_sheet_col.append(sheet)
+                        calc_file_col.append(filepath)
+            elif filepath.suffix in ['.csv', '.tsv', '.txt', '.dat']:
+                if file.strip(dat.calc_filename_prefix).split('.', 1)[0] in calc_id_col:
+                    pass
+                else:
+                    calc_id_col.append(file.strip(dat.calc_filename_prefix).split('.', 1)[0])
+                    calc_sheet_col.append(0)
+                    calc_file_col.append(filepath)
+            else:
+                print(f"{filepath.suffix} files not supported. Skipping {file}.")
+
+    var_df = pan.DataFrame(
+                        { dat.unit_id:var_id_col,
+                            dat.var_filepath:var_file_col,
+                            dat.var_sheetname:var_sheet_col },
+                            )
+    var_df = var_df.set_index(dat.unit_id)
+
+    calc_df = pan.DataFrame(
+                        { dat.unit_id:calc_id_col,
+                            dat.calc_filepath:calc_file_col,
+                            dat.calc_sheetname:calc_sheet_col },
+                            )
+    calc_df = calc_df.set_index(dat.unit_id)
+
+    file_data = pan.merge(var_df, calc_df, on = dat.unit_id, how = "inner")
+
+    unit_library_merged = pan.merge(df_unit_library_partial, file_data, on = dat.unit_id, how = "inner")
+
+    return(unit_library_merged)
 
 # WRITERS TO FILES
 

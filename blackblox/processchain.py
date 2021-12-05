@@ -68,7 +68,7 @@ class ProductChain:
     """
 
     def __init__(self, chain_data, name="Product Chain", xls_sheet=None, outdir=None,
-                 units_df=df_unit_library, units_df_basedir=dat.unit_process_library_file.parent):
+                 units_df=df_unit_library,):
         self.name = name
         self.outdir = (outdir if outdir else dat.path_outdir) / f'{dat.timestamp_str}__chain_{self.name}'
 
@@ -82,7 +82,7 @@ class ProductChain:
 
         # create UnitProcess objects for each unit in chain
         for index, process_row in self.process_chain_df.iterrows():
-            process = unit.UnitProcess(process_row[dat.process_col], units_df=units_df, units_df_basedir=units_df_basedir)
+            process = unit.UnitProcess(process_row[dat.process_col], units_df=units_df)
             logger.debug(f"{self.name.upper()}: UnitProcess object created for {process.name}")
             inflow = process_row[dat.inflow_col]
             outflow = process_row[dat.outflow_col]

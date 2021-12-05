@@ -151,7 +151,7 @@ class Factory:
                                          name=name,
                                          xls_sheet=chain_sheet,
                                          units_df=units_df,
-                                         units_df_basedir=units_df_basedir),
+                                         ),
                                          name=name,
                                          product=c[dat.chain_product],
                                          i_o=iof.clean_str(c[dat.chain_io][0]))
