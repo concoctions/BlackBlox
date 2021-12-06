@@ -44,7 +44,7 @@ class Industry:
     """
 
     def __init__(self, factory_list_file, factory_list_sheet=None, name='Industry', outdir=None,
-                 units_df=df_unit_library, units_df_basedir=bbcfg.paths.unit_process_library_file.parent,
+                 units_df=df_unit_library, units_df_basedir=None,
                  **kwargs):
         self.name = name
         self.outdir = (outdir if outdir else bbcfg.paths.path_outdir) / f'{bbcfg.timestamp_str}__industry_{self.name}'
@@ -53,7 +53,7 @@ class Industry:
         self.product_list = None
         self.factory_dict = None
         self.units_df = units_df
-        self.units_df_basedir = units_df_basedir
+        self.units_df_basedir = units_df_basedir if units_df_basedir else bbcfg.paths.unit_process_library_file.parent
 
     def build(self):
         """ generates the factory, chain, and process objects in the industry
@@ -103,9 +103,9 @@ class Industry:
     def balance(self, production_data_file=None, production_data_sheet=None,
                 upstream_outflows=False, upstream_inflows=False,
                 aggregate_flows=False, mass_energy=True,
-                energy_flows=bbcfg.energy_flows, force_scenario=None,
-                write_to_xls=True, outdir=None, subfolder=True,
-                foldertime=True, file_id='', diagrams=True, **kwargs):
+                energy_flows=None, force_scenario=None,
+                write_to_xls=True, outdir=None,
+                file_id='', diagrams=True, **kwargs):
         """Balances an industry using one scenario for each factory.
 
         Args:
@@ -128,12 +128,6 @@ class Industry:
                 (Defaults to True)
             outdir (str): File output directory 
                 (Defaults to bbcfg.paths.path_outdir)
-            subfolder (bool): If True, uses the industry name as a subfolder
-                of the output directory.
-                (Defaults to True)
-            foldertime (bool): If True, uses the current timestamp in the output
-                directory name. 
-                (Defaults to True)
             file_id (str): Additional text to add to file names
                 (Defaults to True)
             diagrams (bool): If True, includes factory and chain diagrams in the
@@ -143,17 +137,10 @@ class Industry:
         logger.debug(f"attempting to balance {self.name}industry")
 
         outdir = outdir if outdir else self.outdir
+        energy_flows = energy_flows if energy_flows else bbcfg.energy_flows
 
         if self.factory_dict is None:
             self.build()
-
-        # build full filename
-        if subfolder is True:
-            subfolder = self.name
-
-        # outdir = iof.build_filedir(outdir, subfolder=subfolder,
-        #                                 file_id_list=[file_id],
-        #                                 time=foldertime)
 
         # get information about production at each factory in the industry
         if production_data_file is None and production_data_sheet is None:
@@ -314,7 +301,7 @@ class Industry:
                              filename=f'{self.name}_multiscenario_{bbcfg.timestamp_str}')
 
     def evolve(self, start_data=None, start_sheet=None, end_data=None, end_sheet=None,
-               start_step=0, end_step=1, mass_energy=True, energy_flows=bbcfg.energy_flows,
+               start_step=0, end_step=1, mass_energy=True, energy_flows=None,
                write_to_xls=True, outdir=None, file_id='', diagrams=True, graph_outflows=False,
                graph_inflows=False, upstream_outflows=False, upstream_inflows=False, aggregate_flows=False, **kwargs):
         """Calculates timestep and cumulative inflows and outflows of an industry
@@ -342,6 +329,8 @@ class Industry:
             graph_inflows (list/bool): list of inflows to graph with their
                 change over time, with one line for each factory
         """
+
+        energy_flows = energy_flows if energy_flows else bbcfg.energy_flows
 
         outdir_base = outdir if outdir else self.outdir
         outdir = iof.build_filedir(
