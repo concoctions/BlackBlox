@@ -6,7 +6,7 @@ from collections import defaultdict
 from typing import List
 
 import blackblox.calculators as calc
-import blackblox.dataconfig as dat
+from blackblox.dataconfig import bbcfg
 import blackblox.factory as fac
 import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
@@ -44,16 +44,16 @@ class Industry:
     """
 
     def __init__(self, factory_list_file, factory_list_sheet=None, name='Industry', outdir=None,
-                 units_df=df_unit_library, units_df_basedir=dat.unit_process_library_file.parent,
+                 units_df=df_unit_library, units_df_basedir=None,
                  **kwargs):
         self.name = name
-        self.outdir = (outdir if outdir else dat.path_outdir) / f'{dat.timestamp_str}__industry_{self.name}'
+        self.outdir = (outdir if outdir else bbcfg.paths.path_outdir) / f'{bbcfg.timestamp_str}__industry_{self.name}'
         self.factory_file = factory_list_file
         self.factories_df = iof.make_df(factory_list_file, factory_list_sheet, index=None)
         self.product_list = None
         self.factory_dict = None
         self.units_df = units_df
-        self.units_df_basedir = units_df_basedir
+        self.units_df_basedir = units_df_basedir if units_df_basedir else bbcfg.paths.unit_process_library_file.parent
 
     def build(self):
         """ generates the factory, chain, and process objects in the industry
@@ -64,20 +64,20 @@ class Industry:
         product_list = set()
 
         for i, f in self.factories_df.iterrows():
-            name = f[dat.factory_name]
+            name = f[bbcfg.columns.factory_name]
 
-            if dat.factory_filepath in self.factories_df:
-                f_chains_file_rel = f[dat.factory_filepath]
-                f_connections_file_rel = None if f[dat.factory_filepath] in dat.no_var else f[dat.factory_filepath]
+            if bbcfg.columns.factory_name in self.factories_df:
+                f_chains_file_rel = f[bbcfg.columns.factory_filepath]
+                f_connections_file_rel = None if f[bbcfg.columns.factory_filepath] in bbcfg.no_var else f[bbcfg.columns.factory_filepath]
             else:
-                f_chains_file_rel = f[dat.f_chain_list_file]
-                f_connections_file_rel = f[dat.f_connections_file]
+                f_chains_file_rel = f[bbcfg.columns.f_chain_list_file]
+                f_connections_file_rel = f[bbcfg.columns.f_connections_file]
 
             f_chains_file = self.units_df_basedir / f_chains_file_rel
             f_connections_file = self.units_df_basedir / f_connections_file_rel
 
-            f_chains_sheet = iof.check_for_col(self.factories_df, dat.f_chains_sheet, i)
-            f_connections_sheet = iof.check_for_col(self.factories_df, dat.f_connections_sheet, i)
+            f_chains_sheet = iof.check_for_col(self.factories_df, bbcfg.columns.f_chains_sheet, i)
+            f_connections_sheet = iof.check_for_col(self.factories_df, bbcfg.columns.f_connections_sheet, i)
 
             factory = fac.Factory(
                 chain_list_file=f_chains_file,
@@ -103,9 +103,9 @@ class Industry:
     def balance(self, production_data_file=None, production_data_sheet=None,
                 upstream_outflows=False, upstream_inflows=False,
                 aggregate_flows=False, mass_energy=True,
-                energy_flows=dat.energy_flows, force_scenario=None,
-                write_to_xls=True, outdir=None, subfolder=True,
-                foldertime=True, file_id='', diagrams=True, **kwargs):
+                energy_flows=None, force_scenario=None,
+                write_to_xls=True, outdir=None,
+                file_id='', diagrams=True, **kwargs):
         """Balances an industry using one scenario for each factory.
 
         Args:
@@ -120,20 +120,14 @@ class Industry:
                 output DataFrames.
                 (Defaults to True)
             energy_flows (list): List of identifiers of what is an energy flow
-                (Defaults to dat.energy_flows)
+                (Defaults to bbcfg.energy_flows)
             force_scenario (str/None): Name of scenario to use for each factory,
                 overriding the scenario specified in the production data
                 (Defaults to None)
             write_to_xls (bool): Whether to output the data to file
                 (Defaults to True)
             outdir (str): File output directory 
-                (Defaults to dat.outdir)
-            subfolder (bool): If True, uses the industry name as a subfolder
-                of the output directory.
-                (Defaults to True)
-            foldertime (bool): If True, uses the current timestamp in the output
-                directory name. 
-                (Defaults to True)
+                (Defaults to bbcfg.paths.path_outdir)
             file_id (str): Additional text to add to file names
                 (Defaults to True)
             diagrams (bool): If True, includes factory and chain diagrams in the
@@ -143,17 +137,10 @@ class Industry:
         logger.debug(f"attempting to balance {self.name}industry")
 
         outdir = outdir if outdir else self.outdir
+        energy_flows = energy_flows if energy_flows else bbcfg.energy_flows
 
         if self.factory_dict is None:
             self.build()
-
-        # build full filename
-        if subfolder is True:
-            subfolder = self.name
-
-        # outdir = iof.build_filedir(outdir, subfolder=subfolder,
-        #                                 file_id_list=[file_id],
-        #                                 time=foldertime)
 
         # get information about production at each factory in the industry
         if production_data_file is None and production_data_sheet is None:
@@ -172,18 +159,18 @@ class Industry:
 
         # get production scenario data
         for i, f in product_df.iterrows():
-            product = f[dat.f_product]
-            if iof.clean_str(i) in dat.all_factories:  # recognizes that this production total is for all factories
-                if product not in dat.no_var:
-                    fractions[product] = f[dat.f_product_qty]  # industry-wide product total
-                if isinstance(f[dat.f_scenario], str) and iof.clean_str(f[dat.f_scenario]) not in dat.no_var:
-                    product_scenario[product] = f[dat.f_scenario]  # scenario for all factories producing that product
+            product = f[bbcfg.columns.f_product]
+            if iof.clean_str(i) in bbcfg.all_factories:  # recognizes that this production total is for all factories
+                if product not in bbcfg.no_var:
+                    fractions[product] = f[bbcfg.columns.f_product_qty]  # industry-wide product total
+                if isinstance(f[bbcfg.columns.f_scenario], str) and iof.clean_str(f[bbcfg.columns.f_scenario]) not in bbcfg.no_var:
+                    product_scenario[product] = f[bbcfg.columns.f_scenario]  # scenario for all factories producing that product
             else:
                 if product in fractions:  # product qty should be decimal fraction of total
-                    calc.check_qty(f[dat.f_product_qty], fraction=True)
-                    product_qty = f[dat.f_product_qty] * fractions[product]
+                    calc.check_qty(f[bbcfg.columns.f_product_qty], fraction=True)
+                    product_qty = f[bbcfg.columns.f_product_qty] * fractions[product]
                 else:
-                    product_qty = f[dat.f_product_qty]
+                    product_qty = f[bbcfg.columns.f_product_qty]
 
                 if force_scenario is not None:
                     scenario = force_scenario
@@ -191,7 +178,7 @@ class Industry:
                     if product in product_scenario:
                         scenario = product_scenario[product]
                     else:
-                        scenario = f[dat.f_scenario]
+                        scenario = f[bbcfg.columns.f_scenario]
 
                 f_production_dict[i] = dict(product_qty=product_qty,
                                             scenario=scenario,
@@ -223,9 +210,9 @@ class Industry:
         io_dicts['outflows']['industry totals'] = totals_out
 
         if write_to_xls is True:
-            filename = f'i_{self.name}_{file_id}_{dat.timestamp_str}'
+            filename = f'i_{self.name}_{file_id}_{bbcfg.timestamp_str}'
 
-            meta_df = iof.metadata_df(user=dat.user_data,
+            meta_df = iof.metadata_df(user=bbcfg.user,
                                       name=self.name,
                                       level="Industry",
                                       scenario="--",
@@ -266,7 +253,7 @@ class Industry:
             write_to_xls (bool): Whether to output the data to file
                 (Defaults to True)
             outdir (str): File output directory 
-                (Defaults to dat.outdir)
+                (Defaults to bbcfg.paths.path_outdir)
             file_id (str): Additional text to add to file names
                 (Defaults to True)
             diagrams (bool): If True, includes factory and chain diagrams in the
@@ -299,22 +286,22 @@ class Industry:
         outflows_df = iof.make_df(scenario_dict['o'], drop_zero=True)
         outflows_df = iof.mass_energy_df(outflows_df, aggregate_consumed=True)
 
-        meta_df = iof.metadata_df(user=dat.user_data,
+        meta_df = iof.metadata_df(user=bbcfg.user,
                                   name=self.name,
                                   level="Industry",
                                   scenario=" ,".join(scenario_list),
                                   product=" ,".join(self.product_list),
                                   product_qty="--",
-                                  energy_flows=dat.energy_flows)
+                                  energy_flows=bbcfg.energy_flows)
 
         if write_to_xls is True:
             iof.write_to_xls(df_or_df_list=[meta_df, inflows_df, outflows_df],
                              sheet_list=["meta", "inflows", "outflows"],
                              outdir=outdir,
-                             filename=f'{self.name}_multiscenario_{dat.timestamp_str}')
+                             filename=f'{self.name}_multiscenario_{bbcfg.timestamp_str}')
 
     def evolve(self, start_data=None, start_sheet=None, end_data=None, end_sheet=None,
-               start_step=0, end_step=1, mass_energy=True, energy_flows=dat.energy_flows,
+               start_step=0, end_step=1, mass_energy=True, energy_flows=None,
                write_to_xls=True, outdir=None, file_id='', diagrams=True, graph_outflows=False,
                graph_inflows=False, upstream_outflows=False, upstream_inflows=False, aggregate_flows=False, **kwargs):
         """Calculates timestep and cumulative inflows and outflows of an industry
@@ -342,6 +329,8 @@ class Industry:
             graph_inflows (list/bool): list of inflows to graph with their
                 change over time, with one line for each factory
         """
+
+        energy_flows = energy_flows if energy_flows else bbcfg.energy_flows
 
         outdir_base = outdir if outdir else self.outdir
         outdir = iof.build_filedir(
@@ -409,16 +398,16 @@ class Industry:
         if write_to_xls is True:
 
             filename = (f'i_{self.name}_{start_step}-{end_step}_{file_id}'
-                        f'_{dat.timestamp_str}')
+                        f'_{bbcfg.timestamp_str}')
 
             cumulative_infows_df = iof.make_df(cumulative_dict['inflows'], drop_zero=True)
             cumulative_infows_df = iof.mass_energy_df(cumulative_infows_df)
             cumulative_outflows_df = iof.make_df(cumulative_dict['outflows'], drop_zero=True)
             cumulative_outflows_df = iof.mass_energy_df(cumulative_outflows_df)
 
-            meta_df = iof.metadata_df(user=dat.user_data, name=self.name,
+            meta_df = iof.metadata_df(user=bbcfg.user, name=self.name,
                                       level="Industry", scenario="n/a", product=" ,".join(self.product_list),
-                                      product_qty="n/a", energy_flows=dat.energy_flows)
+                                      product_qty="n/a", energy_flows=bbcfg.energy_flows)
 
             df_list = [meta_df, cumulative_infows_df, cumulative_outflows_df]
             sheet_list = ["meta", "cum inflows", "cum outflows"]
@@ -503,7 +492,7 @@ class Industry:
                                 start_step=prev_step,
                                 end_step=step,
                                 mass_energy=True,
-                                energy_flows=dat.energy_flows,
+                                energy_flows=bbcfg.energy_flows,
                                 write_to_xls=write_to_xls,
                                 outdir=outdir / f'{prev_step}_{step}',
                                 diagrams=False,
@@ -536,16 +525,16 @@ class Industry:
         if write_to_xls is True:
 
             filename = (f'i_{self.name}_{steps[0]}-{steps[-1]}_{file_id}'
-                        f'_{dat.timestamp_str}')
+                        f'_{bbcfg.timestamp_str}')
 
             cumulative_infows_df = iof.make_df(merged_cumulative_flows['inflows'], drop_zero=True)
             cumulative_infows_df = iof.mass_energy_df(cumulative_infows_df, aggregate_consumed=True)
             cumulative_outflows_df = iof.make_df(merged_cumulative_flows['outflows'], drop_zero=True)
             cumulative_outflows_df = iof.mass_energy_df(cumulative_outflows_df, aggregate_consumed=True)
 
-            meta_df = iof.metadata_df(user=dat.user_data, name=self.name,
+            meta_df = iof.metadata_df(user=bbcfg.user, name=self.name,
                                       level="Industry", scenario="n/a", product=" ,".join(self.product_list),
-                                      product_qty="n/a", energy_flows=dat.energy_flows)
+                                      product_qty="n/a", energy_flows=bbcfg.energy_flows)
 
             df_list = [meta_df, cumulative_infows_df, cumulative_outflows_df]
             sheet_list = ["meta", "cum inflows", "cum outflows"]

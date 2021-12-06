@@ -18,7 +18,7 @@ dat.user_data = {"name": "S.E. Tanzer",
                  "project": f"Steel tests - {datetime.now().strftime('%d %B %Y')}",
 }
 
-dat.default_units = {'mass': 't', 
+dat.units = { 'mass': 't',
                      'energy':'GJ',
 }
 

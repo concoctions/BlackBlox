@@ -20,7 +20,7 @@ dat.user_data = {
     "project": "D-LCA of BECCS and Accelerated Carbonation in Concrete Production",
 }
 
-dat.default_emissions = ['CO2__fossil', 'CO2__bio', 'H2O', 'contrib - produced CO2__bio', 'contrib - produced CO2__fossil']
+dat.emissions = ['CO2__fossil', 'CO2__bio', 'H2O', 'contrib - produced CO2__bio', 'contrib - produced CO2__fossil']
 
 
 

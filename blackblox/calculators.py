@@ -41,7 +41,7 @@ from math import isnan
 import numpy as np
 from molmass import Formula
 
-import blackblox.dataconfig as dat
+from blackblox.dataconfig import bbcfg
 import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
 from blackblox.frames import df_fuels
@@ -64,7 +64,7 @@ def check_qty(qty, fraction=False):
     if not isinstance(qty, (float, int, complex, np.integer, np.floating)):
         raise ValueError(f'quantity should be an int or float. Currently: {type(qty)}')
 
-    if round(qty, dat.float_tol) < 0:
+    if round(qty, bbcfg.float_tol) < 0:
         raise ValueError(f'quantity should be > 0. Currently: {qty}')
 
     if fraction is True:
@@ -155,7 +155,7 @@ def Remainder(qty, var, invert=False, **kwargs):
 
     The Remainder function is used by the balance function of unitprocesses.py
     for calculations where the ratio is an inverse of another known ratio. 
-    (such as with efficiencies (e.g. product + loss will always equal 100%). 
+    such as with efficiencies (e.g. product + loss will always equal 100%).
     The ratio of X:Y and Y:X should always equal 1.0.
 
     Args:
@@ -238,7 +238,7 @@ def MolMassRatio(known_substance, qty, unknown_substance, var=1.0, invert=False,
     """
     logger.debug("using {} of {} to determine qty of {}".format(qty, known_substance, unknown_substance))
 
-    if var is None or var in dat.no_var:
+    if var is None or var in bbcfg.no_var:
         var = 1.0
 
     if invert is True:
@@ -369,7 +369,7 @@ def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df
 
 # noinspection PyUnusedLocal
 def Combustion(known_substance, qty, unknown_substance, var=1.0,
-               emissions_list=dat.default_emissions, emissions_dict=False,
+               emissions_list=bbcfg.emissions, emissions_dict=False,
                inflows_dict=False, fuels_df=df_fuels, LHV=True,
                write_energy_in=True, **kwargs):
     """Specicalized multi-lookup function for energy content and emissions of fuel combustion.
@@ -384,7 +384,7 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
             (Defaults to 1)
         emissions_list (list[str]): List of emissions to calculate, if emission
             factors are available in the fuel dataframe
-            (Defaults to dat.default_emissions)
+            (Defaults to bbcfg.emissions)
         emissions_dict (defaultdict or bool): If provided, the dictionary where 
             calculated emission quantities will be written. 
             (Defaults to False)
@@ -411,7 +411,7 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
         the combustion efficiency.
 
         If an inflow dictionary is specified, "O2 needed for combustion" will be
-        calculated and added to it, based on the the difference between the 
+        calculated and added to it, based on the difference between the
         calculated emissions and the fuel mass.
     
     Examples:
@@ -435,7 +435,7 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
 
     check_qty(qty)
 
-    if var is None or var in dat.no_var:
+    if var is None or var in bbcfg.no_var:
         combust_eff = 1.0
     else:
         combust_eff = var
@@ -472,7 +472,7 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
         # only writes balancing inflow O2 and energy if emissions and waste heat will be added to emission dict.
         if type(inflows_dict) == defaultdict:
             # closes mass balance
-            inflows_dict[f'O2{dat.ignore_sep}combustion'] += sum(combustion_emissions.values()) - fuel_qty
+            inflows_dict[f'O2{bbcfg.ignore_sep}combustion'] += sum(combustion_emissions.values()) - fuel_qty
             logger.debug(f"{sum(combustion_emissions.values()) - fuel_qty} of O2 added to inflow dict")
 
             if write_energy_in is True:
@@ -493,7 +493,7 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
 
 
 def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
-                  ignore_flows=[], only_these_flows=False, round_n=dat.float_tol):
+                  ignore_flows=[], only_these_flows=False, round_n=bbcfg.float_tol):
     """Checks whether inflow and outflow dictionaries sum to same total quantity
 
     Args:
@@ -503,7 +503,7 @@ def check_balance(inflow_dict, outflow_dict, raise_imbalance=True,
             the format outflow_dict[substance name] = quantity
         round_n (int): Number of places after the decimal to use when checking
             if inflow and outflow masses are equivelent.
-            (Defaults to dat.float_tol)
+            (Defaults to bbcfg.float_tol)
         ignore_flows (list[str]): A list of strings that indicate that a 
             substance is not be included in the balance. If any of the keys in 
             eiher dictionary begin or end with a string in this list, its value 

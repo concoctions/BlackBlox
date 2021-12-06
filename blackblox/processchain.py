@@ -26,7 +26,7 @@ import pandas as pan
 from blackblox.bb_log import get_logger
 
 import blackblox.io_functions as iof
-import blackblox.dataconfig as dat
+from blackblox.dataconfig import bbcfg
 import blackblox.unitprocess as unit
 from blackblox.frames import df_unit_library
 
@@ -68,9 +68,9 @@ class ProductChain:
     """
 
     def __init__(self, chain_data, name="Product Chain", xls_sheet=None, outdir=None,
-                 units_df=df_unit_library,):
+                 units_df=df_unit_library):
         self.name = name
-        self.outdir = (outdir if outdir else dat.path_outdir) / f'{dat.timestamp_str}__chain_{self.name}'
+        self.outdir = (outdir if outdir else bbcfg.path_outdir) / f'{dat.timestamp_str}__chain_{self.name}'
 
         logger.info(f"PROCESS CHAIN INIT - chain name: {name}, chain data: {chain_data}, xls sheet: {xls_sheet}")
         self.process_chain_df = iof.make_df(chain_data, sheet=xls_sheet, index=None)
@@ -82,10 +82,10 @@ class ProductChain:
 
         # create UnitProcess objects for each unit in chain
         for index, process_row in self.process_chain_df.iterrows():
-            process = unit.UnitProcess(process_row[dat.process_col], units_df=units_df)
+            process = unit.UnitProcess(process_row[bbcfg.process_col], units_df=units_df)
             logger.debug(f"{self.name.upper()}: UnitProcess object created for {process.name}")
-            inflow = process_row[dat.inflow_col]
-            outflow = process_row[dat.outflow_col]
+            inflow = process_row[bbcfg.columns.inflow_col]
+            outflow = process_row[bbcfg.columns.outflow_col]
 
             if inflow not in process.inflows and index != 0:
                 raise KeyError(f"{inflow} not found in {process.name} inflows")           
@@ -108,10 +108,10 @@ class ProductChain:
                 logger.debug(f"{self.name.upper()}: No default product found for {self.name}.")
 
     
-    def balance(self, qty=1.0, product=False, i_o=False, unit_process=False, 
-                product_alt_name=False, scenario=dat.default_scenario,
+    def balance(self, qty=1.0, product=False, i_o=False, unit_process=False,
+                product_alt_name=False, scenario=None,
                 write_to_console=False, write_to_xls = False):
-        """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario)
+        """balance(self, qty, product=False, i_o=False, scenario=bbcfg.scenario_default)
         Calculates the mass balance of the product chain
 
         Based on a quantity of an inflow for the first unit process in the 
@@ -138,7 +138,7 @@ class ProductChain:
                 product_alt_name for the "waste heat" product entering "coke oven")
             scenario (str): The var_df index identifier of the set of variables 
                 values to use when balancing Unit Processes.
-                (Defaults to the string specified in dat.default_scenario)
+                (Defaults to the string specified in bbcfg.scenario_default)
 
         Returns:
             - 3-level nested dictionary of inflows, ``[unit process][flowtype][substance] = (float)``
@@ -202,6 +202,8 @@ class ProductChain:
                 i_o = 'i'
             else:
                 raise KeyError(f"{product} not found as input or outflow of chain.")
+
+        scenario = scenario if scenario else bbcfg.scenario_default
 
         # create dictionaries of chain inflows, outflows, and flows between chain UnitProcesses
         io_dicts = {
@@ -281,7 +283,7 @@ class ProductChain:
                 i.pop(0)
             internal_flows_df = pan.DataFrame(internal_flows, columns=internal_flows_header)
 
-            meta_df = iof.metadata_df(user=dat.user_data, 
+            meta_df = iof.metadata_df(user=bbcfg.user,
                                         name=self.name, 
                                         level="Chain", 
                                         scenario=scenario, 
@@ -294,7 +296,7 @@ class ProductChain:
             iof.write_to_xls(df_or_df_list=dfs,
                              sheet_list=sheets,
                              outdir=self.outdir,
-                             filename=f'{self.name}_c_{scenario}_{dat.timestamp_str}')
+                             filename=f'{self.name}_c_{scenario}_{bbcfg.timestamp_str}')
                 
         return io_dicts['i'], io_dicts['o'], intermediate_product_dict, internal_flows
 
@@ -339,7 +341,7 @@ class ProductChain:
                 i.pop(0)
             internal_flows_df = pan.DataFrame(internal_flows, columns=internal_flows_header)
 
-            meta_df = iof.metadata_df(user=dat.user_data, 
+            meta_df = iof.metadata_df(user=bbcfg.user,
                                         name=self.name, 
                                         level="Chain", 
                                         scenario=" ,".join(scenario_list), 
@@ -356,7 +358,7 @@ class ProductChain:
             iof.write_to_xls(df_or_df_list=dfs,
                              sheet_list=sheets,
                              outdir=outdir,
-                             filename=f'{self.name}_c_multi_{dat.timestamp_str}')
+                             filename=f'{self.name}_c_multi_{bbcfg.timestamp_str}')
 
         if write_to_console is True:
             print(f"\n{str.upper(self.name)} balanced on {qty} of {product} for scenarios of {scenario_list}.\n")
@@ -366,7 +368,7 @@ class ProductChain:
         return inflows_df, outflows_df
 
     def diagram(self, view=True, save=True, outdir=None):
-        """diagram(self, view_diagram=True, save=True, outdir=f'{dat.outdir}/pfd')
+        """diagram(self, view_diagram=True, save=True, outdir=f'{bbcfg.paths.path_outdir}/pfd')
         Generates chain flow diagrams (png and svg) using Graphviz
         
         The use of a product flow subgraph allows the unconnected inflows and
@@ -408,8 +410,8 @@ class ProductChain:
             product_flow.node(c+name, label=name)
 
             # default line styling
-            connection_color = dat.mass_color
-            line_style = dat.mass_style
+            connection_color = bbcfg.diagram.mass_color
+            line_style = bbcfg.diagram.mass_style
 
 
             if i == 0: # for first UnitProcess in chain
@@ -420,8 +422,8 @@ class ProductChain:
                 
                 # line styling if energy flow
                 if iof.is_energy(unit['i']):
-                    connection_color = dat.energy_color
-                    line_style = dat.energy_style
+                    connection_color = bbcfg.diagram.energy_color
+                    line_style = bbcfg.diagram.energy_style
 
                 product_flow.edge(c+prevunit, c+name, label=unit['i'], color=connection_color, fontcolor=connection_color, style=line_style)
 

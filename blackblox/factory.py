@@ -37,19 +37,18 @@ import pandas as pan
 from graphviz import Digraph
 
 import blackblox.calculators as calc
-import blackblox.dataconfig as dat
+from blackblox.dataconfig import bbcfg
 import blackblox.io_functions as iof
 import blackblox.processchain as cha
 import blackblox.unitprocess as unit
 from blackblox.bb_log import get_logger
-from blackblox.frames import (df_upstream_outflows, df_upstream_inflows, df_downstream_outflows, df_downstream_inflows,
-                              df_unit_library)
+from blackblox.frames import (df_upstream_outflows, df_upstream_inflows, df_downstream_outflows, df_downstream_inflows, df_unit_library)
 from blackblox.unitprocess import lookup_var_dict
 
 
 if platform.system() == 'Windows':
     import os
-    os.environ["PATH"] += os.pathsep + dat.graphviz_path
+    os.environ["PATH"] += os.pathsep + bbcfg.graphviz_path
 
 logger = get_logger("Factory")
 
@@ -113,36 +112,36 @@ class Factory:
 
         # initalize individual chains
         for i, c in chain_list_df.iterrows():
-            name = c[dat.chain_name]
+            name = c[bbcfg.columns.chain_name]
             is_unit = False
             if i == 0:  # assumes first chain is main ProductChain 
                 self.main_chain = name
-                self.main_product = c[dat.chain_product]
+                self.main_product = c[bbcfg.columns.chain_product]
 
             # creates chain DataFrame for those that are speficied as a single UnitProcess
-            single_unit = iof.check_for_col(chain_list_df, dat.single_unit_chain, i)
+            single_unit = iof.check_for_col(chain_list_df, bbcfg.columns.single_unit_chain, i)
 
-            if type(single_unit) is str and single_unit not in dat.no_var:
+            if type(single_unit) is str and single_unit not in bbcfg.no_var:
                 if single_unit in unit.df_unit_library.index.values:
                     unit_inflow = 'start'
                     unit_outflow = 'end'
-                    if iof.clean_str(c[dat.chain_io][0]) == 'i':
-                        unit_inflow = c[dat.chain_product]
-                    elif iof.clean_str(c[dat.chain_io][0]) == 'o':
-                        unit_outflow = c[dat.chain_product]
+                    if iof.clean_str(c[bbcfg.columns.chain_io][0]) == 'i':
+                        unit_inflow = c[bbcfg.columns.chain_product]
+                    elif iof.clean_str(c[bbcfg.columns.chain_io][0]) == 'o':
+                        unit_outflow = c[bbcfg.columns.chain_product]
                     chain_data = [[unit_inflow, single_unit, unit_outflow]]
-                    chain_header = [dat.inflow_col, dat.process_col, dat.outflow_col]
+                    chain_header = [bbcfg.columns.inflow_col, bbcfg.columns.process_col, bbcfg.columns.outflow_col]
                     chain_file = pan.DataFrame(chain_data, columns=chain_header)
                     logger.debug(f"single unit process chain will be created for {single_unit}")
                     is_unit = True
 
             if is_unit is not True:  # uses user-specified chain linkage data
-                if dat.chain_filepath not in chain_list_df or iof.clean_str(c[dat.chain_filepath]) in dat.same_xls:
+                if bbcfg.columns.chain_filepath not in chain_list_df or iof.clean_str(c[bbcfg.columns.chain_filepath]) in bbcfg.paths.same_xls:
                     chain_file = chain_list_file
                 else:
-                    chain_file = c[dat.chain_filepath]
+                    chain_file = c[bbcfg.columns.chain_filepath]
 
-            chain_sheet = iof.check_for_col(chain_list_df, dat.chain_sheetname,
+            chain_sheet = iof.check_for_col(chain_list_df, bbcfg.columns.chain_sheetname,
                                             i)  # checks for Excel sheet of chain location
             logger.debug(f"{self.name.upper()}: building {name} chain using file: {chain_file}, sheet: {chain_sheet}")
 
@@ -152,24 +151,24 @@ class Factory:
                                          xls_sheet=chain_sheet,
                                          units_df=units_df),
                                          name=name,
-                                         product=c[dat.chain_product],
-                                         i_o=iof.clean_str(c[dat.chain_io][0]))
+                                         product=c[bbcfg.columns.chain_product],
+                                         i_o=iof.clean_str(c[bbcfg.columns.chain_io][0]))
 
         # create DataFrame of connections betwen ProductChains, if extant
         if connections_file is None:  # assume same file as chain list
-            if connections_sheet is None or connections_sheet in dat.no_var:
+            if connections_sheet is None or connections_sheet in bbcfg.no_var:
                 self.connections_df = None
             self.connections_df = iof.make_df(chain_list_file, connections_sheet, index=None)
-        elif connections_sheet is not None and connections_sheet not in dat.no_var:
+        elif connections_sheet is not None and connections_sheet not in bbcfg.no_var:
             self.connections_df = iof.make_df(connections_file, connections_sheet, index=None)
         else:
             self.connections_df = None
 
-        self.outdir = (outdir if outdir else dat.path_outdir) / f'{dat.timestamp_str}__factory_{self.name}'
+        self.outdir = (outdir if outdir else bbcfg.paths.path_outdir) / f'{bbcfg.timestamp_str}__factory_{self.name}'
 
         logger.info(f"{self.name.upper()}: Initalization successful")
 
-    def balance(self, scenario=dat.default_scenario, product_qty=1.0, product=False, product_unit=False,
+    def balance(self, scenario=None, product_qty=1.0, product=False, product_unit=False,
                 product_io=False,
                 upstream_outflows=False, upstream_inflows=False,
                 downstream_outflows=False, downstream_inflows=False,
@@ -202,9 +201,9 @@ class Factory:
                 (Defaults to False)
             scenario (str): The var_df index ID of the scenario of variable
                 values to use when balancing each UnitProcess.
-                (Defaults to dat.default_scenario)
+                (Defaults to bbcfg.scenario_default)
             write_to_xls (bool): If True, outputs the balance results to an Excel 
-                workbook in dat.outdir.
+                workbook in bbcfg.paths.path_outdir.
                 (Defaults to True)
 
         Returns:
@@ -212,8 +211,9 @@ class Factory:
             dictionary of factory outflow substances and total quantities
         """
 
-        logger.info(
-            f"{self.name.upper()}: attempting to balance on {product_qty} of {self.chain_dict[self.main_chain]['product']}")
+        logger.info(f"{self.name.upper()}: attempting to balance on {product_qty} of {self.chain_dict[self.main_chain]['product']}")
+
+        scenario = scenario if scenario else bbcfg.scenario_default
 
         # create flow dictionaries
         io_dicts = {
@@ -235,11 +235,13 @@ class Factory:
         (io_dicts['i'][main['name']],
          io_dicts['o'][main['name']],
          chain_intermediates_dict[main['name']],
-         main_chain_internal_flows) = main['chain'].balance(product_qty,
-                                                            product=product,
-                                                            i_o=product_io,
-                                                            unit_process=product_unit,
-                                                            scenario=scenario)
+         main_chain_internal_flows) = main['chain'].balance(
+            product_qty,
+            product=product,
+            i_o=product_io,
+            unit_process=product_unit,
+            scenario=scenario
+        )
 
         logger.debug(f"{self.name.upper()}: balanced main chain {main['name']} on {product_qty} of {product}")
         internal_flows.extend(main_chain_internal_flows)  # keeps track of flows betwen units
@@ -249,39 +251,39 @@ class Factory:
             for dummy_index, row in self.connections_df.iterrows():
 
                 # reset variables
-                orig_product_io = iof.clean_str(row[dat.origin_io][0])
-                orig_product = row[dat.origin_product]
+                orig_product_io = iof.clean_str(row[bbcfg.columns.origin_io][0])
+                orig_product = row[bbcfg.columns.origin_product]
                 qty_remaining = 0
 
                 dest_unit = False
                 dest_unit_id = False
                 dest_product = False
-                dest_product_io = iof.clean_str(row[dat.dest_io][0])
+                dest_product_io = iof.clean_str(row[bbcfg.columns.dest_io][0])
 
                 i_tmp = None
                 o_tmp = None
 
                 # identify origin (existing) and destination (connecting) ProductChains
-                orig_chain = self.chain_dict[row[dat.origin_chain]]['chain']
+                orig_chain = self.chain_dict[row[bbcfg.columns.origin_chain]]['chain']
                 if not io_dicts[orig_product_io][orig_chain.name]:
                     raise KeyError(
                         f"{[orig_chain.name]} has not been balanced yet. Please check the order of your connections.")
 
-                dest_chain = self.chain_dict[row[dat.dest_chain]]['chain']
-                if dat.dest_unit in row:
-                    if row[dat.dest_unit] in dest_chain.process_dict:
-                        dest_unit = dest_chain.process_dict[row[dat.dest_unit]]
+                dest_chain = self.chain_dict[row[bbcfg.columns.dest_chain]]['chain']
+                if bbcfg.columns.dest_unit in row:
+                    if row[bbcfg.columns.dest_unit] in dest_chain.process_dict:
+                        dest_unit = dest_chain.process_dict[row[bbcfg.columns.dest_unit]]
                         dest_unit_id = dest_unit.u_id
 
                 # if destination chain connects to all UnitProcesses in origin chain, 
                 # use totals flow values from origin chain, rather than individual UnitProcess data
-                if row[dat.origin_unit] == dat.connect_all:
+                if row[bbcfg.columns.origin_unit] == bbcfg.connect_all:
                     qty = io_dicts[orig_product_io][orig_chain.name]['chain totals'][orig_product]
                     orig_unit = False
                     logger.debug(f"using {qty} of {orig_product} from all units in {orig_chain.name}")
 
                 else:
-                    orig_unit = orig_chain.process_dict[row[dat.origin_unit]]
+                    orig_unit = orig_chain.process_dict[row[bbcfg.columns.origin_unit]]
 
                     # processes substance name based on seperator and lookup key rules
                     orig_product = self.check_origin_product(orig_product, orig_unit, scenario)
@@ -290,11 +292,11 @@ class Factory:
                     qty = self.check_product_qty(orig_product, orig_product_io, orig_chain.name,
                                                  orig_unit.name, io_dicts, remaining_product_dict)
 
-                if round(qty, dat.float_tol) < 0:
+                if round(qty, bbcfg.float_tol) < 0:
                     raise ValueError(f"{qty} of {orig_product}  from {orig_unit.name} in {orig_chain.name} < 0.")
 
                 # For Recycle Connections
-                if self.check_for_value(dat.replace, row) is True:
+                if self.check_for_value(bbcfg.columns.replace, row) is True:
                     logger.debug(f"{self.name.upper()}: attempting to recycle {orig_product} from {orig_unit.name}")
 
                     new_chain_in_dict, new_chain_out_dict, qty_remaining, replace_flow = self.connect_recycle_flow(qty,
@@ -322,7 +324,7 @@ class Factory:
                     replace_flow = None
 
                     # allow for "connect as" products
-                    dest_product = self.check_for_value(dat.dest_product, row, ifyes=row[dat.dest_product],
+                    dest_product = self.check_for_value(bbcfg.columns.dest_product, row, ifyes=row[bbcfg.columns.dest_product],
                                                         ifno=orig_product)
 
                     # balance auxillary chain based on qty of connecting product from already-calculated origin chain
@@ -442,7 +444,7 @@ class Factory:
         """
 
         outdir = outdir if outdir else self.outdir
-        filename = f'{self.name}_f_{dat.timestamp_str}'
+        filename = f'{self.name}_f_{bbcfg.timestamp_str}'
 
         factory_diagram = Digraph(name="factory")
         factory_diagram.attr('node', shape='box', color='black')
@@ -487,22 +489,22 @@ class Factory:
                 if self.connections_df is not None:
                     for dummy_index, c in self.connections_df.iterrows():
 
-                        origin_product = c[dat.origin_product]
-                        product = self.check_for_value(col=dat.dest_product, row=c, ifyes=c[dat.dest_product],
-                                                       ifno=c[dat.origin_product])
+                        origin_product = c[bbcfg.columns.origin_product]
+                        product = self.check_for_value(col=bbcfg.columns.dest_product, row=c, ifyes=c[bbcfg.columns.dest_product],
+                                                       ifno=c[bbcfg.columns.origin_product])
 
                         # get inflows and outflows of each unit, using the correct product name
-                        if chain == c[dat.origin_chain]:
-                            if process == c[dat.origin_unit] or c[dat.origin_unit] == dat.connect_all:
-                                if iof.clean_str(c[dat.origin_io][0]) == 'i':
+                        if chain == c[bbcfg.columns.origin_chain]:
+                            if process == c[bbcfg.columns.origin_unit] or c[bbcfg.columns.origin_unit] == bbcfg.connect_all:
+                                if iof.clean_str(c[bbcfg.columns.origin_io][0]) == 'i':
                                     inflows = self.clean_str_in_list(origin_product, inflows)
-                                if iof.clean_str(c[dat.origin_io][0]) == 'o':
+                                if iof.clean_str(c[bbcfg.columns.origin_io][0]) == 'o':
                                     outflows = self.clean_str_in_list(origin_product, outflows)
 
-                        if chain == c[dat.dest_chain]:
-                            if iof.clean_str(c[dat.dest_io][0]) == 'i' and unit == process_list[0]:
+                        if chain == c[bbcfg.columns.dest_chain]:
+                            if iof.clean_str(c[bbcfg.columns.dest_io][0]) == 'i' and unit == process_list[0]:
                                 inflows = self.clean_str_in_list(product, inflows)
-                            if iof.clean_str(c[dat.dest_io][0]) == 'o' and unit == process_list[-1]:
+                            if iof.clean_str(c[bbcfg.columns.dest_io][0]) == 'o' and unit == process_list[-1]:
                                 outflows = self.clean_str_in_list(product, outflows)
 
                 if i == 0:  # if first UnitProcess in ProductChain
@@ -652,7 +654,7 @@ class Factory:
             if product is False:
                 product = self.main_product
 
-            meta_df = iof.metadata_df(user=dat.user_data,
+            meta_df = iof.metadata_df(user=bbcfg.user,
                                       name=self.name,
                                       level="Factory",
                                       scenario=" ,".join(scenario_list),
@@ -673,7 +675,7 @@ class Factory:
             iof.write_to_xls(df_or_df_list=df_list,
                              sheet_list=sheet_list,
                              outdir=outdir,
-                             filename=f'{self.name}_f_multi_{dat.timestamp_str}')
+                             filename=f'{self.name}_f_multi_{bbcfg.timestamp_str}')
 
         return inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df, net_df
 
@@ -726,8 +728,8 @@ class Factory:
                         unit.var_df.loc[scenario, fixedvar.lower()] = fixedvalue
                         logger.debug(f"{variable} for {unit} ({scenario} set to {fixedvalue}) (fixed over all sensitivity analyses)")
                     else:
-                        unit.var_df.loc[dat.default_scenario, fixedvar.lower()] = fixedvalue
-                        logger.debug(f"{variable} for {unit} ({dat.default_scenario} set to {fixedvalue}) (fixed over all sensitivity analyses)")
+                        unit.var_df.loc[bbcfg.scenario_default, fixedvar.lower()] = fixedvalue
+                        logger.debug(f"{variable} for {unit} ({bbcfg.scenario_default} set to {fixedvalue}) (fixed over all sensitivity analyses)")
 
         # evaluate over varying variables
         for value in variable_options:
@@ -736,8 +738,8 @@ class Factory:
                     unit.var_df.loc[scenario, variable.lower()] = value
                     logger.debug(f"{variable} for {unit.name} ({scenario}) set to {value})")
                 else:
-                    unit.var_df.loc[dat.default_scenario, variable.lower()] = value
-                    logger.debug(f"{variable} for {unit.name} ({dat.default_scenario}) set to {value})")
+                    unit.var_df.loc[bbcfg.scenario_default, variable.lower()] = value
+                    logger.debug(f"{variable} for {unit.name} ({bbcfg.scenario_default}) set to {value})")
 
             f_in, f_out, agg_df, net_df = self.balance(product_qty=product_qty,
                                                        product=product,
@@ -786,7 +788,7 @@ class Factory:
         if product is False:
             product = self.main_product
 
-        meta_df = iof.metadata_df(user=dat.user_data,
+        meta_df = iof.metadata_df(user=bbcfg.user,
                                   name=self.name,
                                   level="Factory",
                                   scenario=f'{scenario}-{unit_name}-{variable}-sensitivity',
@@ -817,7 +819,7 @@ class Factory:
         iof.write_to_xls(df_or_df_list=dfs,
                          sheet_list=sheets,
                          outdir=outdir,
-                         filename=f'{self.name}_{id}f_sens_{dat.timestamp_str}')
+                         filename=f'{self.name}_{id}f_sens_{bbcfg.timestamp_str}')
 
         for i, unit in enumerate(units):
             unit.var_df = original_var_dfs[i].copy()
@@ -834,21 +836,21 @@ class Factory:
             Used in self.balance() (above)
         """
 
-        if dat.ignore_sep in origin_product:
-            if origin_product.split(dat.ignore_sep)[0] in lookup_var_dict:
+        if bbcfg.ignore_sep in origin_product:
+            if origin_product.split(bbcfg.ignore_sep)[0] in lookup_var_dict:
                 if scenario in orig_unit.var_df.index:
                     lookup_substance = orig_unit.var_df.at[
-                        scenario, lookup_var_dict[origin_product.split(dat.ignore_sep)[0]]['lookup_var']]
+                        scenario, lookup_var_dict[origin_product.split(bbcfg.ignore_sep)[0]]['lookup_var']]
                 else:
                     lookup_substance = orig_unit.var_df.at[
-                        dat.default_scenario, lookup_var_dict[origin_product.split(dat.ignore_sep)[0]]['lookup_var']]
-                origin_product = lookup_substance + dat.ignore_sep + origin_product.split(dat.ignore_sep)[1]
+                        bbcfg.scenario_default, lookup_var_dict[origin_product.split(bbcfg.ignore_sep)[0]]['lookup_var']]
+                origin_product = lookup_substance + bbcfg.ignore_sep + origin_product.split(bbcfg.ignore_sep)[1]
         elif origin_product in lookup_var_dict:
             if scenario in orig_unit.var_df.index:
                 origin_product = orig_unit.var_df.at[scenario, lookup_var_dict[origin_product]['lookup_var']]
             else:
                 origin_product = orig_unit.var_df.at[
-                    dat.default_scenario, lookup_var_dict[origin_product]['lookup_var']]
+                    bbcfg.scenario_default, lookup_var_dict[origin_product]['lookup_var']]
         return origin_product
 
     def check_product_qty(self, product, product_io, chain_name, unit_name, io_dicts, remaining_product_dict):
@@ -871,7 +873,7 @@ class Factory:
             Used in self.balance() and self.diagram() (above)
         """
 
-        if col in row and type(row[col]) is str and row[col] not in dat.no_var:
+        if col in row and type(row[col]) is str and row[col] not in bbcfg.no_var:
             return ifyes
         else:
             return ifno
@@ -884,19 +886,19 @@ class Factory:
         purge = 0
         max_replace_fraction = 1.0
 
-        if dat.purge_fraction in row:
-            if row[dat.purge_fraction] not in dat.no_var:
-                if type(row[dat.purge_fraction]) in [float, int] and not isnan(row[dat.purge_fraction]):
-                    calc.check_qty(row[dat.purge_fraction], fraction=True)
-                    purge = qty * row[dat.purge_fraction]
+        if bbcfg.columns.purge_fraction in row:
+            if row[bbcfg.columns.purge_fraction] not in bbcfg.no_var:
+                if type(row[bbcfg.columns.purge_fraction]) in [float, int] and not isnan(row[bbcfg.columns.purge_fraction]):
+                    calc.check_qty(row[bbcfg.columns.purge_fraction], fraction=True)
+                    purge = qty * row[bbcfg.columns.purge_fraction]
                     qty = qty - purge
                     logger.debug(f"purge: {purge}, new qty: {qty}")
 
-        if dat.max_replace_fraction in row:
-            if row[dat.max_replace_fraction] not in dat.no_var:
-                if type(row[dat.max_replace_fraction]) in [float, int] and not isnan(row[dat.max_replace_fraction]):
-                    calc.check_qty(row[dat.max_replace_fraction], fraction=True)
-                    max_replace_fraction = row[dat.max_replace_fraction]
+        if bbcfg.columns.max_replace_fraction in row:
+            if row[bbcfg.columns.max_replace_fraction] not in bbcfg.no_var:
+                if type(row[bbcfg.columns.max_replace_fraction]) in [float, int] and not isnan(row[bbcfg.columns.max_replace_fraction]):
+                    calc.check_qty(row[bbcfg.columns.max_replace_fraction], fraction=True)
+                    max_replace_fraction = row[bbcfg.columns.max_replace_fraction]
 
         if qty < 0:
             raise ValueError(f"{qty} < 0 after calculating purge ({purge})")
@@ -914,7 +916,7 @@ class Factory:
             if scenario in unit.var_df.index:
                 flow = unit.var_df.at[scenario, lookup_var_dict[df[col]]['lookup_var']]
             else:
-                flow = unit.var_df.at[dat.default_scenario, lookup_var_dict[df[col]]['lookup_var']]
+                flow = unit.var_df.at[bbcfg.scenario_default, lookup_var_dict[df[col]]['lookup_var']]
             if type(check_if_in_list) is list:
                 if df[col] in check_if_in_list:
                     in_list = True
@@ -935,11 +937,11 @@ class Factory:
         qty, max_replace_fraction = self.check_for_recycle_fractions(qty, row)
 
         # check if flow to be replaced is a lookup variable and/or a fuel
-        replace_flow, replace_fuel = self.check_for_lookup(col=dat.replace,
+        replace_flow, replace_fuel = self.check_for_lookup(col=bbcfg.columns.replace,
                                                            df=row,
                                                            unit=dest_unit,
                                                            scenario=scenario,
-                                                           check_if_in_list=dat.fuel_flows)
+                                                           check_if_in_list=bbcfg.fuel_flows)
 
         if replace_flow not in io_dicts[dest_product_io][dest_chain.name][dest_unit.name]:
             raise ValueError(
@@ -957,7 +959,7 @@ class Factory:
 
         # check if energy is recycled to replace combusted fuel
         if replace_fuel is True:
-            for string in dat.energy_flows:
+            for string in bbcfg.energy_flows:
                 if orig_product.startswith(string) or orig_product.endswith(string):
                     logger.debug("replacing fuel with energy")
 
@@ -1040,7 +1042,7 @@ class Factory:
 
         if orig_unit and orig_unit.name:
             orig_unit_name = orig_unit.name
-        elif row[dat.origin_unit] == dat.connect_all:
+        elif row[bbcfg.columns.origin_unit] == bbcfg.connect_all:
             orig_unit_name = 'all'
         else:
             orig_unit_name = 'unknown'
@@ -1099,8 +1101,8 @@ class Factory:
         for f in factory_totals[io]:
             factory_flow = f
             factory_flow_qty = factory_totals[io][f]
-            if dat.ignore_sep in factory_flow:
-                factory_flow = factory_flow.split(dat.ignore_sep)[0]
+            if bbcfg.ignore_sep in factory_flow:
+                factory_flow = factory_flow.split(bbcfg.ignore_sep)[0]
 
             # check for and calculate updownstream outflows 
             if type(outflow_list) is list:
@@ -1110,13 +1112,13 @@ class Factory:
                     logger.debug(f"checking for upstream {emission} for {factory_flow}")
                     if factory_flow in df_outflows.index:  # if factory flow not found, then skip
                         logger.debug(f"{factory_flow} found")
-                        emission_flow = f'{e}{dat.ignore_sep}{loc}stream ({factory_flow})'
+                        emission_flow = f'{e}{bbcfg.ignore_sep}{loc}stream ({factory_flow})'
                         emission_qty = factory_flow_qty * df_outflows.at[factory_flow, emission]
                         logger.debug(
                             f"{round(emission_qty, 4)} of {emission} calculated for {round(factory_flow_qty, 4)} of {factory_flow} using factor of {round(df_outflows.at[factory_flow, emission], 4)}")
                         total_e_qty += emission_qty
 
-                        if round(emission_qty, dat.float_tol) < 0:
+                        if round(emission_qty, bbcfg.float_tol) < 0:
                             raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
                         else:
                             additional_outflows[emission_flow] += emission_qty
@@ -1131,13 +1133,13 @@ class Factory:
                     logger.debug(f"checking for upstream {emission} for {factory_flow}")
                     if factory_flow in df_inflows.index:  # if factory flow not found, then skip
                         logger.debug(f"{factory_flow} found")
-                        emission_flow = f'{e}{dat.ignore_sep}{loc}stream ({factory_flow})'
+                        emission_flow = f'{e}{bbcfg.ignore_sep}{loc}stream ({factory_flow})'
                         emission_qty = factory_flow_qty * df_inflows.at[factory_flow, emission]
                         logger.debug(
                             f"{round(emission_qty, 4)} of {emission} calculated for {round(factory_flow_qty, 4)} of {factory_flow} using factor of {round(df_inflows.at[factory_flow, emission], 4)}")
                         total_e_qty += emission_qty
 
-                        if round(emission_qty, dat.float_tol) < 0:
+                        if round(emission_qty, bbcfg.float_tol) < 0:
                             raise ValueError(f'emission_qty ({emission_qty}) should not be negative')
                         else:
                             additional_inflows[emission_flow] += emission_qty
@@ -1163,9 +1165,9 @@ class Factory:
         """
 
         outdir = outdir if outdir else self.outdir
-        filename = f'{self.name}_f_{scenario}_{dat.timestamp_str}{id}'
+        filename = f'{self.name}_f_{scenario}_{bbcfg.timestamp_str}{id}'
 
-        meta_df = iof.metadata_df(user=dat.user_data, name=self.name,
+        meta_df = iof.metadata_df(user=bbcfg.user, name=self.name,
                                   level="Factory", scenario=scenario, product=self.main_product,
                                   product_qty=product_qty)
 
@@ -1319,47 +1321,45 @@ class Factory:
 
     def connect_subgraphs(self, factory_diagram, factory_subgraphs):
         for dummy_i, c in self.connections_df.iterrows():
-            product = c[dat.origin_product]
-            origin_chain = c[dat.origin_chain]
-            d_io = iof.clean_str(c[dat.dest_io][0])
+            product = c[bbcfg.columns.origin_product]
+            origin_chain = c[bbcfg.columns.origin_chain]
+            d_io = iof.clean_str(c[bbcfg.columns.dest_io][0])
 
             # line style for mass flows
-            connection_color = dat.mass_color
-            line_style = dat.mass_style
+            connection_color = bbcfg.diagram.mass_color
+            line_style = bbcfg.diagram.mass_style
 
             # line style energy flows
             if iof.is_energy(product):
-                connection_color = dat.energy_color
-                line_style = dat.energy_style
+                connection_color = bbcfg.diagram.energy_color
+                line_style = bbcfg.diagram.energy_style
 
             # line style for recycled flows
-            if dat.replace in c and type(c[dat.replace]) is str and c[dat.replace] not in dat.no_var:
-                connection_color = dat.recycled_color  # recycled energy flows will still have energy line style
+            if bbcfg.columns.replace in c and type(c[bbcfg.columns.replace]) is str and c[bbcfg.columns.replace] not in bbcfg.no_var:
+                connection_color = bbcfg.diagram.recycled_color  # recycled energy flows will still have energy line style
                 product = product + "\n(recycled)"
 
             # determine connection ends
             if d_io == 'i':
-                dest_chain = c[dat.dest_chain] + factory_subgraphs[c[dat.dest_chain]]['process_list'][0]['process'].name
+                dest_chain = c[bbcfg.columns.dest_chain] + factory_subgraphs[c[bbcfg.columns.dest_chain]]['process_list'][0]['process'].name
             elif d_io == 'o':
-                dest_chain = c[dat.dest_chain] + factory_subgraphs[c[dat.dest_chain]]['process_list'][-1][
+                dest_chain = c[bbcfg.columns.dest_chain] + factory_subgraphs[c[bbcfg.columns.dest_chain]]['process_list'][-1][
                     'process'].name
 
-            if dat.dest_unit in c:  # if there's a destination unit, get the process index in the process list and them the name from the process
-                d_process_id_list = [u['process'].u_id for u in factory_subgraphs[c[dat.dest_chain]]['process_list']]
-                if c[dat.dest_unit] in [u['process'].u_id for u in
-                                        factory_subgraphs[c[dat.dest_chain]]['process_list']]:
-                    d_unit_index = d_process_id_list.index(c[dat.dest_unit])
-                    dest_chain = c[dat.dest_chain] + factory_subgraphs[c[dat.dest_chain]]['process_list'][d_unit_index][
-                        'process'].name
+            if bbcfg.columns.dest_unit in c:  # if there's a destination unit, get the process index in the process list and them the name from the process
+                d_process_id_list = [u['process'].u_id for u in factory_subgraphs[c[bbcfg.columns.dest_chain]]['process_list']]
+                if c[bbcfg.columns.dest_unit] in [u['process'].u_id for u in factory_subgraphs[c[bbcfg.columns.dest_chain]]['process_list']]:
+                    d_unit_index = d_process_id_list.index(c[bbcfg.columns.dest_unit])
+                    dest_chain = c[bbcfg.columns.dest_chain] + factory_subgraphs[c[bbcfg.columns.dest_chain]]['process_list'][d_unit_index]['process'].name
 
-            if c[dat.origin_unit] == dat.connect_all:
-                origin_list = [c[dat.origin_chain] + p['process'].name for p in
+            if c[bbcfg.columns.origin_unit] == bbcfg.connect_all:
+                origin_list = [c[bbcfg.columns.origin_chain] + p['process'].name for p in
                                factory_subgraphs[origin_chain]['process_list']]
             else:
-                o_process_id_list = [u['process'].u_id for u in factory_subgraphs[c[dat.origin_chain]]['process_list']]
-                o_unit_index = o_process_id_list.index(c[dat.origin_unit])
+                o_process_id_list = [u['process'].u_id for u in factory_subgraphs[c[bbcfg.columns.origin_chain]]['process_list']]
+                o_unit_index = o_process_id_list.index(c[bbcfg.columns.origin_unit])
                 origin_list = [
-                    c[dat.origin_chain] + factory_subgraphs[c[dat.origin_chain]]['process_list'][o_unit_index][
+                    c[bbcfg.columns.origin_chain] + factory_subgraphs[c[bbcfg.columns.origin_chain]]['process_list'][o_unit_index][
                         'process'].name]
 
             # draw connection
@@ -1378,8 +1378,8 @@ class Factory:
             io_diagram.node(chain + process + flows, label=flows)
 
             if io == 'o':
-                factory_diagram.edge(chain + process, chain + process + flows, color=dat.mass_color)
+                factory_diagram.edge(chain + process, chain + process + flows, color=bbcfg.diagram.mass_color)
             else:
-                factory_diagram.edge(chain + process + flows, chain + process, color=dat.mass_color)
+                factory_diagram.edge(chain + process + flows, chain + process, color=bbcfg.diagram.mass_color)
 
         return io_diagram, factory_diagram

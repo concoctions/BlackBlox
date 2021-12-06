@@ -34,7 +34,7 @@ from datetime import datetime
 import numpy as np
 
 import blackblox.calculators as calc
-import blackblox.dataconfig as dat
+from blackblox.dataconfig import bbcfg
 import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
 from blackblox.frames import df_unit_library, lookup_var_dict
@@ -97,30 +97,30 @@ class UnitProcess:
 
         if display_name is not False:
             self.name = display_name
-        elif dat.unit_name in units_df:
-            self.name = units_df.at[u_id, dat.unit_name]
+        elif bbcfg.columns.unit_name in units_df:
+            self.name = units_df.at[u_id, bbcfg.columns.unit_name]
         else:
             self.name = u_id
 
         if var_df is not False:
             self.var_df = iof.make_df(var_df)
         else:
-            v_sheet = iof.check_for_col(units_df, dat.var_sheetname, u_id)
-            self.var_df = iof.make_df(units_df.at[u_id, dat.var_filepath]
+            v_sheet = iof.check_for_col(units_df, bbcfg.var_sheetname, u_id)
+            self.var_df = iof.make_df(units_df.at[u_id, bbcfg.var_filepath]
                                       , sheet=v_sheet, lower_cols=True, fillna=True)
 
         if calc_df is not False:
             self.calc_df = calc_df
         else:
-            c_sheet = iof.check_for_col(units_df, dat.calc_sheetname, u_id)
-            self.calc_df = iof.make_df(units_df.at[u_id, dat.calc_filepath], sheet=c_sheet, index=None)
+            c_sheet = iof.check_for_col(units_df, bbcfg.calc_sheetname, u_id)
+            self.calc_df = iof.make_df(units_df.at[u_id, bbcfg.calc_filepath], sheet=c_sheet, index=None)
 
-        self.outdir = (outdir if outdir else dat.path_outdir) / f'{dat.timestamp_str}__unit_{self.name}'
+        self.outdir = (outdir if outdir else bbcfg.paths.path_outdir) / f'{bbcfg.timestamp_str}__unit_{self.name}'
 
         # use default value if available, otherwise none
-        self.default_product = iof.check_for_col(units_df, dat.unit_product, u_id)
+        self.default_product = iof.check_for_col(units_df, bbcfg.columns.unit_product, u_id)
         # use default value if available, otherwise none
-        self.default_io = iof.check_for_col(units_df, dat.unit_product_io, u_id)
+        self.default_io = iof.check_for_col(units_df, bbcfg.columns.unit_product_io, u_id)
 
         self.inflows = set()
         self.outflows = set()
@@ -130,17 +130,17 @@ class UnitProcess:
         self.energy_outflows = set()
 
         for i in self.calc_df.index:
-            if type(self.calc_df.at[i, dat.known]) is str:  # removes blank rows
-                products = [(self.calc_df.at[i, dat.known],
-                             iof.clean_str(self.calc_df.at[i, dat.known_io][0])),
-                            (self.calc_df.at[i, dat.unknown],
-                             iof.clean_str(self.calc_df.at[i, dat.unknown_io][0]))]
+            if type(self.calc_df.at[i, bbcfg.columns.known]) is str:  # removes blank rows
+                products = [(self.calc_df.at[i, bbcfg.columns.known],
+                             iof.clean_str(self.calc_df.at[i, bbcfg.columns.known_io][0])),
+                            (self.calc_df.at[i, bbcfg.columns.unknown],
+                             iof.clean_str(self.calc_df.at[i, bbcfg.columns.unknown_io][0]))]
 
             for product, i_o in products:
-                if not product.startswith(dat.consumed_indicator):  # ignores flows that are specified as balance items
+                if not product.startswith(bbcfg.consumed_indicator):  # ignores flows that are specified as balance items
                     if i_o in ['i', 'c']:
                         self.inflows.add(product)
-                        if iof.is_energy(product):  # sorts based on dat.energy_flows
+                        if iof.is_energy(product):  # sorts based on bbcfg.energy_flows
                             self.energy_inflows.add(product)
                         else:
                             self.mass_inflows.add(product)
@@ -152,8 +152,8 @@ class UnitProcess:
                             self.mass_outflows.add(product)
 
                     if 'combustion' in self.calc_df.at[
-                        i, dat.calc_type]:  # adds combustion emissions and balancing energy flows
-                        for emission in dat.default_emissions:
+                        i, bbcfg.columns.calc_type]:  # adds combustion emissions and balancing energy flows
+                        for emission in bbcfg.emissions:
                             self.outflows.add(emission)
                             self.mass_outflows.add(emission)
                         self.energy_inflows.add(f"energy embodied in fuels")
@@ -163,12 +163,12 @@ class UnitProcess:
                 qty=1.0,
                 product=False,
                 i_o=False,
-                scenario=dat.default_scenario,
+                scenario=bbcfg.scenario_default,
                 product_alt_name=False,
                 balance_energy=True,
                 raise_imbalance=False,
                 write_to_console=False):
-        """balance(self, qty, product=False, i_o=False, scenario=dat.default_scenario, energy_flows=dat.energy_flows, balance_energy=True, raise_imbalance=False,)
+        """balance(self, qty, product=False, i_o=False, scenario=bbcfg.scenario_default, energy_flows=bbcfg.energy_flows, balance_energy=True, raise_imbalance=False,)
         performs a mass (and/or energy) balance on the unit process.
 
         Calculates all inflows and outflows, using the specified relationships in
@@ -220,7 +220,7 @@ class UnitProcess:
 
         if scenario not in self.var_df.index.values:
             logger.info(
-                f'ALERT! {self.name.upper()}: {scenario} not found in variables file. {dat.default_scenario} values will be used instead')
+                f'ALERT! {self.name.upper()}: {scenario} not found in variables file. {bbcfg.scenario_default} values will be used instead')
 
         product = self.check_product(product)
         if product in lookup_var_dict:
@@ -246,24 +246,24 @@ class UnitProcess:
             # get flow names and locations
             # I don't remember exactly how this applies
             logger.debug("if you get an error here, verify value types the var file (e.g. string, float")
-            known_substance, known_proxy, known_lookup = self.check_substance(calc_df.at[i, dat.known], scenario,
+            known_substance, known_proxy, known_lookup = self.check_substance(calc_df.at[i, bbcfg.columns.known], scenario,
                                                                               product, product_alt_name,
                                                                               lookup_product_key)
-            unknown_substance, unknown_proxy, unknown_lookup = self.check_substance(calc_df.at[i, dat.unknown],
+            unknown_substance, unknown_proxy, unknown_lookup = self.check_substance(calc_df.at[i, bbcfg.columns.unknown],
                                                                                     scenario, product, product_alt_name,
                                                                                     lookup_product_key)
-            known_io = iof.clean_str(calc_df.at[i, dat.known_io][0])
-            unknown_io = iof.clean_str(calc_df.at[i, dat.unknown_io][0])
+            known_io = iof.clean_str(calc_df.at[i, bbcfg.columns.known_io][0])
+            unknown_io = iof.clean_str(calc_df.at[i, bbcfg.columns.unknown_io][0])
 
             lookup_df = self.check_lookup(known_lookup, unknown_lookup)
 
-            calc_type = iof.clean_str(calc_df.at[i, dat.calc_type])
+            calc_type = iof.clean_str(calc_df.at[i, bbcfg.columns.calc_type])
             skip, invert, known2_qty, known2_proxy = self.check_calc(i, calc_type, calc_df, scenario, known_substance,
                                                                      known_io, unknown_substance, unknown_io, io_dicts)
 
             logger.debug(f"{self.name.upper()}: current index: {i}, current product: {known_substance}")
 
-            var = self.check_var(calc_df.at[i, dat.calc_var], calc_type, scenario)
+            var = self.check_var(calc_df.at[i, bbcfg.columns.calc_var], calc_type, scenario)
 
             if skip is True:
                 i += 1
@@ -304,7 +304,7 @@ class UnitProcess:
             qty_calculated = calc.calcs_dict[calc_type]['function'](**kwargs)
             qty_calculated = calc.no_nan(qty_calculated)
             if qty_calculated < 0:
-                qty_calculated = round(qty_calculated, dat.float_tol)  # to avoid propogating floating point errors
+                qty_calculated = round(qty_calculated, bbcfg.float_tol)  # to avoid propogating floating point errors
             calc.check_qty(qty_calculated)
 
             # write qty calculated to dictionary
@@ -332,7 +332,7 @@ class UnitProcess:
         logger.debug(f"{self.name.upper()}: Balancing mass flows")
         total_mass_in, total_mass_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
                                                            raise_imbalance=raise_imbalance,
-                                                           ignore_flows=dat.energy_flows)
+                                                           ignore_flows=bbcfg.energy_flows)
 
         if total_mass_in > total_mass_out:
             io_dicts['o']['UNKNOWN-mass'] = total_mass_in - total_mass_out
@@ -348,7 +348,7 @@ class UnitProcess:
             total_energy_in, total_energy_out = calc.check_balance(io_dicts['i'], io_dicts['o'],
                                                                    raise_imbalance=raise_imbalance,
                                                                    ignore_flows=[],
-                                                                   only_these_flows=dat.energy_flows)
+                                                                   only_these_flows=bbcfg.energy_flows)
             if total_energy_in > total_energy_out:
                 io_dicts['o']['UNKNOWN-energy'] = total_energy_in - total_energy_out
                 logger.info(
@@ -399,7 +399,7 @@ class UnitProcess:
             outflows_df = iof.mass_energy_df(scenario_dict['o'])
 
         if write_to_xls is True:
-            meta_df = iof.metadata_df(user=dat.user_data,
+            meta_df = iof.metadata_df(user=bbcfg.user,
                                       name=self.name,
                                       level="Unit",
                                       scenario=" ,".join(scenario_list),
@@ -429,7 +429,7 @@ class UnitProcess:
                      recyclate_flow,
                      toBeReplaced_flow,
                      max_replace_fraction=1.0,
-                     scenario=dat.default_scenario,
+                     scenario=None,
                      write_to_console=False,
                      **kwargs):
         """Replaces a calculated flow within a unit process with another flow, either wholly or partially
@@ -452,12 +452,12 @@ class UnitProcess:
             - *dictionary* of rebalanced outflows
             - *float* of the remaining quantity of the recycle stream
         """
+        scenario = scenario if scenario else bbcfg.scenario_default
+
         logger.info(f'{self.name.upper()}: attempting to replace {toBeReplaced_flow} with {recyclate_flow}')
 
-        original_flows = dict(i=original_inflows_dict,
-                              o=original_outflows_dict)
-        rebalanced_flows = dict(i=copy(original_inflows_dict),
-                                o=copy(original_outflows_dict))
+        original_flows = dict(i=original_inflows_dict, o=original_outflows_dict)
+        rebalanced_flows = dict(i=copy(original_inflows_dict), o=copy(original_outflows_dict))
 
         i_o = iof.clean_str(recycle_io[0])
 
@@ -485,11 +485,11 @@ class UnitProcess:
 
         rebalanced_flows[i_o][toBeReplaced_flow] -= used_recyclate_qty
         if rebalanced_flows[i_o][toBeReplaced_flow] < 0:
-            rebalanced_flows[i_o][toBeReplaced_flow] = round(rebalanced_flows[i_o][toBeReplaced_flow], dat.float_tol)
+            rebalanced_flows[i_o][toBeReplaced_flow] = round(rebalanced_flows[i_o][toBeReplaced_flow], bbcfg.float_tol)
             calc.check_qty(rebalanced_flows[i_o][toBeReplaced_flow])
         rebalanced_flows[i_o][recyclate_flow] += used_recyclate_qty
         if rebalanced_flows[i_o][recyclate_flow] < 0:
-            rebalanced_flows[i_o][recyclate_flow] = round(rebalanced_flows[i_o][recyclate_flow], dat.float_tol)
+            rebalanced_flows[i_o][recyclate_flow] = round(rebalanced_flows[i_o][recyclate_flow], bbcfg.float_tol)
             calc.check_qty(rebalanced_flows[i_o][recyclate_flow])
 
         calc.check_qty(unused_recyclate_qty)
@@ -509,12 +509,12 @@ class UnitProcess:
                                       recyclate_flow,
                                       toBeReplaced_flow,
                                       max_replace_fraction=1.0,
-                                      combustion_eff=dat.combustion_efficiency_var,
-                                      scenario=dat.default_scenario,
-                                      emissions_list=dat.default_emissions,
+                                      combustion_eff=None,
+                                      scenario=None,
+                                      emissions_list=None,
                                       write_to_console=False,
                                       **kwargs):
-        """recycle_energy_replacing_fuel(original_inflows_dict, original_outflows_dict, recycled_qty, recycle_io, recyclate_flow, toBeReplaced_flow, max_replace_fraction=1.0, combustion_eff = dat.combustion_efficiency_var, scenario=dat.default_scenario, emissions_list = ['CO2', 'H2O', 'SO2'], **kwargs)
+        """recycle_energy_replacing_fuel(original_inflows_dict, original_outflows_dict, recycled_qty, recycle_io, recyclate_flow, toBeReplaced_flow, max_replace_fraction=1.0, combustion_eff = bbcfg.columns.combustion_efficiency_var, scenario=bbcfg.scenario_default, emissions_list = ['CO2', 'H2O', 'SO2'], **kwargs)
         replaces fuel use and associated emissions with a recycled energy flow (e.g. waste heat to replace combusted coal)
 
         Args:
@@ -529,7 +529,7 @@ class UnitProcess:
             combustion_eff [str/float]: The name of the combustion efficiency variable (case sensitive) from the variables table
                 or a float of the combustion_eff (must be between 0 and 1)
             scenario (str): name of the scenario to use
-                (Defaults to dat.default_scenario)
+                (Defaults to bbcfg.scenario_default)
             emissions_list (list[str]): list of emissions to recalculation. O2 is always automatically recalculated.
                 (Defaults to ['CO2', 'H2O', 'SO2'])
 
@@ -541,12 +541,14 @@ class UnitProcess:
         """
         logger.info(f"{self.name.upper()}: Attempting to replace {toBeReplaced_flow} (energy) with {recyclate_flow}.")
 
-        original_flows = dict(i=original_inflows_dict,
-                              o=original_outflows_dict)
-        rebalanced_flows = dict(i=copy(original_inflows_dict),
-                                o=copy(original_outflows_dict))
+        original_flows = dict(i=original_inflows_dict, o=original_outflows_dict)
+        rebalanced_flows = dict(i=copy(original_inflows_dict), o=copy(original_outflows_dict))
         replaced_emissions_dict = defaultdict(float)
         replaced_inflows_dict = defaultdict(float)
+
+        combustion_eff = combustion_eff if combustion_eff else bbcfg.columns.combustion_efficiency_var
+        scenario = scenario if scenario else bbcfg.scenario_default
+        emissions_list = emissions_list if emissions_list else bbcfg.emissions
 
         i_o = iof.clean_str(recycle_io[0])
         if i_o not in ['i', 'o']:
@@ -616,12 +618,12 @@ class UnitProcess:
             # remove emissions/coinflows of replaced fuel
             for flow in replaced_emissions_dict:
                 rebalanced_flows['o'][flow] -= replaced_emissions_dict[flow]
-                if round(rebalanced_flows['o'][flow], dat.float_tol) == 0:  # rounds off floating point errors
+                if round(rebalanced_flows['o'][flow], bbcfg.float_tol) == 0:  # rounds off floating point errors
                     rebalanced_flows['o'][flow] = 0
 
             for flow in replaced_inflows_dict:
                 rebalanced_flows['i'][flow] -= replaced_inflows_dict[flow]
-                if round(rebalanced_flows['i'][flow], dat.float_tol) == 0:  # rounds off floating point errors
+                if round(rebalanced_flows['i'][flow], bbcfg.float_tol) == 0:  # rounds off floating point errors
                     rebalanced_flows['i'][flow] = 0
 
         if remaining_energy_qty < 0:
@@ -699,14 +701,14 @@ class UnitProcess:
             return self.var_df.at[scenario, iof.clean_str(var)]  # from the relevant scenario
         else:
             logger.debug(
-                f"using {self.var_df.at[dat.default_scenario, iof.clean_str(var)]} from {dat.default_scenario} for {var}")
+                f"using {self.var_df.at[bbcfg.scenario_default, iof.clean_str(var)]} from {bbcfg.scenario_default} for {var}")
             return self.var_df.at[
-                dat.default_scenario, iof.clean_str(var)]  # if not available, return from default string
+                bbcfg.scenario_default, iof.clean_str(var)]  # if not available, return from default string
 
     def check_var(self, var, calc_type, scenario):
         """checks that the variable is valid and returns the correct variable for the calc type
         """
-        if isinstance(var, str) and iof.clean_str(var) not in dat.no_var:
+        if isinstance(var, str) and iof.clean_str(var) not in bbcfg.no_var:
             if calc_type in calc.lookup_var_calc_list:  # for lookup calculations the var specifies the column of the lookup df
                 return iof.clean_str(var, lower=False)  # which is given as the var in the calc df
             else:
@@ -738,18 +740,18 @@ class UnitProcess:
             substance = self.get_var(lookup_var_dict[substance]['lookup_var'], scenario)
             logger.debug(f"{self.name.upper()}: lookup substance {substance} substituted")
 
-        if dat.ignore_sep in substance:
-            if substance.split(dat.ignore_sep)[0] in lookup_var_dict:
+        if bbcfg.ignore_sep in substance:
+            if substance.split(bbcfg.ignore_sep)[0] in lookup_var_dict:
                 logger.debug(f"{self.name.upper()}: {substance} in lookup_var_dict")
-                if 'data_frame' in lookup_var_dict[substance.split(dat.ignore_sep)[0]]:
-                    lookup_df = lookup_var_dict[substance.split(dat.ignore_sep)[0]]['data_frame']
-                proxy = self.get_var(lookup_var_dict[substance.split(dat.ignore_sep)[0]]['lookup_var'], scenario)
-                substance = proxy + dat.ignore_sep + substance.split(dat.ignore_sep)[1]
+                if 'data_frame' in lookup_var_dict[substance.split(bbcfg.ignore_sep)[0]]:
+                    lookup_df = lookup_var_dict[substance.split(bbcfg.ignore_sep)[0]]['data_frame']
+                proxy = self.get_var(lookup_var_dict[substance.split(bbcfg.ignore_sep)[0]]['lookup_var'], scenario)
+                substance = proxy + bbcfg.ignore_sep + substance.split(bbcfg.ignore_sep)[1]
                 logger.debug(f"{self.name.upper()}:lookup substance {substance} substituted")
             else:
-                proxy = substance.split(dat.ignore_sep)[0]
+                proxy = substance.split(bbcfg.ignore_sep)[0]
             logger.debug(
-                f"{self.name.upper()}: {dat.ignore_sep} separator found in {substance}. Using {proxy} for calculations.")
+                f"{self.name.upper()}: {bbcfg.ignore_sep} separator found in {substance}. Using {proxy} for calculations.")
         else:
             proxy = substance
 
@@ -792,21 +794,21 @@ class UnitProcess:
             return True, False, False, False
 
         if calc_type in calc.twoQty_calc_list:  # e.g. addition or subtraction
-            known2_substance = calc_df.at[i, dat.known2]
-            k2_io = iof.clean_str(calc_df.at[i, dat.known2_io][0])
+            known2_substance = calc_df.at[i, bbcfg.columns.known2]
+            k2_io = iof.clean_str(calc_df.at[i, bbcfg.columns.known2_io][0])
 
             if known2_substance in lookup_var_dict:
                 known2_substance = self.get_var(lookup_var_dict[known2_substance]['lookup_var'], scenario)
 
-            if dat.ignore_sep in known2_substance:
-                if known2_substance.split(dat.ignore_sep)[0] in lookup_var_dict:
+            if bbcfg.ignore_sep in known2_substance:
+                if known2_substance.split(bbcfg.ignore_sep)[0] in lookup_var_dict:
                     known2_proxy = self.get_var(
-                        lookup_var_dict[known2_substance.split(dat.ignore_sep)[0]]['lookup_var'], scenario)
-                    known2_substance = known2_proxy + dat.ignore_sep + known2_substance.split(dat.ignore_sep)[1]
+                        lookup_var_dict[known2_substance.split(bbcfg.ignore_sep)[0]]['lookup_var'], scenario)
+                    known2_substance = known2_proxy + bbcfg.ignore_sep + known2_substance.split(bbcfg.ignore_sep)[1]
                 else:
-                    known2_proxy = known2_substance.split(dat.ignore_sep)[0]
+                    known2_proxy = known2_substance.split(bbcfg.ignore_sep)[0]
                 logger.debug(
-                    f"{self.name.upper()}: {dat.ignore_sep} separator found in {known2_substance}. Using {known2_proxy} for calculations.")
+                    f"{self.name.upper()}: {bbcfg.ignore_sep} separator found in {known2_substance}. Using {known2_proxy} for calculations.")
             else:
                 known2_proxy = known2_substance
 

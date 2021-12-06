@@ -1,54 +1,58 @@
-import sys
-sys.path.append('/Users/Tanzer/GitHub/BlackBlox/')
-
 import random
 from pathlib import Path
 
 import pandas as pan
 from pprint import pprint
 
+from blackblox.dataconfig_format import PathConfig
+from blackblox.dataconfig import bbcfg
 import blackblox.io_functions as iof
-import blackblox.dataconfig as dat
 import blackblox.unitprocess as uni
 import blackblox.processchain as cha
 import blackblox.factory as fac
 import blackblox.industry as ind
 
 
-# USER DATA CONFIG
-
-# full absolute path of the dir containing this script
-path_script_dir = Path(__file__).resolve().parent
-path_data_demo = path_script_dir / 'data'
-path_demo_factories = path_data_demo / 'factories'
-path_factory_file = path_demo_factories / 'cementFactory_withCCS.xlsx'
-scenario_list = ['EU-1990', 'EU-2000', 'EU-2010']
-
-path_outdir = path_script_dir / 'output' / dat.timestamp_str
-
-dat.user_data = {
+# Settings the configuration values that we wish to customize
+bbcfg.user = {
     "name": "S.E. Tanzer",
     "affiliation": "TU Delft",
-    "project": f"BlackBlox Demo - {dat.timestamp_str}",
+    "project": f"BlackBlox Demo - {bbcfg.timestamp_str}",
 }
 
-dat.default_units = {
+bbcfg.units_default = {
     'mass': 'tonnes',
     'energy': 'GJ',
 }
 
-dat.default_emissions = ['CO2__fossil']
-dat.default_scenario = 'default'
+bbcfg.emissions = ['CO2__fossil']
+bbcfg.scenario_default = 'default'
+
+path_script_dir = Path(__file__).resolve().parent  # Directory where this script file is located
+
+bbcfg.paths = PathConfig.convention_paths_scenario_root(
+    scenario=path_script_dir,
+    unit_process_library_sheet='Unit Processes',
+    same_xls=['thisfile', 'same', 'here'],
+    unit_process_library_file_suffix=Path('unitlibrary.xlsx'),
+    path_outdir_suffix=Path(bbcfg.timestamp_str),
+)
+
+
+path_data_demo = path_script_dir / 'data'
+path_factory_file = path_data_demo / 'factories' / 'cementFactory_withCCS.xlsx'
+
+scenario_list = ['EU-1990', 'EU-2000', 'EU-2010']
 
 
 # BEGIN OF THE DEMO
 print("\n\nWELCOME\n\n")
 
 print(f"\n\nblackblox.py v0.1 Demonstration")
-print(f"{dat.timestamp_str}")
+print(f"{bbcfg.timestamp_str}")
 
-print(f"\nThis demo uses unit process data from {path_data_demo}")
-print(f"and outputting any files to {path_outdir}")
+print(f"\nThis data uses unit process data from {path_data_demo}")
+print(f"and outputting any files to {bbcfg.paths.path_outdir}")
 
 input("\nPress enter to start demo: ")
 
@@ -60,7 +64,7 @@ print('It represents a single "black box" process with a set of inflows and outf
 
 stop = input("\nPress enter to create the KILN unit process: ")
 
-kiln = uni.UnitProcess(u_id='demo_kiln', outdir=path_outdir)
+kiln = uni.UnitProcess(u_id='demo_kiln', outdir=bbcfg.paths.path_outdir)
 
 print(f"\n{str.upper(kiln.name)}")
 print("inflows:", ', '.join(kiln.inflows))
@@ -102,16 +106,16 @@ if product == 'fuel':
     qty = u_in[kiln.var_df.at[s, 'fueltype']]
 else:
     qty = u_in[product]
-print(f"\nnow balacing {kiln.name} on {qty} {dat.default_units['mass']} of {product} ({'inflow'}) using {s} values")
+print(f"\nnow balacing {kiln.name} on {qty} {bbcfg.units_default['mass']} of {product} ({'inflow'}) using {s} values")
 
 u1_in, u1_out = kiln.balance(qty, product, 'i', s, write_to_console=True) 
     
-rounded_u_in = {k: round(v, dat.float_tol) for k, v in u_in.items()}
-rounded_u_out = {k: round(v, dat.float_tol) for k, v in u_out.items()}
-rounded_u1_in = {k: round(v, dat.float_tol) for k, v in u1_in.items()}
-rounded_u1_out = {k: round(v, dat.float_tol) for k, v in u1_out.items()}
+rounded_u_in = {k: round(v, bbcfg.float_tol) for k, v in u_in.items()}
+rounded_u_out = {k: round(v, bbcfg.float_tol) for k, v in u_out.items()}
+rounded_u1_in = {k: round(v, bbcfg.float_tol) for k, v in u1_in.items()}
+rounded_u1_out = {k: round(v, bbcfg.float_tol) for k, v in u1_out.items()}
 if rounded_u1_in == rounded_u_in and rounded_u1_out == rounded_u_out:
-    print(f"\nSame input/output as above, rounded to {dat.float_tol} decimal places")
+    print(f"\nSame input/output as above, rounded to {bbcfg.float_tol} decimal places")
 else:
     print("\n [!] Rebalanced input/output not equivelent to above [!]\n")
 
@@ -139,9 +143,9 @@ r1_in, r1_out, leftover = kiln.recycle_1to1(
 )
 
 
-rounded_r1_out = {k: round(v, dat.float_tol) for k, v in r1_out.items()}
+rounded_r1_out = {k: round(v, bbcfg.float_tol) for k, v in r1_out.items()}
 if rounded_r1_out == rounded_u_out:
-    print(f"\nSame input/output as above, rounded to {dat.float_tol} decimal places")
+    print(f"\nSame input/output as above, rounded to {bbcfg.float_tol} decimal places")
 else:
     print("\n [!] Rebalanced input/output not equivelent to above [!]\n")
 print(f"\nRECYCLE FLOW leftover: {leftover}")
@@ -160,7 +164,7 @@ print("any combustion emissions are recalculated as well.")
 
 input(f"\n\n\nPress enter to recycle energy to replace {fuel_type} (inflow) in  {kiln.name}")
 
-print(f"\nRecycling {recycled_energy_qty} {dat.default_units['energy']} of RECYCLED ENERGY into {kiln.name} replacing no more than {max_replace_fraction*100}% of {fuel_type})") 
+print(f"\nRecycling {recycled_energy_qty} {bbcfg.units_default['energy']} of RECYCLED ENERGY into {kiln.name} replacing no more than {max_replace_fraction * 100}% of {fuel_type})")
 
 r1_in, r1_out, leftover = kiln.recycle_energy_replacing_fuel(
     original_inflows_dict=u_in,
@@ -170,9 +174,9 @@ r1_in, r1_out, leftover = kiln.recycle_energy_replacing_fuel(
     recyclate_flow="RECYCLED ENERGY",
     toBeReplaced_flow=fuel_type,
     max_replace_fraction=max_replace_fraction,
-    combustion_eff=dat.combustion_efficiency_var,
+    combustion_eff=bbcfg.columns.combustion_efficiency_var,
     scenario=s,
-    emissions_list=dat.default_emissions,
+    emissions_list=bbcfg.emissions,
     write_to_console=True,
 )
 
@@ -203,7 +207,7 @@ cement_chain = cha.ProductChain(
     chain_data=path_factory_file,
     name='Cement',
     xls_sheet='Cement Chain',
-    outdir=path_outdir,
+    outdir=bbcfg.paths.path_outdir,
 )
 
 print('\nCEMENT Chain Data:')
@@ -239,7 +243,7 @@ cement_factory = fac.Factory(
     chain_list_sheet='Chain List',
     connections_sheet='Connections',
     name='Demo',
-    outdir=path_outdir,
+    outdir=bbcfg.paths.path_outdir,
 )
 
 print(f"\n{cement_factory.name} factory")
@@ -250,7 +254,14 @@ for chain in cement_factory.chain_dict:
 print("\n connections in this factory:")
 print(
     cement_factory.connections_df[
-        [dat.origin_chain, dat.origin_unit, dat.origin_product, dat.dest_unit, dat.dest_chain, dat.replace]
+        [
+            bbcfg.columns.origin_chain,
+            bbcfg.columns.origin_unit,
+            bbcfg.columns.origin_product,
+            bbcfg.columns.dest_unit,
+            bbcfg.columns.dest_chain,
+            bbcfg.columns.replace
+        ]
     ]
 )
 
@@ -262,14 +273,14 @@ cement_factory.diagram(view=True, save=False)
 print("\nDiagram sent to system viewer.")
 
 input("\n\n\nPress enter to balance the factory on 100.0 tonnes of cement (outputs to file): ")
-inflows, outflows, _, _ = cement_factory.balance(product_qty=100, scenario=dat.default_scenario, write_to_xls=False)
+inflows, outflows, _, _ = cement_factory.balance(product_qty=100, scenario=bbcfg.scenario_default, write_to_xls=False)
 
 totals = {'factory inflows': inflows, 'factory outflows': outflows}
 totals = pan.DataFrame(totals)
 totals = iof.mass_energy_df(totals)
 print(f"\n{cement_factory.name} total inflows and outflows")
 print(totals)
-print(f"\n Full results available in {path_outdir} directory.")
+print(f"\n Full results available in {bbcfg.paths.path_outdir} directory.")
 
 input("\n\n\nPress enter to balance the factory on 13.9535 tonnes of fuel inflow to kiln (outputs to file): ")
 inflows, outflows, _, _ = cement_factory.balance(
@@ -277,7 +288,7 @@ inflows, outflows, _, _ = cement_factory.balance(
     product='fuel',
     product_io='inflow',
     product_unit='demo_kiln',
-    scenario=dat.default_scenario,
+    scenario=bbcfg.scenario_default,
     write_to_xls=True,
 )
 
@@ -286,7 +297,7 @@ totals = pan.DataFrame(totals)
 totals = iof.mass_energy_df(totals)
 print(f"\n{cement_factory.name} total inflows and outflows")
 print(totals, "\n")
-print(f"\n Full results available in {path_outdir} directory")
+print(f"\n Full results available in {bbcfg.paths.path_outdir} directory")
 
 
 # INDUSTRY TEST - NOT UPDATED AT REFACTOR
@@ -298,7 +309,7 @@ industry = ind.Industry(
     factory_list_file=industry_file,
     factory_list_sheet='Factory List',
     name='Cement',
-    outdir=path_outdir,
+    outdir=bbcfg.paths.path_outdir,
 )
 
 industry.build()
