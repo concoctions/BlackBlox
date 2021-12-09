@@ -1,9 +1,14 @@
 [tool.poetry]
 name = "blackblox"
-version = "0.1.0"
+version = "0.2.0"
 description = "Simple simulator for black box process models"
-authors = ["Samantha Tanzer <S.E.Tanzer@tudelft.nl>", "Joao Paulo Pizani <J.P.PizaniFlor@tudelft.nl>"]
+authors = ["Samantha Tanzer <S.E.Tanzer@tudelft.nl>", "João Paulo Pizani <J.P.PizaniFlor@tudelft.nl>"]
 license = "GPL3"
+
+readme = "README.md"
+homepage = "https://github.com/concoctions/BlackBlox"
+repository = "https://github.com/concoctions/BlackBlox"
+
 
 [tool.poetry.dependencies]
 python = "^3.8"
