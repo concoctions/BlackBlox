@@ -1,9 +1,0 @@
-meta-process,KnownQty,k_QtyFrom,UnknownQty,u_QtyTo,Calculation,Variable,2nd Known Substance,2Qty Origin,meta-notes
-,electricity,outflow,electricity__from fuel,temp,Remainder,Electricity from recovered energy,,,
-,fuel,Inflow,electricity__from fuel,temp,Combustion,combustion eff,,,
-,electricity,outflow,energy recovered (electricity equiv),inflow,Ratio,Electricity from recovered energy,,,
-,CO2__fossil,emissions,contrib-electricity - CO2 fossil,outflows,returnvalue,,,,
-,CO2__bio,emissions,contrib-electricity - CO2 bio,outflows,returnvalue,,,,
-,contrib-electricity - CO2 bio,outflows,CONSUMED contrib,inflows,addition,,contrib-electricity - CO2 fossil,outflows,
-factory use,electricity,outflows,Infrastructure Use - electricity generation (GJ),inflows,returnvalue,,,,
-factory use,Infrastructure Use - electricity generation (GJ),inflows,CONSUMED Infrastructure Use,outflows,returnvalue,,,,
