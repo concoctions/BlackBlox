@@ -34,6 +34,8 @@ bbcfg.paths = PathConfig.convention_paths_scenario_root(
     scenario=path_script_dir,
     unit_process_library_sheet='Unit Processes',
     same_xls=['thisfile', 'same', 'here'],
+    var_filename_prefix='var_',
+    calc_filename_prefix='calc_',
     unit_process_library_file_suffix=Path('unitlibrary.xlsx'),
     path_outdir_suffix=Path(bbcfg.timestamp_str),
 )

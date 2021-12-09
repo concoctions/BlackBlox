@@ -144,18 +144,19 @@ path_data_root_default = path_project_root_default / 'data'
 paths_default = PathConfig(
     unit_process_library_file=path_data_root_default / 'unitlibrary.xlsx',
     unit_process_library_sheet='Unit Processes',
+    var_filename_prefix='var_',
+    calc_filename_prefix='calc_',
     path_outdir=path_project_root_default / 'output',
     same_xls=['thisfile', 'same', 'here'],
 )
 
 
 # LOOKUP VARIABLES
-path_data_shared_default = path_data_root_default / 'shared'
-path_shared_fuels_default = path_data_shared_default / 'fuels.xlsx'
-path_shared_upstream_default = path_data_shared_default / 'upstream.xlsx'
+path_fuels_default = path_data_root_default / 'fuels.xlsx'
+path_upstream_default = path_data_root_default / 'upstream.xlsx'
 
 common_fuel_info_default = dict(
-    filepath=path_shared_fuels_default,
+    filepath=path_fuels_default,
     sheet='Fuels',
     is_fuel=True,
 )
@@ -174,24 +175,24 @@ lookup_var_default = {
 
     # UPSTREAM
     'upstream outflows': dict(
-        filepath=path_shared_upstream_default,
+        filepath=path_upstream_default,
         sheet='up-emissions',
         lookup_var='upstream outflows',
     ),
     'upstream inflows': dict(
-        filepath=path_shared_upstream_default,
+        filepath=path_upstream_default,
         sheet='up-removals',
         lookup_var='upstream inflows',
     ),
 
     # DOWNSTREAM
     'downstream outflows': dict(
-        filepath=path_shared_upstream_default,
+        filepath=path_upstream_default,
         sheet='down-emissions',
         lookup_var='downstream outflows',
     ),
     'downstream inflows': dict(
-        filepath=path_shared_upstream_default,
+        filepath=path_upstream_default,
         sheet='down-removals',
         lookup_var='downstream inflows',
     ),
@@ -207,10 +208,10 @@ lookup_var_default = {
 
 
 shared_var_default = SharedVarConfig(
-    path_shared_fuels=path_shared_fuels_default,
-    path_shared_upstream=path_data_shared_default / 'upstream.xlsx',
+    path_shared_fuels=path_fuels_default,
+    path_shared_upstream=path_upstream_default,
     fuel_dict=dict(
-        filepath=path_shared_fuels_default,
+        filepath=path_fuels_default,
         sheet='Fuels',
         lookup_var='fueltype',
     ),

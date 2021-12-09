@@ -114,6 +114,9 @@ class PathConfig:
     unit_process_library_file: Path
     """str: The filepath whre the unit process library file exists."""
 
+    var_filename_prefix: str
+    calc_filename_prefix: str
+
     path_outdir: Path
     """str: The file output directory.
 
@@ -125,6 +128,8 @@ class PathConfig:
     def convention_paths_scenario_root(
             scenario: Path,
             unit_process_library_sheet: str,
+            var_filename_prefix: str,
+            calc_filename_prefix: str,
             same_xls: List[str],
             unit_process_library_file_suffix: Path,
             path_outdir_suffix: Path,
@@ -133,6 +138,8 @@ class PathConfig:
         output_subdirname_default = 'output'
         return PathConfig(
             unit_process_library_sheet=unit_process_library_sheet,
+            var_filename_prefix=var_filename_prefix,
+            calc_filename_prefix=calc_filename_prefix,
             same_xls=same_xls,
             unit_process_library_file=scenario / data_subdirname_default / unit_process_library_file_suffix,
             path_outdir=scenario / output_subdirname_default / path_outdir_suffix,

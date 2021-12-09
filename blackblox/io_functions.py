@@ -178,45 +178,43 @@ def no_suf(str, separator=bbcfg.ignore_sep):
 # DATA FRAME CONSTRUCTORS
 def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
             col_order=False, T=False, drop_zero=False, sort=False,
-            lower_cols=True, fillna=True, r_index=False):
-   """ Creates a Pandas dataframe from various file types
+            lower_cols=True, fillna=True, str_index=False):
+    """Creates a Pandas dataframe from various file types
 
-    Numbers that are initially read as strings will be converted to 
-    numeric values when possible (errors are ignored).
+     Numbers that are initially read as strings will be converted to
+     numeric values when possible (errors are ignored).
 
-    Args:
-        data: accepts both objects that can be made into dataframes 
-            (e.g. nested) dictionaries and strings of filespaths (including 
-            excel workbooks, comma seperated value files, and other delimited 
-            text files)
-        sheet (str, optional): The worksheet of a specified excel workbook. 
-            (Defaults to None)
-        sep (str): the seperator used in non-csv text file. 
-            (Defaults to tab (\t))
-        index (int or None): the column of data that is the index. 
-            (Defaults to 0)
-        metaprefix (str/None): If a column name or row index begins with
-            the metaprefix, that row or column is dropped from the data frame.
-            (Defaults to 'meta')
-        col_order (list[str]/False): If a list is passed, will use those strings
-            as the column names of the dataframe in the order in the list.
-        T (bool): If True, transposes the data frame before return.
-            (Defaults to False)
-        drop_zero (bool): If True, converts any NaNs to zeros, and then 
-            removes any rows or columns that contain only zeros.
-        sort (bool): Whether to sort the data by the ascending order of the
-            index
-        lower_cols (bool): If true, will convert the column names to all lower case
-            (Defaults to False)
-        fillna (bool): If true, will convert NaNs to zeros.
-            (Defualts to True)
-         str_index (bool): Forces index values to strings
+     Args:
+         data: accepts both objects that can be made into dataframes
+             (e.g. nested) dictionaries and strings of filespaths (including
+             excel workbooks, comma seperated value files, and other delimited
+             text files)
+         sheet (str, optional): The worksheet of a specified excel workbook.
+             (Defaults to None)
+         sep (str): the seperator used in non-csv text file.
+             (Defaults to tab (\t))
+         index (int or None): the column of data that is the index.
+             (Defaults to 0)
+         metaprefix (str/None): If a column name or row index begins with
+             the metaprefix, that row or column is dropped from the data frame.
+             (Defaults to 'meta')
+         col_order (list[str]/False): If a list is passed, will use those strings
+             as the column names of the dataframe in the order in the list.
+         T (bool): If True, transposes the data frame before return.
+             (Defaults to False)
+         drop_zero (bool): If True, converts any NaNs to zeros, and then
+             removes any rows or columns that contain only zeros.
+         sort (bool): Whether to sort the data by the ascending order of the
+             index
+         lower_cols (bool): If true, will convert the column names to all lower case
+             (Defaults to False)
+         fillna (bool): If true, will convert NaNs to zeros.
+             (Defualts to True)
+          str_index (bool): Forces index values to strings
 
-    Returns:
-        The generated dataframe.
-
+     Returns:
+         The generated dataframe.
     """
-
     logger.debug(f"Attempting to make dataframe from {data} ({type(data)}), (excel sheet: {sheet}")
 
     if isinstance(data, pan.DataFrame):
@@ -230,8 +228,8 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
             df = pan.DataFrame(data)
         # Contains file path
         elif isinstance(data, (Path, str)):
-            # Excel workbook
             filepath = Path(data)
+            # Excel workbook
             if filepath.suffix in ['.xls', '.xlsx']:
                 df = pan.read_excel(filepath, sheet_name=sheet, index_col=index)
             # Comma-separated or equivalent (readable by pandas)
@@ -395,27 +393,21 @@ def metadata_df(user=bbcfg.user, about=about.about_blackblox, name="unknown", le
 
     return meta_df
 
-def build_unit_library(file=dat.unit_process_library_file,
-                       sheet=dat.unit_process_library_sheet):
-
-    df_unit_library_partial = make_df(dat.unit_process_library_file,
-                              sheet=dat.unit_process_library_sheet)
-
+def build_unit_library(file=bbcfg.paths.unit_process_library_file, sheet=bbcfg.paths.unit_process_library_sheet):
+    df_unit_library_partial = make_df(file, sheet)
 
     var_id_col = []
     var_file_col = []
     var_sheet_col = []
 
-
     calc_id_col = []
     calc_file_col = []
     calc_sheet_col = []
 
-    dir_list = [f.path for f in os.scandir(dat.path_data_root) if f.is_dir()]
-    dir_list.append(dat.path_data_root)
+    dir_list = [f.path for f in os.scandir(file.parent) if f.is_dir()]
+    dir_list.append(file.parent)
 
     for d in dir_list:
-
         data_dir = Path(d)
 
         dir_files = os.listdir(data_dir)
@@ -424,9 +416,9 @@ def build_unit_library(file=dat.unit_process_library_file,
         unused_files = []
 
         for file in dir_files:
-            if file.startswith(dat.var_filename_prefix):
+            if file.startswith(bbcfg.paths.var_filename_prefix):
                 var_files.append(file)
-            elif file.startswith(dat.calc_filename_prefix):
+            elif file.startswith(bbcfg.paths.calc_filename_prefix):
                 calc_files.append(file)
             else:
                 unused_files.append(file)
@@ -445,15 +437,14 @@ def build_unit_library(file=dat.unit_process_library_file,
                         var_sheet_col.append(sheet)
                         var_file_col.append(filepath)
             elif filepath.suffix in ['.csv', '.tsv', '.txt', '.dat']:
-                if file.strip(dat.var_filename_prefix).split('.', 1)[0] in var_id_col:
+                if file.strip(bbcfg.paths.var_filename_prefix).split('.', 1)[0] in var_id_col:
                     pass
                 else:
-                    var_id_col.append(file.strip(dat.var_filename_prefix).split('.', 1)[0])
+                    var_id_col.append(file.strip(bbcfg.paths.var_filename_prefix).split('.', 1)[0])
                     var_sheet_col.append(0)
                     var_file_col.append(filepath)
             else:
                 print(f"{filepath.suffix} files not supported. Skipping {file}.")
-
 
         for file in calc_files:
             filepath = data_dir / file
@@ -468,34 +459,34 @@ def build_unit_library(file=dat.unit_process_library_file,
                         calc_sheet_col.append(sheet)
                         calc_file_col.append(filepath)
             elif filepath.suffix in ['.csv', '.tsv', '.txt', '.dat']:
-                if file.strip(dat.calc_filename_prefix).split('.', 1)[0] in calc_id_col:
+                if file.strip(bbcfg.paths.calc_filename_prefix).split('.', 1)[0] in calc_id_col:
                     pass
                 else:
-                    calc_id_col.append(file.strip(dat.calc_filename_prefix).split('.', 1)[0])
+                    calc_id_col.append(file.strip(bbcfg.paths.calc_filename_prefix).split('.', 1)[0])
                     calc_sheet_col.append(0)
                     calc_file_col.append(filepath)
             else:
                 print(f"{filepath.suffix} files not supported. Skipping {file}.")
 
-    var_df = pan.DataFrame(
-                        { dat.unit_id:var_id_col,
-                            dat.var_filepath:var_file_col,
-                            dat.var_sheetname:var_sheet_col },
-                            )
-    var_df = var_df.set_index(dat.unit_id)
+    var_df = pan.DataFrame({
+        bbcfg.columns.unit_id: var_id_col,
+        bbcfg.columns.var_filepath: var_file_col,
+        bbcfg.columns.var_sheetname: var_sheet_col,
+    })
+    var_df = var_df.set_index(bbcfg.columns.unit_id)
 
-    calc_df = pan.DataFrame(
-                        { dat.unit_id:calc_id_col,
-                            dat.calc_filepath:calc_file_col,
-                            dat.calc_sheetname:calc_sheet_col },
-                            )
-    calc_df = calc_df.set_index(dat.unit_id)
+    calc_df = pan.DataFrame({
+        bbcfg.columns.unit_id: calc_id_col,
+        bbcfg.columns.calc_filepath: calc_file_col,
+        bbcfg.columns.calc_sheetname: calc_sheet_col,
+    })
+    calc_df = calc_df.set_index(bbcfg.columns.unit_id)
 
-    file_data = pan.merge(var_df, calc_df, on = dat.unit_id, how = "inner")
+    file_data = pan.merge(var_df, calc_df, on=bbcfg.columns.unit_id, how="inner")
 
-    unit_library_merged = pan.merge(df_unit_library_partial, file_data, on = dat.unit_id, how = "inner")
+    unit_library_merged = pan.merge(df_unit_library_partial, file_data, on=bbcfg.columns.unit_id, how="inner")
 
-    return(unit_library_merged)
+    return unit_library_merged
 
 # WRITERS TO FILES
 

@@ -3,6 +3,7 @@
 """
 
 from collections import defaultdict
+from pathlib import Path
 from typing import List
 
 import blackblox.calculators as calc
@@ -43,9 +44,8 @@ class Industry:
 
     """
 
-    def __init__(self, factory_list_file, factory_list_sheet=None, name='Industry', outdir=None,
-                 units_df=df_unit_library, units_df_basedir=None,
-                 **kwargs):
+    def __init__(self, factory_list_file: Path, factory_list_sheet=None, name='Industry', outdir=None,
+                 units_df=df_unit_library, **kwargs):
         self.name = name
         self.outdir = (outdir if outdir else bbcfg.paths.path_outdir) / f'{bbcfg.timestamp_str}__industry_{self.name}'
         self.factory_file = factory_list_file
@@ -53,7 +53,6 @@ class Industry:
         self.product_list = None
         self.factory_dict = None
         self.units_df = units_df
-        self.units_df_basedir = units_df_basedir if units_df_basedir else bbcfg.paths.unit_process_library_file.parent
 
     def build(self):
         """ generates the factory, chain, and process objects in the industry
@@ -73,8 +72,9 @@ class Industry:
                 f_chains_file_rel = f[bbcfg.columns.f_chain_list_file]
                 f_connections_file_rel = f[bbcfg.columns.f_connections_file]
 
-            f_chains_file = self.units_df_basedir / f_chains_file_rel
-            f_connections_file = self.units_df_basedir / f_connections_file_rel
+            units_df_basedir = self.factory_file.parent
+            f_chains_file = units_df_basedir / f_chains_file_rel
+            f_connections_file = units_df_basedir / f_connections_file_rel
 
             f_chains_sheet = iof.check_for_col(self.factories_df, bbcfg.columns.f_chains_sheet, i)
             f_connections_sheet = iof.check_for_col(self.factories_df, bbcfg.columns.f_connections_sheet, i)
@@ -86,7 +86,6 @@ class Industry:
                 connections_sheet=f_connections_sheet,
                 name=name,
                 units_df=self.units_df,
-                units_df_basedir=self.units_df_basedir,
             )
 
             factory_dict[name] = dict(
@@ -146,7 +145,7 @@ class Industry:
         if production_data_file is None and production_data_sheet is None:
             raise Exception("Neither data file path nor data sheet provided")
         elif production_data_file is None:
-            production_data_file = self.factory_file
+            production_data_file = str(self.factory_file)
 
         product_df = iof.make_df(production_data_file, sheet=production_data_sheet)
         f_production_dict = defaultdict(dict)

@@ -105,15 +105,15 @@ class UnitProcess:
         if var_df is not False:
             self.var_df = iof.make_df(var_df)
         else:
-            v_sheet = iof.check_for_col(units_df, bbcfg.var_sheetname, u_id)
-            self.var_df = iof.make_df(units_df.at[u_id, bbcfg.var_filepath]
+            v_sheet = iof.check_for_col(units_df, bbcfg.columns.var_sheetname, u_id)
+            self.var_df = iof.make_df(units_df.at[u_id, bbcfg.columns.var_filepath]
                                       , sheet=v_sheet, lower_cols=True, fillna=True)
 
         if calc_df is not False:
             self.calc_df = calc_df
         else:
-            c_sheet = iof.check_for_col(units_df, bbcfg.calc_sheetname, u_id)
-            self.calc_df = iof.make_df(units_df.at[u_id, bbcfg.calc_filepath], sheet=c_sheet, index=None)
+            c_sheet = iof.check_for_col(units_df, bbcfg.columns.calc_sheetname, u_id)
+            self.calc_df = iof.make_df(units_df.at[u_id, bbcfg.columns.calc_filepath], sheet=c_sheet, index=None)
 
         self.outdir = (outdir if outdir else bbcfg.paths.path_outdir) / f'{bbcfg.timestamp_str}__unit_{self.name}'
 

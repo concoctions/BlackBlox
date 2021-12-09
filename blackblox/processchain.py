@@ -70,7 +70,7 @@ class ProductChain:
     def __init__(self, chain_data, name="Product Chain", xls_sheet=None, outdir=None,
                  units_df=df_unit_library):
         self.name = name
-        self.outdir = (outdir if outdir else bbcfg.path_outdir) / f'{dat.timestamp_str}__chain_{self.name}'
+        self.outdir = (outdir if outdir else bbcfg.paths.path_outdir) / f'{bbcfg.timestamp_str}__chain_{self.name}'
 
         logger.info(f"PROCESS CHAIN INIT - chain name: {name}, chain data: {chain_data}, xls sheet: {xls_sheet}")
         self.process_chain_df = iof.make_df(chain_data, sheet=xls_sheet, index=None)
@@ -82,7 +82,7 @@ class ProductChain:
 
         # create UnitProcess objects for each unit in chain
         for index, process_row in self.process_chain_df.iterrows():
-            process = unit.UnitProcess(process_row[bbcfg.process_col], units_df=units_df)
+            process = unit.UnitProcess(process_row[bbcfg.columns.process_col], units_df=units_df)
             logger.debug(f"{self.name.upper()}: UnitProcess object created for {process.name}")
             inflow = process_row[bbcfg.columns.inflow_col]
             outflow = process_row[bbcfg.columns.outflow_col]
