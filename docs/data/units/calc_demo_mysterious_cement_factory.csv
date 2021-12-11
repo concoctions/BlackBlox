@@ -1,0 +1,5 @@
+KnownQty,k_QtyFrom,UnknownQty,u_QtyTo,Calculation,Variable
+cement,outflows,energy,inflows,ratio,energyEff
+cement,outflows,CO2,outflows,ratio,CO2eff
+secret ingredients,inflows,cement,outflows,ratio,materialEff
+secret ingredients,inflows,waste,outflows,remainder,materialEff

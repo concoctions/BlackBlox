@@ -1,0 +1,7 @@
+scenario,energyEff,CO2eff,materialEff
+meta-units,(gj/t),(t/t),(t/t)
+default,5,1.1,0.8
+EU-1990,6,1.3,0.7
+EU-2000,5,1.1,0.8
+EU-2010,4,1,0.9
+EU-BECCS,4,1,0.9
