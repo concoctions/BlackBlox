@@ -1,7 +1,33 @@
 The Factory Module
 ==========================
-Note: This page has not yet been formatted. It is currently only the automodule documentation.
 
+
+Factory Class
+-----------------
 
 .. autoclass:: blackblox.factory.Factory
-   :members: balance, run_scenarios, diagram
+  
+ 
+Factory.balance()
+----------------------------
+
+.. automethod:: blackblox.factory.Factory.balance
+  
+    
+Factory.run_scenarios()
+----------------------------
+
+.. automethod:: blackblox.factory.Factory.run_scenarios
+  
+    
+Factory.run_sensitivity()
+----------------------------
+
+.. automethod:: blackblox.factory.Factory.run_sensitivity
+  
+  
+Factory.diagram()
+----------------------------
+
+.. automethod:: blackblox.factory.Factory.diagram
+  
