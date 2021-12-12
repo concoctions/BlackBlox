@@ -14,6 +14,7 @@ Welcome to blackblox's documentation!
    chain
    factory
    industry
+   license
 
 
 
