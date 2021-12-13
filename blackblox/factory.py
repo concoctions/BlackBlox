@@ -28,11 +28,11 @@ Module Outline:
     - class subfunction: add_updownstream_flows
     - class subfunction: factory_to_excel
 """
-# Graphviz does not want to go on my PATH on my work desktop, thus...
 import platform
 from collections import defaultdict
 from math import isnan
 
+import graphviz
 import pandas as pan
 from graphviz import Digraph
 
@@ -46,6 +46,7 @@ from blackblox.frames_default import (df_upstream_outflows, df_upstream_inflows,
 from blackblox.unitprocess import lookup_var_dict
 
 
+# Graphviz does not want to go on my PATH on my work desktop, thus...s
 if platform.system() == 'Windows':
     import os
     os.environ["PATH"] += os.pathsep + bbcfg.graphviz_path
@@ -553,13 +554,19 @@ class Factory:
 
         io_diagram.engine = 'circo'
 
-        if view is True:
-            io_diagram.view()
+        try:
+            if view is True:
+                io_diagram.view()
 
-        if save is True:
-            io_diagram.render()  # save as png
-            io_diagram.format = 'svg'
-            io_diagram.render()  # save as svg
+            if save is True:
+                io_diagram.render()  # save as png
+                io_diagram.format = 'svg'
+                io_diagram.render()  # save as svg
+        except graphviz.backend.ExecutableNotFound:
+            print(
+                f"In factory.py: The \"dot\" executable was not found on your system: maybe it's not installed or "
+                f"the variable dataconfig.bbcfg.graphviz_path is not set correctly."
+            )
 
         logger.debug(f"created diagram for {self.name} factory")
 

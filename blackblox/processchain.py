@@ -20,6 +20,8 @@ Module Outline:
 
 from collections import defaultdict
 from datetime import datetime
+
+import graphviz
 from graphviz import Digraph
 import pandas as pan
 
@@ -449,13 +451,19 @@ class ProductChain:
 
         chain_diagram.subgraph(product_flow)   
 
-        if save is True:     # outputs as png and svg
-            chain_diagram.render()
-            chain_diagram.format = 'svg' 
-            chain_diagram.render()
+        try:
+            if save is True:     # outputs as png and svg
+                chain_diagram.render()
+                chain_diagram.format = 'svg'
+                chain_diagram.render()
 
-        if view is True:    # sends to system viewer
-            chain_diagram.view()
+            if view is True:    # sends to system viewer
+                chain_diagram.view()
+        except graphviz.backend.ExecutableNotFound:
+            print(
+                f"In processchain.py: The \"dot\" executable was not found on your system: maybe it's not installed or "
+                f"the variable dataconfig.bbcfg.graphviz_path is not set correctly."
+            )
 
         logger.debug(f"diagram created for {self.name} chain")
         return product_flow
