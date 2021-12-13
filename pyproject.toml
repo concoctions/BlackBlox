@@ -2,11 +2,11 @@
 name = "blackblox"
 version = "0.2.0"
 description = "Simple simulator for black box process models"
-authors = ["Samantha Tanzer <S.E.Tanzer@tudelft.nl>", "João Paulo Pizani <J.P.PizaniFlor@tudelft.nl>"]
-license = "GPL3"
+authors = ["S.E. Tanzer <S.E.Tanzer@tudelft.nl>", "João Paulo Pizani <J.P.PizaniFlor@tudelft.nl>"]
+license = "GPL-3.0-only"
 
 readme = "README.md"
-homepage = "https://github.com/concoctions/BlackBlox"
+homepage = "https://concoctions.org/blackblox/"
 repository = "https://github.com/concoctions/BlackBlox"
 
 
@@ -25,7 +25,6 @@ seaborn = "^0.11.1"
 sphinx = "^3.5"
 myst_parser = "^0.15.2"
 sphinx-rtd-theme = "^0.5"
-sphinx-markdown-tables = "^0.0.15"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
