@@ -1,8 +1,49 @@
 # BlackBlox
 BlackBlox is a calculator for "black box" systems, ranging from single unit processes to factories with branching chains of processes.
 
+## Installation and development instructions
+
+### Installing and using BlackBlox
+
+1. Install the only non-Python dependency: *Graphviz*
+  + By following the instructions on the [official website](https://graphviz.org/download/)
+  + Important is that the `dot` executable should be in your `PATH`
+2. Do the normal installation of the library via `pip`:
+   + `pip install blackblox`
+
+#### Usage and examples
+
+1. Look around the configuration options, see what they mean, and whether the defaults seems acceptable to you
+   + In `blackblox.dataconfig_format` you find what are the names and meanings of the options
+   + In `blackblox.dataconfig_default` you see what are the default values
+2. Look at the demonstration scenario under `scenarios-examples/demo/demo.py` for inspiration
+   + Here you can learn how to change configuration options
+   + As well as how to create and balance unit processes, chains, factories, etc.
+
+### Contributing to BlackBlox development and releasing to PyPI
+
+1. This project uses `poetry` as its dependency management, virtualenv management and release (build) tool
+   + Install following the steps described in https://python-poetry.org/docs/#installation
+
+2. The API documentation and explanations about all the data needed to run scenarios are the `docs` directory
+   + We use `Sphinx` for building the docs. Poetry also ensures that dev dependencies (such as Sphinx) are installed.
+   + Run the make command from Sphinx through `poetry run`, so that Sphinx is found from the project's virtualenv
+     (managed by Poetry)
+     - `cd docs; poetry run make html`
+   + The generated pages will be under `docs/_build/html`
+
+3. Building a (new) release and publishing it to PyPI:
+   1. Make an account on `https://pypi.org`. Ask (optional) for invitation to become project contributor on PyPI.
+   2. Add API token on the "account settings" page of PyPI (global scope for now)
+   3. Register the API token to be the one used by Poetry: `poetry config pypi-token.pypi "<your_api_token>"`
+   4. Do the actual contribution to the project 🙂
+   5. Build the package (wheel and source): `poetry build`. The built artifacts will be placed in the `dist` folder
+   6. Publish to PyPI: `poetry publish`
+
+
+
 ## Unit Processes
-Unit processes are the smallest"block" in BlackBlox. Each unit process has a set of inflows and outflows and a set of specified relationships between the process flows. Then, given a quantity for one inflow or outflow, the quantities of the remaining inflows and outflows can be calculated. 
+Unit processes are the smallest "block" in BlackBlox. Each unit process has a set of inflows and outflows and a set of specified relationships between the process flows. Then, given a quantity for one inflow or outflow, the quantities of the remaining inflows and outflows can be calculated. 
 
 ### Defining unit processes  
 A unit process is defined by two tables:
@@ -56,7 +97,7 @@ Balancing a unit process calculates the quantity of all inflows and outflows of 
  All arguments besides the quantity can be optional, if default values have been specified for the unit process.
 
 ### Unit Table Library
-A library table with a list to the locations of all the unit processes available will allow you to not have to enter in the data every time the unit process function is called.
+A library table with a list to the locations of all the unit processes available will allow you to not have to enter the data every time the unit process function is called.
 
 e.g.
 
@@ -88,7 +129,7 @@ Balancing a chain calculates the quantity of all inflows and outflows of each un
   
  All arguments besides the quantity can be optional, if default values have been specified for the process chain.
  
- Balancing a chain returns a dictionary with both the calculated inflows and outflows for each unit process, as well as the the overall inflows and outflows.
+ Balancing a chain returns a dictionary with both the calculated inflows and outflows for each unit process, as well as the overall inflows and outflows.
 
 ### Generating a chain diagram 
 After a chain has been defined, a process flow diagram of the chain can be generated.
@@ -106,7 +147,7 @@ A factory is defined by two tables: one that lists the chains (and their file lo
 #### Factory chains table
 This table specifies the location of the proces chain data used in the factory, as well as the  primary product and whether that product is an inflow or outflow of the chain.
 The first chain of the chain list is assumed to be the main product chain, but otherwise it doesn't matter.
-The chains can either be in the same file, if an excel workbook, or in a seperate file.
+The chains can either be in the same file, if an Excel workbook, or in a seperate file.
 
 e.g.
 
@@ -155,7 +196,7 @@ E.g.
 | cementFactory          | excelData/cementFactory.xlsx      | Chain List           | Connections               |
 | duplicateCementFactory | excelData/cementFactory.xlsx      | Chain List           | Connections               |
 | otherCementFactory     | excelData/otherCementFactory.xlsx | Chain List           | Connections               |
-| clinkerFactory         | excelData/clinkerFactory.xlsx     | Chain List           | Connections               
+| clinkerFactory         | excelData/clinkerFactory.xlsx     | Chain List           | Connections               |
 
 ### Balancing an Industry
 An industry can be balanced by specifying the output product quantity for each factory, and the scenario of variables for each factory. It is possible to specify each of these absolutely for each factory, or relative to the total output of each product. It is possible to mix absolute and relative specifications in an industry, but it must be the same for each product. It is also possible to batch-balance the industries on the same output quantity but using different scenarios of variable. 
@@ -188,9 +229,8 @@ Evolving an industry outputs the same Excel files as does balancing an industry 
 
 ## Forthcoming Features
   - Specifying evolution growth rates rather than absolute values
-  - Multi-step evolution of industries
+  - Multistep evolution of industries
   - Plotting data from industry evolution
-  - Cleaner code with beter documentation
   - Comparison of industries (static and evolution)
 
 ## Current limitations:
