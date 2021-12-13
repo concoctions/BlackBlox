@@ -44,7 +44,7 @@ from molmass import Formula
 from blackblox.dataconfig import bbcfg
 import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
-from blackblox.frames import df_fuels
+from blackblox.frames_default import df_fuels
 
 
 logger = get_logger("Calculators")

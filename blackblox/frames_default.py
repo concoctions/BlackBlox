@@ -6,7 +6,7 @@ from blackblox.bb_log import get_logger
 
 
 logger = get_logger("Frames")
-logger.info("Logger for frames.py initalized")
+logger.info("Logger for frames_default.py initalized")
 
 
 df_unit_library = iof.build_unit_library(bbcfg.paths.unit_process_library_file,

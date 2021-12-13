@@ -11,7 +11,7 @@ from blackblox.dataconfig import bbcfg
 import blackblox.factory as fac
 import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
-from blackblox.frames import df_unit_library
+from blackblox.frames_default import df_unit_library
 
 
 logger = get_logger("Industry")

@@ -42,7 +42,7 @@ import blackblox.io_functions as iof
 import blackblox.processchain as cha
 import blackblox.unitprocess as unit
 from blackblox.bb_log import get_logger
-from blackblox.frames import (df_upstream_outflows, df_upstream_inflows, df_downstream_outflows, df_downstream_inflows, df_unit_library)
+from blackblox.frames_default import (df_upstream_outflows, df_upstream_inflows, df_downstream_outflows, df_downstream_inflows, df_unit_library)
 from blackblox.unitprocess import lookup_var_dict
 
 

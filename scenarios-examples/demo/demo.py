@@ -46,6 +46,11 @@ path_factory_file = path_data_demo / 'factories' / 'cementFactory_withCCS.xlsx'
 
 scenario_list = ['EU-1990', 'EU-2000', 'EU-2010']
 
+demo_units_df = iof.build_unit_library(
+    bbcfg.paths.unit_process_library_file,
+    sheet=bbcfg.paths.unit_process_library_sheet
+)
+
 
 # BEGIN OF THE DEMO
 print("\n\nWELCOME\n\n")
@@ -66,7 +71,7 @@ print('It represents a single "black box" process with a set of inflows and outf
 
 stop = input("\nPress enter to create the KILN unit process: ")
 
-kiln = uni.UnitProcess(u_id='demo_kiln', outdir=bbcfg.paths.path_outdir)
+kiln = uni.UnitProcess(u_id='demo_kiln', outdir=bbcfg.paths.path_outdir, units_df=demo_units_df)
 
 print(f"\n{str.upper(kiln.name)}")
 print("inflows:", ', '.join(kiln.inflows))
@@ -210,6 +215,7 @@ cement_chain = cha.ProductChain(
     name='Cement',
     xls_sheet='Cement Chain',
     outdir=bbcfg.paths.path_outdir,
+    units_df=demo_units_df,
 )
 
 print('\nCEMENT Chain Data:')
@@ -246,6 +252,7 @@ cement_factory = fac.Factory(
     connections_sheet='Connections',
     name='Demo',
     outdir=bbcfg.paths.path_outdir,
+    units_df=demo_units_df,
 )
 
 print(f"\n{cement_factory.name} factory")
@@ -312,6 +319,7 @@ industry = ind.Industry(
     factory_list_sheet='Factory List',
     name='Cement',
     outdir=bbcfg.paths.path_outdir,
+    units_df=demo_units_df,
 )
 
 industry.build()

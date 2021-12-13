@@ -28,7 +28,7 @@ from blackblox.bb_log import get_logger
 import blackblox.io_functions as iof
 from blackblox.dataconfig import bbcfg
 import blackblox.unitprocess as unit
-from blackblox.frames import df_unit_library
+from blackblox.frames_default import df_unit_library
 
 
 logger = get_logger("Chain")

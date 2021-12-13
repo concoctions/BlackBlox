@@ -37,7 +37,7 @@ import blackblox.calculators as calc
 from blackblox.dataconfig import bbcfg
 import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
-from blackblox.frames import df_unit_library, lookup_var_dict
+from blackblox.frames_default import df_unit_library, lookup_var_dict
 
 
 logger = get_logger("Unit Process")
