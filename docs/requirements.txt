@@ -1,7 +1,7 @@
 sphinx==4.3.1
 myst-parser[sphinx]
 sphinx_rtd_theme==1.0.0
-numpy==1.2.0
+numpy==1.20
 graphviz==0.16
 molmass==2020.6.10
 matplotlib==3.4
