@@ -6,8 +6,8 @@ BlackBlox is a calculator for "black box" systems, ranging from single unit proc
 ### Installing and using BlackBlox
 
 1. Install the only non-Python dependency: *Graphviz*
-  + By following the instructions on the [official website](https://graphviz.org/download/)
-  + Important is that the `dot` executable should be in your `PATH`
+   + By following the instructions on the [official website](https://graphviz.org/download/)
+   + Important is that the `dot` executable should be in your `PATH`
 2. Do the normal installation of the library via `pip`:
    + `pip install blackblox`
 
@@ -25,8 +25,8 @@ BlackBlox is a calculator for "black box" systems, ranging from single unit proc
 1. This project uses `poetry` as its dependency management, virtualenv management and release (build) tool
    + Install following the steps described in https://python-poetry.org/docs/#installation
 
-2. The API documentation and explanations about all the data needed to run scenarios are the `docs` directory
-   + We use `Sphinx` for building the docs. Poetry also ensures that dev dependencies (such as Sphinx) are installed.
+2. The API docs and explanations about all data needed to run scenarios are in the `docs` directory
+   + We use `Sphinx` for building docs. Poetry also ensures that dev dependencies (Sphinx etc.) are installed
    + Run the make command from Sphinx through `poetry run`, so that Sphinx is found from the project's virtualenv
      (managed by Poetry)
      - `cd docs; poetry run make html`
@@ -37,9 +37,10 @@ BlackBlox is a calculator for "black box" systems, ranging from single unit proc
    2. Add API token on the "account settings" page of PyPI (global scope for now)
    3. Register the API token to be the one used by Poetry: `poetry config pypi-token.pypi "<your_api_token>"`
    4. Do the actual contribution to the project 🙂
-   5. Build the package (wheel and source): `poetry build`. The built artifacts will be placed in the `dist` folder
-   6. Publish to PyPI: `poetry publish`
-
+   5. Run `poetry update` to get possible dependecy updates, and commit the updated `poetry.lock` file
+   6. Increment the package's version number in `pyproject.toml`
+   7. Build the package (wheel and source): `poetry build`. The built artifacts will be placed in the `dist` folder
+   8. Publish to PyPI: `poetry publish`
 
 
 ## Unit Processes
