@@ -79,12 +79,12 @@ class Factory:
             data.
             Defaults to None.
         name (str, optional): The name of the factory. Defaults to False.
-
+   
     Attributes:
         name (str): Factory name
         chains_df (data frame): Tabular data of the factory chains and the
             location of their data.
-        connections_df (data frame): Tabuloar data of the connections
+        connections_df (data frame): Tabular data of the connections
             between the factory chains. (optional)
         main_chain (str): the name of the factory's product chain, taken from
             the first row of chains_df.
@@ -96,6 +96,8 @@ class Factory:
             product, and whether that product is a chain inflow or outflow.  
         **kwargs (dict): unused; allows for use of dictionaries with more variables
             than just used to define the class
+    
+       
     """
 
     # noinspection PyUnusedLocal
@@ -209,6 +211,8 @@ class Factory:
         Returns:
             dictionary of factory inflow substances and total quantities
             dictionary of factory outflow substances and total quantities
+
+              
         """
 
         logger.info(f"{self.name.upper()}: attempting to balance on {product_qty} of {self.chain_dict[self.main_chain]['product']}")
