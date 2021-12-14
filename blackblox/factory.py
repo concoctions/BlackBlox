@@ -40,10 +40,8 @@ import blackblox.calculators as calc
 from blackblox.dataconfig import bbcfg
 import blackblox.io_functions as iof
 import blackblox.processchain as cha
-import blackblox.unitprocess as unit
 from blackblox.bb_log import get_logger
-from blackblox.frames_default import (df_upstream_outflows, df_upstream_inflows, df_downstream_outflows, df_downstream_inflows, df_unit_library)
-from blackblox.unitprocess import lookup_var_dict
+import blackblox.frames_default as fd
 
 
 # Graphviz does not want to go on my PATH on my work desktop, thus...s
@@ -104,8 +102,10 @@ class Factory:
     # noinspection PyUnusedLocal
     def __init__(self, chain_list_file, chain_list_sheet=None, connections_file=None,
                  connections_sheet=None, name="Factory", outdir=None,
-                 units_df=df_unit_library,
-                 **kwargs):
+                 units_df=None, **kwargs):
+
+        fd.initialize()
+        units_df = units_df if units_df else fd.df_unit_library
 
         logger.info(f"{name.upper()}: Initializing factory")
         self.name = name
@@ -125,7 +125,7 @@ class Factory:
             single_unit = iof.check_for_col(chain_list_df, bbcfg.columns.single_unit_chain, i)
 
             if type(single_unit) is str and single_unit not in bbcfg.no_var:
-                if single_unit in unit.df_unit_library.index.values:
+                if single_unit in fd.df_unit_library.index.values:
                     unit_inflow = 'start'
                     unit_outflow = 'end'
                     if iof.clean_str(c[bbcfg.columns.chain_io][0]) == 'i':
@@ -399,18 +399,18 @@ class Factory:
             factory_totals = self.add_updownstream_flows(factory_totals,
                                                          io='i',
                                                          inflow_list=upstream_inflows,
-                                                         df_inflows=df_upstream_inflows,
+                                                         df_inflows=fd.df_upstream_inflows,
                                                          outflow_list=upstream_outflows,
-                                                         df_outflows=df_upstream_outflows)
+                                                         df_outflows=fd.df_upstream_outflows)
 
         if type(downstream_outflows) is list or type(
                 downstream_inflows) is list:  # add downstream emissions to factory output
             factory_totals = self.add_updownstream_flows(factory_totals,
                                                          io='o',
                                                          inflow_list=downstream_inflows,
-                                                         df_inflows=df_downstream_inflows,
+                                                         df_inflows=fd.df_downstream_inflows,
                                                          outflow_list=downstream_outflows,
-                                                         df_outflows=df_downstream_outflows)
+                                                         df_outflows=fd.df_downstream_outflows)
 
         # aggregate flows that have a specified prefix 
         aggregated_df = self.aggregate_flows(aggregate_flows, inflow_dict=factory_totals['i'],
@@ -848,20 +848,20 @@ class Factory:
         """
 
         if bbcfg.ignore_sep in origin_product:
-            if origin_product.split(bbcfg.ignore_sep)[0] in lookup_var_dict:
+            if origin_product.split(bbcfg.ignore_sep)[0] in fd.lookup_var_dict:
                 if scenario in orig_unit.var_df.index:
                     lookup_substance = orig_unit.var_df.at[
-                        scenario, lookup_var_dict[origin_product.split(bbcfg.ignore_sep)[0]]['lookup_var']]
+                        scenario, fd.lookup_var_dict[origin_product.split(bbcfg.ignore_sep)[0]]['lookup_var']]
                 else:
                     lookup_substance = orig_unit.var_df.at[
-                        bbcfg.scenario_default, lookup_var_dict[origin_product.split(bbcfg.ignore_sep)[0]]['lookup_var']]
+                        bbcfg.scenario_default, fd.lookup_var_dict[origin_product.split(bbcfg.ignore_sep)[0]]['lookup_var']]
                 origin_product = lookup_substance + bbcfg.ignore_sep + origin_product.split(bbcfg.ignore_sep)[1]
-        elif origin_product in lookup_var_dict:
+        elif origin_product in fd.lookup_var_dict:
             if scenario in orig_unit.var_df.index:
-                origin_product = orig_unit.var_df.at[scenario, lookup_var_dict[origin_product]['lookup_var']]
+                origin_product = orig_unit.var_df.at[scenario, fd.lookup_var_dict[origin_product]['lookup_var']]
             else:
                 origin_product = orig_unit.var_df.at[
-                    bbcfg.scenario_default, lookup_var_dict[origin_product]['lookup_var']]
+                    bbcfg.scenario_default, fd.lookup_var_dict[origin_product]['lookup_var']]
         return origin_product
 
     def check_product_qty(self, product, product_io, chain_name, unit_name, io_dicts, remaining_product_dict):
@@ -923,11 +923,11 @@ class Factory:
 
         in_list = None
 
-        if df[col] in lookup_var_dict:
+        if df[col] in fd.lookup_var_dict:
             if scenario in unit.var_df.index:
-                flow = unit.var_df.at[scenario, lookup_var_dict[df[col]]['lookup_var']]
+                flow = unit.var_df.at[scenario, fd.lookup_var_dict[df[col]]['lookup_var']]
             else:
-                flow = unit.var_df.at[bbcfg.scenario_default, lookup_var_dict[df[col]]['lookup_var']]
+                flow = unit.var_df.at[bbcfg.scenario_default, fd.lookup_var_dict[df[col]]['lookup_var']]
             if type(check_if_in_list) is list:
                 if df[col] in check_if_in_list:
                     in_list = True

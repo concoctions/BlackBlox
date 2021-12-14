@@ -11,7 +11,7 @@ from blackblox.dataconfig import bbcfg
 import blackblox.factory as fac
 import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
-from blackblox.frames_default import df_unit_library
+import blackblox.frames_default as fd
 
 
 logger = get_logger("Industry")
@@ -45,14 +45,16 @@ class Industry:
     """
 
     def __init__(self, factory_list_file: Path, factory_list_sheet=None, name='Industry', outdir=None,
-                 units_df=df_unit_library, **kwargs):
+                 units_df=None, **kwargs):
         self.name = name
         self.outdir = (outdir if outdir else bbcfg.paths.path_outdir) / f'{bbcfg.timestamp_str}__industry_{self.name}'
         self.factory_file = factory_list_file
         self.factories_df = iof.make_df(factory_list_file, factory_list_sheet, index=None)
         self.product_list = None
         self.factory_dict = None
-        self.units_df = units_df
+
+        fd.initialize()
+        self.units_df = units_df if units_df else fd.df_unit_library
 
     def build(self):
         """ generates the factory, chain, and process objects in the industry

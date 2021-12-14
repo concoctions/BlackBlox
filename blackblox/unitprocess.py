@@ -37,7 +37,7 @@ import blackblox.calculators as calc
 from blackblox.dataconfig import bbcfg
 import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
-from blackblox.frames_default import df_unit_library, lookup_var_dict
+import blackblox.frames_default as fd
 
 
 logger = get_logger("Unit Process")
@@ -89,11 +89,14 @@ class UnitProcess:
     """
 
     def __init__(self, u_id, display_name=False, var_df=False, calc_df=False,
-                 outdir=None, units_df=df_unit_library):
+                 outdir=None, units_df=None):
 
         logger.info(f"creating unit process object for {u_id} ({display_name})")
 
         self.u_id = u_id
+
+        fd.initialize()
+        units_df = units_df if units_df else fd.df_unit_library
 
         if display_name is not False:
             self.name = display_name
@@ -223,10 +226,10 @@ class UnitProcess:
                 f'ALERT! {self.name.upper()}: {scenario} not found in variables file. {bbcfg.scenario_default} values will be used instead')
 
         product = self.check_product(product)
-        if product in lookup_var_dict:
+        if product in fd.lookup_var_dict:
             lookup_product_key = product
-            # get product name from var_df, at variable specified in lookup_var_dict
-            product = self.get_var(lookup_var_dict[product]['lookup_var'], scenario)
+            # get product name from var_df, at variable specified in fd.lookup_var_dict
+            product = self.get_var(fd.lookup_var_dict[product]['lookup_var'], scenario)
         else:
             lookup_product_key = False
 
@@ -465,8 +468,8 @@ class UnitProcess:
             raise KeyError(
                 f'{i_o} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
 
-        if toBeReplaced_flow in lookup_var_dict:
-            toBeReplaced_flow = self.get_var(lookup_var_dict[toBeReplaced_flow]['lookup_var'], scenario)
+        if toBeReplaced_flow in fd.lookup_var_dict:
+            toBeReplaced_flow = self.get_var(fd.lookup_var_dict[toBeReplaced_flow]['lookup_var'], scenario)
         if toBeReplaced_flow in calc.df_fuels:
             logger.info(
                 f'{self.name.upper()}: WARNING! {toBeReplaced_flow} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
@@ -555,8 +558,8 @@ class UnitProcess:
             raise KeyError(
                 f'{self.name.upper()}: {i_o} is unknown flow location (Only inflows and outflows allowed for rebalanced processes')
 
-        if toBeReplaced_flow in lookup_var_dict:
-            toBeReplaced_flow = self.get_var(lookup_var_dict[toBeReplaced_flow]['lookup_var'], scenario)
+        if toBeReplaced_flow in fd.lookup_var_dict:
+            toBeReplaced_flow = self.get_var(fd.lookup_var_dict[toBeReplaced_flow]['lookup_var'], scenario)
 
         if type(combustion_eff) is str:
             combustion_eff = self.get_var(combustion_eff, scenario)
@@ -721,7 +724,7 @@ class UnitProcess:
     def check_substance(self, substance, scenario, product, product_alt_name, lookup_product_key):
         """checks that the substance name is valid and, if necesssary substitutes an alternative name 
         product_alt_name (str): from factory connection
-        if in lookup_var_dict substitutes substance name from scenario in associated var_df column
+        if in fd.lookup_var_dict substitutes substance name from scenario in associated var_df column
             and identifies a lookup DF if needed
         if a unique_identifier suffix is used, returns a proxy of the generic substance name for
             use in calculations
@@ -733,19 +736,19 @@ class UnitProcess:
                 substance = product_alt_name  # name at origin
                 logger.debug(f"{self.name.upper()}: {product_alt_name} substitued for {product} as known substance")
 
-        if substance in lookup_var_dict:
-            if 'data_frame' in lookup_var_dict[substance]:
-                logger.debug(f"{self.name.upper()}: {substance} has dataframe in lookup_var_dict")
-                lookup_df = lookup_var_dict[substance]['data_frame']
-            substance = self.get_var(lookup_var_dict[substance]['lookup_var'], scenario)
+        if substance in fd.lookup_var_dict:
+            if 'data_frame' in fd.lookup_var_dict[substance]:
+                logger.debug(f"{self.name.upper()}: {substance} has dataframe in fd.lookup_var_dict")
+                lookup_df = fd.lookup_var_dict[substance]['data_frame']
+            substance = self.get_var(fd.lookup_var_dict[substance]['lookup_var'], scenario)
             logger.debug(f"{self.name.upper()}: lookup substance {substance} substituted")
 
         if bbcfg.ignore_sep in substance:
-            if substance.split(bbcfg.ignore_sep)[0] in lookup_var_dict:
-                logger.debug(f"{self.name.upper()}: {substance} in lookup_var_dict")
-                if 'data_frame' in lookup_var_dict[substance.split(bbcfg.ignore_sep)[0]]:
-                    lookup_df = lookup_var_dict[substance.split(bbcfg.ignore_sep)[0]]['data_frame']
-                proxy = self.get_var(lookup_var_dict[substance.split(bbcfg.ignore_sep)[0]]['lookup_var'], scenario)
+            if substance.split(bbcfg.ignore_sep)[0] in fd.lookup_var_dict:
+                logger.debug(f"{self.name.upper()}: {substance} in fd.lookup_var_dict")
+                if 'data_frame' in fd.lookup_var_dict[substance.split(bbcfg.ignore_sep)[0]]:
+                    lookup_df = fd.lookup_var_dict[substance.split(bbcfg.ignore_sep)[0]]['data_frame']
+                proxy = self.get_var(fd.lookup_var_dict[substance.split(bbcfg.ignore_sep)[0]]['lookup_var'], scenario)
                 substance = proxy + bbcfg.ignore_sep + substance.split(bbcfg.ignore_sep)[1]
                 logger.debug(f"{self.name.upper()}:lookup substance {substance} substituted")
             else:
@@ -797,13 +800,13 @@ class UnitProcess:
             known2_substance = calc_df.at[i, bbcfg.columns.known2]
             k2_io = iof.clean_str(calc_df.at[i, bbcfg.columns.known2_io][0])
 
-            if known2_substance in lookup_var_dict:
-                known2_substance = self.get_var(lookup_var_dict[known2_substance]['lookup_var'], scenario)
+            if known2_substance in fd.lookup_var_dict:
+                known2_substance = self.get_var(fd.lookup_var_dict[known2_substance]['lookup_var'], scenario)
 
             if bbcfg.ignore_sep in known2_substance:
-                if known2_substance.split(bbcfg.ignore_sep)[0] in lookup_var_dict:
+                if known2_substance.split(bbcfg.ignore_sep)[0] in fd.lookup_var_dict:
                     known2_proxy = self.get_var(
-                        lookup_var_dict[known2_substance.split(bbcfg.ignore_sep)[0]]['lookup_var'], scenario)
+                        fd.lookup_var_dict[known2_substance.split(bbcfg.ignore_sep)[0]]['lookup_var'], scenario)
                     known2_substance = known2_proxy + bbcfg.ignore_sep + known2_substance.split(bbcfg.ignore_sep)[1]
                 else:
                     known2_proxy = known2_substance.split(bbcfg.ignore_sep)[0]
