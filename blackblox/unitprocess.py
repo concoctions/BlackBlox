@@ -170,7 +170,8 @@ class UnitProcess:
                 product_alt_name=False,
                 balance_energy=True,
                 raise_imbalance=False,
-                write_to_console=False):
+                write_to_console=False,
+                write_to_xls=False):
         """balance(self, qty, product=False, i_o=False, scenario=bbcfg.scenario_default, energy_flows=bbcfg.energy_flows, balance_energy=True, raise_imbalance=False,)
         performs a mass (and/or energy) balance on the unit process.
 
@@ -365,6 +366,9 @@ class UnitProcess:
 
         if write_to_console is True:
             self.write_to_console(io_dicts, scenario, product_qty, product)
+
+        if write_to_xls is True:
+            self.unit_write_to_xls(io_dicts, scenario, product_qty, product, self.outdir)
 
         return io_dicts['i'], io_dicts['o']
 
@@ -835,3 +839,22 @@ class UnitProcess:
 
         print(flows)
         print("\n")
+
+    def unit_write_to_xls(self, io_dicts, scenario, qty, product, outdir):
+
+        flows = iof.mass_energy_df(dict(inflows=io_dicts['i'], outflows=io_dicts['o']))
+
+        meta_df = iof.metadata_df(user=bbcfg.user,
+                                    name=self.name,
+                                    level="Unit",
+                                    scenario=scenario,
+                                    product=product,
+                                    product_qty=qty)
+
+        dfs = [meta_df, flows]
+        sheets = ["meta", "inoutflows",]
+
+        iof.write_to_xls(df_or_df_list=dfs,
+                            sheet_list=sheets,
+                            outdir=outdir,
+                            filename=f'{self.name}_u_multi_{datetime.now().strftime("%b%d_%H%M")}')

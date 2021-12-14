@@ -25,7 +25,7 @@ bbcfg.units_default = {
     'energy': 'GJ',
 }
 
-bbcfg.emissions = ['CO2__fossil']
+bbcfg.emissions = ['CO2__fossil', 'CO2__bio']
 bbcfg.scenario_default = 'default'
 
 path_script_dir = Path(__file__).resolve().parent  # Directory where this script file is located
