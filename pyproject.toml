@@ -2,11 +2,11 @@
 name = "blackblox"
 version = "0.2.0"
 description = "Simple simulator for black box process models"
-authors = ["Samantha Tanzer <S.E.Tanzer@tudelft.nl>", "João Paulo Pizani <J.P.PizaniFlor@tudelft.nl>"]
-license = "GPL3"
+authors = ["S.E. Tanzer <S.E.Tanzer@tudelft.nl>", "João Paulo Pizani <J.P.PizaniFlor@tudelft.nl>"]
+license = "GPL-3.0-only"
 
 readme = "README.md"
-homepage = "https://github.com/concoctions/BlackBlox"
+homepage = "https://concoctions.org/blackblox/"
 repository = "https://github.com/concoctions/BlackBlox"
 
 
