@@ -171,11 +171,12 @@ class Factory:
 
         logger.info(f"{self.name.upper()}: Initalization successful")
 
-    def balance(self, scenario=None, product_qty=1.0, product=False, product_unit=False,
-                product_io=False,
+    def balance(self, scenario=None, 
+                product_qty=1.0, product=False, product_unit=False, product_io=False,
                 upstream_outflows=False, upstream_inflows=False,
                 downstream_outflows=False, downstream_inflows=False,
-                aggregate_flows=False, net_flows=False, write_to_xls=True, outdir=None, subdir=False, id=''):
+                aggregate_flows=False, net_flows=False, 
+                write_to_xls=True, outdir=None, subdir=False, id=''):
         """Calculates the mass balance of the factory using qty of main product
 
         Balances all UnitProcesses and Chains in the factory
