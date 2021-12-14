@@ -22,6 +22,7 @@ Blackblox was written by `S.E. Tanzer <https://www.tudelft.nl/tbm/over-de-facult
    :maxdepth: 1
    
    intro
+   usage
    unit
    chain
    factory
