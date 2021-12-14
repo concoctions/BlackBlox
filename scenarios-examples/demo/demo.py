@@ -221,9 +221,10 @@ cement_chain = cha.ProductChain(
 print('\nCEMENT Chain Data:')
 pprint(cement_chain.process_chain_df)
 
-input("\n\n\nPress enter to generate CEMENT chain proces diagram: ")
-cement_chain.diagram(view=True, save=False)
-print("\nDiagram sent to system viewer.")
+# Diagram will not work if graphviz is not appropriately installed
+# input("\n\n\nPress enter to generate CEMENT chain proces diagram: ")
+# cement_chain.diagram(view=True, save=False)
+# print("\nDiagram sent to system viewer.")
 
 input("\n\n\nPress enter to balance the cement chain on 1.0 tonnes of cement out: ")
 cement_chain.balance(1.0, write_to_console=True)
@@ -277,9 +278,10 @@ print(
 input("\n\n\nPress enter to see all connection data for waste heat recycling: ")
 print('\n', cement_factory.connections_df.iloc[3, :])
 
-input("\n\n\nPress enter to generate a diagram of the cement factory: ")
-cement_factory.diagram(view=True, save=False)
-print("\nDiagram sent to system viewer.")
+# diagram will not work if graphviz is not appropriately installed
+# input("\n\n\nPress enter to generate a diagram of the cement factory: ")
+# cement_factory.diagram(view=True, save=False)
+# print("\nDiagram sent to system viewer.")
 
 input("\n\n\nPress enter to balance the factory on 100.0 tonnes of cement (outputs to file): ")
 inflows, outflows, _, _ = cement_factory.balance(product_qty=100, scenario=bbcfg.scenario_default, write_to_xls=False)
@@ -334,7 +336,7 @@ while stop == '':
         break
     print("\nworking....")
 
-    ioDicts = industry.balance(production_data_sheet='2000', write_to_xls=True, file_id='2010', diagrams=True)
+    ioDicts = industry.balance(production_data_sheet='2000', write_to_xls=True, file_id='2010', diagrams=False)
     print(f"\nDone. Files available under the \"{industry.outdir}\" directory.")
 
     stop = input("\n\n\nPress enter to compare scenarios of production in the cement industry: ")
@@ -357,7 +359,7 @@ while stop == '':
     print("\nworking....\n")
 
     industry.evolve(start_sheet='1990', end_sheet='2010', start_step=1990, end_step=2010, write_to_xls=True,
-                    diagrams=True, graph_outflows=['CO2', 'cement'])
+                    diagrams=False, graph_outflows=['CO2', 'cement'])
     print(f"Done. Files available under the \"{industry.outdir}\" directory.")
 
     stop = input("\n\n\nPress enter to model the cement industry from 1990 to 2000 to 2010 and generate outflow graphs for cement and CO2: ")

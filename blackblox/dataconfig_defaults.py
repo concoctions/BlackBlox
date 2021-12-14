@@ -142,8 +142,8 @@ path_project_root_default = Path()  # current working directory
 path_data_root_default = path_project_root_default / 'data'
 
 paths_default = PathConfig(
-    unit_process_library_file=path_data_root_default / 'unitlibrary.xlsx',
-    unit_process_library_sheet='Unit Processes',
+    unit_process_library_file=path_data_root_default / 'unitlibrary.csv',
+    unit_process_library_sheet=None,
     var_filename_prefix='var_',
     calc_filename_prefix='calc_',
     path_outdir=path_project_root_default / 'output',
@@ -152,12 +152,12 @@ paths_default = PathConfig(
 
 
 # LOOKUP VARIABLES
-path_fuels_default = path_data_root_default / 'fuels.xlsx'
-path_upstream_default = path_data_root_default / 'upstream.xlsx'
+path_fuels_default = path_data_root_default / 'fuels.csv'
+path_upstream_default = None # path_data_root_default / 'upstream.xlsx'
 
 common_fuel_info_default = dict(
     filepath=path_fuels_default,
-    sheet='Fuels',
+    sheet=None,
     is_fuel=True,
 )
 
