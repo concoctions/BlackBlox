@@ -105,7 +105,7 @@ class Factory:
                  units_df=None, **kwargs):
 
         fd.initialize()
-        units_df = units_df if units_df else fd.df_unit_library
+        units_df = units_df if units_df is not None else fd.df_unit_library
 
         logger.info(f"{name.upper()}: Initializing factory")
         self.name = name

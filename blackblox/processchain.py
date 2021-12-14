@@ -75,7 +75,7 @@ class ProductChain:
         self.outdir = (outdir if outdir else bbcfg.paths.path_outdir) / f'{bbcfg.timestamp_str}__chain_{self.name}'
 
         fd.initialize()
-        units_df = units_df if units_df else fd.df_unit_library
+        units_df = units_df if units_df is not None else fd.df_unit_library
 
         logger.info(f"PROCESS CHAIN INIT - chain name: {name}, chain data: {chain_data}, xls sheet: {xls_sheet}")
         self.process_chain_df = iof.make_df(chain_data, sheet=xls_sheet, index=None)

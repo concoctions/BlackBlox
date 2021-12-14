@@ -44,7 +44,7 @@ from molmass import Formula
 from blackblox.dataconfig import bbcfg
 import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
-from blackblox.frames_default import df_fuels
+import blackblox.frames_default as fd
 
 
 logger = get_logger("Calculators")
@@ -318,7 +318,7 @@ def Addition(qty, qty2, invert=False, **kwargs):
 
 
 # noinspection PyUnusedLocal
-def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df_fuels, **kwargs):
+def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=None, **kwargs):
     """Ratio function, but for lookup DataFrames
 
     If the known_substance is in the index of the dataframe, multiples qty
@@ -336,11 +336,12 @@ def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df
         unknown_substance (str): name of the unknown quantity
         var (str): The relevant column in the lookup dataframe
         lookup_df (DataFrame): dataframe with lookup data
-            (defaults to fuels dataframe)
+            (defaults to fd.df_fuels dataframe)
     Returns:
         float
 
     """
+    lookup_df = lookup_df if lookup_df is not None else fd.df_fuels
     logger.debug(f"using dataframe {lookup_df.columns}, {qty} of {known_substance} and {var} for {unknown_substance}")
 
     check_qty(qty)
@@ -370,7 +371,7 @@ def lookup_ratio(known_substance, qty, unknown_substance, var=None, lookup_df=df
 # noinspection PyUnusedLocal
 def Combustion(known_substance, qty, unknown_substance, var=1.0,
                emissions_list=bbcfg.emissions, emissions_dict=False,
-               inflows_dict=False, fuels_df=df_fuels, LHV=True,
+               inflows_dict=False, fuels_df=None, LHV=True,
                write_energy_in=True, **kwargs):
     """Specicalized multi-lookup function for energy content and emissions of fuel combustion.
 
@@ -424,6 +425,9 @@ def Combustion(known_substance, qty, unknown_substance, var=1.0,
 
 
     """
+
+    fuels_df = fuels_df if fuels_df is not None else fd.df_fuels
+
     logger.debug(f"using {qty} of {known_substance} and efficiency of {var} to calculate {unknown_substance}")
     logger.debug(f"using dataframe with columns {fuels_df.columns}")
 
@@ -575,9 +579,9 @@ calcs_dict = {
     'returnvalue': {'function': ReturnValue, 'kwargs': {}},
     'subtraction': {'function': Subtraction, 'kwargs': {}},
     'addition': {'function': Addition, 'kwargs': {}},
-    'energycontent-lhv': {'function': lookup_ratio, 'kwargs': {'lookup_df': df_fuels, 'var': 'lhv'}},
-    'energycontent-hhv': {'function': lookup_ratio, 'kwargs': {'lookup_df': df_fuels, 'var': 'hhv'}},
-    'energycontent': {'function': lookup_ratio, 'kwargs': {'lookup_df': df_fuels, 'var': 'lhv'}},
+    'energycontent-lhv': {'function': lookup_ratio, 'kwargs': {'var': 'lhv'}},
+    'energycontent-hhv': {'function': lookup_ratio, 'kwargs': {'var': 'hhv'}},
+    'energycontent': {'function': lookup_ratio, 'kwargs': {'var': 'lhv'}},
     'combustion': {'function': Combustion, 'kwargs': {}},
     'combustion-noenergyin': {'function': Combustion, 'kwargs': {'write_energy_in': False}},
     'combustion-lhv': {'function': Combustion, 'kwargs': {'LHV': True}},
@@ -585,7 +589,7 @@ calcs_dict = {
     'combustion-hhv': {'function': Combustion, 'kwargs': {'LHV': False}},
     'combustion-hhv-noenergyin': {'function': Combustion, 'kwargs': {'LHV': False, 'write_energy_in': False}},
     'lookupratio': {'function': lookup_ratio, 'kwargs': {}},
-    'lookupratio-fuels': {'function': lookup_ratio, 'kwargs': {'lookup_df': df_fuels}},
+    'lookupratio-fuels': {'function': lookup_ratio, 'kwargs': {}},
 }
 """Names of calculation types available for the use in calculation tables.
 The keys in this dictionary should be all lowercase.

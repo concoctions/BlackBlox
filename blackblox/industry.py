@@ -54,7 +54,7 @@ class Industry:
         self.factory_dict = None
 
         fd.initialize()
-        self.units_df = units_df if units_df else fd.df_unit_library
+        self.units_df = units_df if units_df is not None else fd.df_unit_library
 
     def build(self):
         """ generates the factory, chain, and process objects in the industry

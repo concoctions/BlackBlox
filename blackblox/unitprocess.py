@@ -96,7 +96,7 @@ class UnitProcess:
         self.u_id = u_id
 
         fd.initialize()
-        units_df = units_df if units_df else fd.df_unit_library
+        units_df = units_df if units_df is not None else fd.df_unit_library
 
         if display_name is not False:
             self.name = display_name
@@ -470,7 +470,7 @@ class UnitProcess:
 
         if toBeReplaced_flow in fd.lookup_var_dict:
             toBeReplaced_flow = self.get_var(fd.lookup_var_dict[toBeReplaced_flow]['lookup_var'], scenario)
-        if toBeReplaced_flow in calc.df_fuels:
+        if toBeReplaced_flow in fd.df_fuels:
             logger.info(
                 f'{self.name.upper()}: WARNING! {toBeReplaced_flow} is a fuel. Combustion emissions will NOT be replaced. Use recycle_energy_replacing_fuel instead.')
 
