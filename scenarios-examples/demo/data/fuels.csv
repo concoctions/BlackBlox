@@ -1,0 +1,7 @@
+﻿fuel,LHV,CO2__fossil,CO2__bio,meta-source
+meta-units,(GJ/dry tonne),(t/t combusted),(t/t combusted),
+heavy fuel oil,40.4,3.12696,0,IPCC emission factor database
+coal,25.8,2.47938,0,IPCC emission factor database
+natural gas,48,2.6928,0,IPCC emission factor database
+charcoal,29.5,0,3.304,IPCC emission factor database
+coke,28.2,3.0174,0,IPCC emission factor database

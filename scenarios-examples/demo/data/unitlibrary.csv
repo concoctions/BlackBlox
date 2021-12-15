@@ -1,0 +1,8 @@
+﻿id,meta-category,display name,product,productType,meta-notes
+demo_kiln,demo,kiln,clinker,output,
+demo_blender,demo,blender,cement,output,
+demo_mixer,demo,mixer,meal,output,
+demo_CO2capture,demo,CO2 Capture,CO2,input,
+demo_CO2compression,demo,CO2 Compression,capturedCO2,input,
+demo_powerstation,demo,Power Station,electricity,output,
+demo_mysterious_cement_factory,demo,mysterious cement factory,cement,output,this factory is very mysterious

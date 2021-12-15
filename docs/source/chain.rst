@@ -1,4 +1,4 @@
-The Process Chain Module
+Module: ProductChain
 ==========================
 
 

@@ -1,4 +1,4 @@
-The Unit Process Module
+Module: UnitProcess
 =====================================
   
 UnitProcess Class

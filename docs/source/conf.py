@@ -14,20 +14,20 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../..'))
 
-import mock
+# import mock
 
-MOCK_MODULES = [
-    'numpy.linalg',
-    'graphviz',
-    'molmass',
-    'matplotlib.pyplot',
-    'pandas',
-    'xlrd',
-    'openpyxl',
-    'seaborn',
-]
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = mock.Mock()
+# MOCK_MODULES = [
+#     'numpy',
+#     'graphviz',
+#     'molmass',
+#     'matplotlib.pyplot',
+#     'pandas',
+#     'xlrd',
+#     'openpyxl',
+#     'seaborn',
+# ]
+# for mod_name in MOCK_MODULES:
+#     sys.modules[mod_name] = mock.Mock()
 
 
 # -- Project information -----------------------------------------------------
@@ -71,7 +71,7 @@ exclude_patterns = []
 #
 html_theme = 'sphinx_rtd_theme'
 
-html_logo = "doc_assets/logo_150.png"
+html_logo = "doc_assets/logo150.png"
 html_theme_options = {
     'logo_only': True,
     'display_version': False,
@@ -80,4 +80,4 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
