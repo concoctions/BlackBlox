@@ -1,0 +1,83 @@
+# This is a SIMPLIFIED version of the scenario programmed in demo.py.
+# Namely, there's a lot less feedback (console messages etc.), you should check the output files for results.
+# Also there are no such things here as random choices, showing intermediate steps, etc.
+
+bbcfg:
+  user:
+    name: 'S.E. Tanzer'
+    affiliation: 'TU Delft'
+    project: 'BlackBlox Demo'
+  units_default:
+    mass: 'tonnes'
+    energy: 'GJ'
+  emissions: ['CO2__fossil', 'CO2__bio']
+  scenario_default: 'default'
+  paths_convention:
+    scenario_root: null  # this means the directory where the yaml file itself resides
+    unit_process_library_sheet: 'Unit Processes'  # default
+    same_xls: ['thisfile', 'same', 'here']  # default
+    var_filename_prefix: 'var_'  # default
+    calc_filename_prefix: 'calc_'  # default
+    path_outdir_suffix: null  # a null here means the name is just a timestamp, default
+
+
+unit_libraries:
+  - id: 'demo_units_df'
+    params:
+      file: null  # a null here just means use the path convention from bbcfg
+      sheet: null  # a null here just means use bbcfg.unit_process_library_sheet
+
+unit_processes:
+  - id: 'demo_kiln'
+    params:
+      outdir: null  # a null here just means use the path convention from bbcfg
+      unit_library_id: 'demo_units_df'
+
+product_chains:
+  - id: 'Cement'
+    params:
+      name: 'Cement'
+      chain_data: 'factories/cementFactory_withCCS.xlsx'  # relative to '<bbcfg.scenario_root>/data'
+      xls_sheet: 'Cement Chain'
+      unit_library_id: 'demo_units_df'
+
+factories:
+  - id: 'Demo'
+    params:
+      name: 'Demo'
+      chain_list_sheet: 'Chain List'
+      connections_sheet: 'Connections'
+      unit_library_id: 'demo_units_df'
+
+
+commands:
+  - unit_process_balance:
+      id: 'demo_kiln'
+      qty: 1.0
+      scenario: 'EU-2010'
+      write_to_console: Yes
+  - unit_process_run_scenarios:
+      id: 'demo_kiln'
+      scenario_list: ['EU-1990', 'EU-2000', 'EU-2010']
+      write_to_console: Yes
+  - product_chain_balance:
+      id: 'Cement'
+      qty: 1.0
+      write_to_console: Yes
+  - product_chain_balance:
+      id: 'Cement'
+      qty: 1.070880
+      product: 'CaCO3'
+      scenario: 'default'
+      write_to_console: Yes
+  - product_chain_run_scenarios:
+      id: 'Cement'
+      scenario_list: ['EU-1990', 'EU-2000', 'EU-2010']
+      write_to_console: Yes
+  - factory_balance:
+      id: 'Demo'
+      product_qty: 13.9535
+      product: 'fuel'
+      product_io: 'inflow'
+      product_unit: 'demo_kiln'
+      write_to_xls: Yes
