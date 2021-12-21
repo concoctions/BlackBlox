@@ -1,5 +1,12 @@
 # License
 
+*Technische Universiteit Delft hereby disclaims all copyright interest in*
+*the program blackblox.py, a comparative black box modelling library written*
+*by S.E. Tanzer.*
+  
+*Aukje Hassoldt, Dean of Tecnhnology, Policy, and Management*
+  
+    
 blackblox.py is free to use under the GNU General Public License.
 
 

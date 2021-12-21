@@ -1,3 +1,12 @@
+----------------------------------------------------------------------------
+Technische Universiteit Delft hereby disclaims all copyright interest in
+the program blackblox.py, a comparative black box modelling library written 
+by S.E. Tanzer.
+
+Aukje Hassoldt, Dean of Tecnhnology, Policy, and Management
+----------------------------------------------------------------------------
+
+                    
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -70,7 +79,7 @@ modification follow.
 
                        TERMS AND CONDITIONS
 
-  0. Definitions.
+  1. Definitions.
 
   "This License" refers to version 3 of the GNU General Public License.
 
