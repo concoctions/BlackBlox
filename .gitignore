@@ -133,3 +133,5 @@ data/shared/upstream copy.xlsx
 
 # Sphinx build dir
 docs/_build
+.DS_Store
+docs/.DS_Store

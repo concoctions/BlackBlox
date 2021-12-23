@@ -33,7 +33,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'blackblox'
-copyright = '2017-2022, S.E. Tanzer.\nTechnische Universiteit Delft hereby disclaims all copyright interest in the program blackblox.py, a comparative black box modelling library written by S.E. Tanzer.\nAukje Hassoldt, Dean of Tecnhnology, Policy, and Management'
+copyright = '2017-2022, S.E. Tanzer. Technische Universiteit Delft hereby disclaims all copyright interest in the program blackblox.py, the comparative black box modelling library written by S.E. Tanzer. -Aukje Hassoldt, Dean of Tecnhnology, Policy, and Management'
 author = 'S.E. Tanzer'
 
 # The full version, including alpha/beta/rc tags
