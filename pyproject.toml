@@ -29,6 +29,10 @@ sphinx-rtd-theme = "^1.0.0"
 sphinx-markdown-tables = "^0.0.15"
 mock = "^4.0.3"
 
+
+[tool.poetry.scripts]
+blackblox = 'blackblox.cli_app:main'
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
