@@ -393,7 +393,14 @@ def metadata_df(user=bbcfg.user, about=about.about_blackblox, name="unknown", le
 
     return meta_df
 
-def build_unit_library(file=bbcfg.paths.unit_process_library_file, sheet=bbcfg.paths.unit_process_library_sheet):
+def build_unit_library(ul_file=None, ul_sheet=None):
+    # Default parameters need to be set at call time instead of import time
+
+    # A bit of a hack, but the big logic here and in make_df assume ul_file to be a string, so we convert,
+    # because we need to accept also pathlib.Path
+    file = str(bbcfg.paths.unit_process_library_file if ul_file is None else ul_file)
+    sheet = str(bbcfg.paths.unit_process_library_sheet if ul_sheet is None else ul_sheet)
+
     df_unit_library_partial = make_df(file, sheet)
 
     var_id_col = []

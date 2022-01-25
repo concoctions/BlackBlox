@@ -56,7 +56,7 @@ def __attempt_initialize():
 
     df_unit_library = iof.build_unit_library(
         bbcfg.paths.unit_process_library_file,
-        sheet=bbcfg.paths.unit_process_library_sheet
+        ul_sheet=bbcfg.paths.unit_process_library_sheet
     )
 
     if bbcfg.shared_var.fuel_dict is not None:
