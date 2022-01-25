@@ -101,14 +101,14 @@ class Factory:
 
     # noinspection PyUnusedLocal
     def __init__(self, chain_list_file, chain_list_sheet=None, connections_file=None,
-                 connections_sheet=None, name="Factory", outdir=None,
+                 connections_sheet=None, name=None, outdir=None,
                  units_df=None, **kwargs):
 
         fd.initialize()
         units_df = units_df if units_df is not None else fd.df_unit_library
 
+        self.name = "Factory" if name is None else name
         logger.info(f"{name.upper()}: Initializing factory")
-        self.name = name
 
         chain_list_df = iof.make_df(chain_list_file, chain_list_sheet, index=None)
         self.chain_dict = defaultdict(dict)

@@ -55,12 +55,54 @@ def __build_unit_processes(unit_process_dicts, unit_libraries) -> Dict[str, Unit
     return built_unit_processes
 
 
-def __build_product_chains(product_chain_dicts) -> Dict[str, ProductChain]:
-    pass
+def __build_product_chains(product_chain_dicts, unit_libraries) -> Dict[str, ProductChain]:
+    built_prod_chains = {}
+
+    for prod_chain in product_chain_dicts:
+        chain_id = prod_chain['id']
+        chain_params = prod_chain['params']
+
+        built_name = chain_params.get('name', None)
+        built_chain_data = Path(chain_params['chain_data'])  # mandatory parameter
+        built_xls_sheet = chain_params.get('xls_sheet', None)
+        built_outdir = chain_params.get('outdir', None)
+        built_unit_library_id = chain_params.get('unit_library_id', None)
+        built_unit_library = unit_libraries[built_unit_library_id] if built_unit_library_id is None else None
+
+        # TODO: make sure chain_data is relative to '<bbcfg.scenario_root>/data'
+        built_chain = ProductChain(
+            chain_data=built_chain_data,  # mandatory parameter
+            name=built_name, xls_sheet=built_xls_sheet, outdir=built_outdir, units_df=built_unit_library,
+        )
+        built_prod_chains[chain_id] = built_chain
+
+    return built_prod_chains
 
 
-def __build_factories(factory_dicts) -> Dict[str, Factory]:
-    pass
+def __build_factories(factory_dicts, unit_libraries) -> Dict[str, Factory]:
+    built_factories = {}
+
+    for factory in factory_dicts:
+        fac_id = factory['id']
+        fac_params = factory['params']
+
+        built_name = fac_params.get('name', None)
+        built_chain_list_file = fac_params['chain_list_file']  # mandatory parameter
+        built_chain_list_sheet = fac_params('chain_list_sheet', None)
+        built_connections_sheet = fac_params.get('connections_sheet', None)
+        built_outdir = fac_params.get('outdir', None)
+        built_unit_library_id = fac_params.get('unit_library_id', None)
+        built_unit_library = unit_libraries[built_unit_library_id] if built_unit_library_id is None else None
+
+        # TODO: make sure chain_list_file is relative to '<bbcfg.scenario_root>/data'
+        built_factory = Factory(
+            chain_list_file=built_chain_list_file,  # mandatory parameter
+            chain_list_sheet=built_chain_list_sheet, connections_sheet=built_connections_sheet, name=built_name,
+            outdir=built_outdir, units_df=built_unit_library,
+        )
+        built_factories[fac_id] = built_factory
+
+    return built_factories
 
 
 def __build_bbcfgs_with_defaults(cfgs: dict) -> Config:
@@ -179,7 +221,7 @@ def __validate_scenario_dict(scenario_dict: dict):
     built_cfgs = __build_bbcfgs_with_defaults(cfgs_dict)
     built_unit_libraries = __build_unit_libraries(unit_library_dicts)
     built_unit_processes = __build_unit_processes(unit_process_dicts, built_unit_libraries)
-    built_product_chains = __build_product_chains(product_chain_dicts)
+    built_product_chains = __build_product_chains(product_chain_dicts, built_unit_libraries)
     built_factories = __build_factories(factory_dicts)
 
     # TODO: return all entities together? bundled in dict?

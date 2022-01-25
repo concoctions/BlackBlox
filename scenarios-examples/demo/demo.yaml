@@ -46,6 +46,7 @@ factories:
   - id: 'Demo'
     params:
       name: 'Demo'
+      chain_list_file: 'factories/cementFactory_withCCS.xlsx'  # relative to '<bbcfg.scenario_root>/data'
       chain_list_sheet: 'Chain List'
       connections_sheet: 'Connections'
       unit_library_id: 'demo_units_df'
