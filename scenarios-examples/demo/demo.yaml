@@ -17,9 +17,16 @@ bbcfg:
     unit_process_library_file_suffix: 'unitlibrary.csv'  # default
     unit_process_library_sheet: 'Unit Processes'  # default
     same_xls: ['thisfile', 'same', 'here']  # default
-    var_filename_prefix: 'var_'  # default
+    var_filename_prefix: 'var_'  # defaults
     calc_filename_prefix: 'calc_'  # default
     path_outdir_suffix: null  # a null here means the name is just a timestamp, default
+  shared_var:
+    path_shared_fuels: 'data/fuels.csv'  # relative to paths_convention.scenario_root
+    path_shared_upstream: 'data/upstream.xlsx'  # relative to paths_convention.scenario_root
+    fuel_dict:
+      filepath: 'data/fuels.csv'  # relative to paths_convention.scenario_root
+      sheet: 'Fuels'  # default
+      lookup_var: 'fueltype'  # default
 
 
 unit_libraries:

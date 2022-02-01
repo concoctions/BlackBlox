@@ -174,6 +174,69 @@ class SharedVarConfig:
 
     """
 
+    @staticmethod
+    def convention_sharedvar_scenario_root(
+        path_shared_fuels: Path,
+        path_shared_upstream: Path,
+    ):
+        common_fuel_info_default = dict(
+            filepath=path_shared_fuels,
+            sheet=None,
+            is_fuel=True,
+        )
+
+        lookup_var = {
+            'fuel': dict(common_fuel_info_default, lookup_var='fueltype'),
+            'other fuel': dict(common_fuel_info_default, lookup_var='other fuel type'),
+            'primary fuel': dict(common_fuel_info_default, lookup_var='primary fuel type'),
+            'secondary fuel': dict(common_fuel_info_default, lookup_var='secondary fuel type'),
+            'fossil fuel': dict(common_fuel_info_default, lookup_var='fossil fuel type'),
+            'biofuel': dict(common_fuel_info_default, lookup_var='biofuel type'),
+            'secondary biofuel': dict(common_fuel_info_default, lookup_var='secondary biofuel type'),
+            'reducing agent': dict(common_fuel_info_default, lookup_var='reducing agent'),
+            'waste fuel': dict(common_fuel_info_default, lookup_var='waste fuel type'),
+
+            'upstream outflows': dict(
+                filepath=path_shared_upstream,
+                sheet='up-emissions',
+                lookup_var='upstream outflows',
+            ),
+            'upstream inflows': dict(
+                filepath=path_shared_upstream,
+                sheet='up-removals',
+                lookup_var='upstream inflows',
+            ),
+
+            'downstream outflows': dict(
+                filepath=path_shared_upstream,
+                sheet='down-emissions',
+                lookup_var='downstream outflows',
+            ),
+            'downstream inflows': dict(
+                filepath=path_shared_upstream,
+                sheet='down-removals',
+                lookup_var='downstream inflows',
+            ),
+
+            'biomass': dict(lookup_var='biomass type'),
+            'feedstock': dict(lookup_var='feedstock type'),
+            'fossil feedstock': dict(lookup_var='fossil feedstock type'),
+            'biofeedstock': dict(lookup_var='biofeedstock type'),
+            'alloy': dict(lookup_var='alloy type'),
+            'solvent': dict(lookup_var='solvent type')
+        }
+
+        return SharedVarConfig(
+            path_shared_fuels=path_shared_fuels,
+            path_shared_upstream=path_shared_upstream,
+            fuel_dict=dict(
+                filepath=path_shared_fuels,
+                sheet='Fuels',
+                lookup_var='fueltype',
+            ),
+            lookup_var_dict=lookup_var,
+        )
+
 
 @dataclass
 class Config:

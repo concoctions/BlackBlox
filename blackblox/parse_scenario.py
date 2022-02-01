@@ -1,24 +1,28 @@
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List, Tuple
 
 import pandas
+import pandas as pd
 import yaml
 
 from blackblox.dataconfig_defaults import default as defcfgs
 from blackblox.dataconfig_format import Config, PathConfig
+import blackblox.dataconfig
 from blackblox.io_functions import build_unit_library
 from blackblox.factory import Factory
 from blackblox.processchain import ProductChain
 from blackblox.unitprocess import UnitProcess
 
 
-def run_scenario_file(filename: Path):
-    with open(filename, 'r') as f:
+def run_scenario_file(yaml_file_path: Path):
+    with open(yaml_file_path, 'r') as f:
         scenario_dict = yaml.load(f, Loader=yaml.FullLoader)
-        validated_dict = __validate_scenario_dict(scenario_dict)
+        config_file_dir = yaml_file_path.parent
+        cfg, entities, commands = __validate_scenario_dict(config_file_dir, scenario_dict)
 
-        __run_validated_dict(validated_dict)
+        __run_validated_dict(cfg, entities, commands)
 
 
 def __build_unit_libraries(unit_library_dicts) -> Dict[str, pandas.DataFrame]:
@@ -105,7 +109,7 @@ def __build_factories(factory_dicts, unit_libraries) -> Dict[str, Factory]:
     return built_factories
 
 
-def __build_bbcfgs_with_defaults(cfgs: dict) -> Config:
+def __build_bbcfgs_with_defaults(config_file_dir: Path, cfgs: dict) -> Config:
     # for bbcfg basically everything is optional
     # thus we just start with the default cfg, and override ONLY what is specififed in the YAML
     built_cfg = defcfgs
@@ -136,7 +140,7 @@ def __build_bbcfgs_with_defaults(cfgs: dict) -> Config:
         if built_energy is not None:
             built_cfg.units_default.energy = built_energy
 
-    built_emissions = cfgs.get('emissions', defcfgs.default.emissions)
+    built_emissions = cfgs.get('emissions', defcfgs.emissions)
     built_cfg.emissions = built_emissions
 
     built_scenario_default = cfgs.get('scenario_default', defcfgs.scenario_default)
@@ -150,24 +154,24 @@ def __build_bbcfgs_with_defaults(cfgs: dict) -> Config:
 
         # default is CWD
         cfg_scenario_root = cfgs_paths.get('scenario_root', None)
-        built_scenario_root = Path() if cfg_scenario_root is None else Path(cfgs_paths['scenario_root'])
+        built_scenario_root = Path(config_file_dir) if cfg_scenario_root is None else Path(cfgs_paths['scenario_root'])
 
         cfg_UP_sheet = cfgs_paths.get('unit_process_library_sheet', None)
         built_UP_sheet = defcfgs.paths.unit_process_library_sheet if cfg_UP_sheet is None else cfg_UP_sheet
 
-        cfg_var_filename_prefix = cfgs_paths('var_filename_prefix', None)
+        cfg_var_filename_prefix = cfgs_paths.get('var_filename_prefix', None)
         built_var_filename_prefix = defcfgs.paths.var_filename_prefix if cfg_var_filename_prefix is None else cfg_var_filename_prefix
 
-        cfg_calc_filename_prefix = cfgs_paths('cfg_calc_filename_prefix', None)
+        cfg_calc_filename_prefix = cfgs_paths.get('cfg_calc_filename_prefix', None)
         built_calc_filename_prefix = defcfgs.paths.calc_filename_prefix if cfg_calc_filename_prefix is None else cfg_calc_filename_prefix
 
-        cfg_same_xls = cfgs_paths('same_xls', None)
+        cfg_same_xls = cfgs_paths.get('same_xls', None)
         built_same_xls = defcfgs.paths.same_xls if cfg_same_xls is None else cfg_same_xls
 
-        cfg_path_outdir_suffix = cfgs_paths('path_outdir_suffix', None)
+        cfg_path_outdir_suffix = cfgs_paths.get('path_outdir_suffix', None)
         built_path_outdir_suffix = datetime.now().strftime("%Y%m%dT%H%M") if cfg_path_outdir_suffix is None else cfg_path_outdir_suffix
 
-        cfg_UP_filesuffix = cfgs_paths('unit_process_library_file_suffix', None)
+        cfg_UP_filesuffix = cfgs_paths.get('unit_process_library_file_suffix', None)
         built_UP_filesuffix = Path('unitlibrary.csv') if cfg_UP_filesuffix is None else cfg_UP_filesuffix
 
         built_cfg.paths = PathConfig.convention_paths_scenario_root(
@@ -180,10 +184,21 @@ def __build_bbcfgs_with_defaults(cfgs: dict) -> Config:
             path_outdir_suffix=built_path_outdir_suffix,
         )
 
+    print(f"built_cfg:\n{built_cfg}\n")
     return built_cfg
 
 
-def __validate_scenario_dict(scenario_dict: dict):
+Commands = List[Dict[str, dict]]
+
+@dataclass
+class Entities:
+    unit_libraries: Dict[str, pd.DataFrame]
+    unit_processes: Dict[str, UnitProcess]
+    product_chains: Dict[str, ProductChain]
+    factories: Dict[str, Factory]
+
+
+def __validate_scenario_dict(config_file_dir: Path, scenario_dict: dict) -> Tuple[Config, Entities, Commands]:
     # cfgs is a dictionary, all the rest are lists
     cfgs_dict = scenario_dict.get('bbcfg', {})
     unit_library_dicts = scenario_dict.get('unit_libraries', [])
@@ -218,7 +233,11 @@ def __validate_scenario_dict(scenario_dict: dict):
                 pass
 
     # All the sections EXCEPT commands may have defaults (omitted in the YAML) that we fill in
-    built_cfgs = __build_bbcfgs_with_defaults(cfgs_dict)
+    built_cfgs = __build_bbcfgs_with_defaults(config_file_dir, cfgs_dict)
+
+    # Must set the global bbcfgs before doing anything else in the library (that's the protocol)
+    blackblox.dataconfig.bbcfg = built_cfgs
+
     built_unit_libraries = __build_unit_libraries(unit_library_dicts)
     built_unit_processes = __build_unit_processes(unit_process_dicts, built_unit_libraries)
     built_product_chains = __build_product_chains(product_chain_dicts, built_unit_libraries)
@@ -230,8 +249,19 @@ def __validate_scenario_dict(scenario_dict: dict):
     for c in validated_commands:
         print(c)
 
-    return validated_commands
+    built_entities = Entities(
+        unit_libraries=built_unit_libraries,
+        unit_processes=built_unit_processes,
+        product_chains=built_product_chains,
+        factories=built_factories
+    )
+
+    return built_cfgs, built_entities, validated_commands
 
 
-def __run_validated_dict(validated_dict: dict):
-    pass
+def __run_validated_dict(cfg: Config, entities: Entities, commands: Commands):
+    print(f"Config:\n{cfg}\n\n")
+    print(f"Entities:\n{entities}\n\n")
+    print(f"Commands:\n{commands}\n\n")
+
+

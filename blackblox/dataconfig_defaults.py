@@ -25,7 +25,8 @@ Module Outline:
 from pathlib import Path
 from datetime import datetime
 
-from blackblox.dataconfig_format import UserConfig, UnitsDefaultConfig, DiagramConfig, ColumnConfig, PathConfig, SharedVarConfig, Config
+from blackblox.dataconfig_format import UserConfig, UnitsDefaultConfig, DiagramConfig,\
+    ColumnConfig, PathConfig, SharedVarConfig, Config
 
 
 user_default = UserConfig(
@@ -153,70 +154,9 @@ paths_default = PathConfig(
 
 # LOOKUP VARIABLES
 path_fuels_default = path_data_root_default / 'fuels.csv'
-path_upstream_default = None # path_data_root_default / 'upstream.xlsx'
+path_upstream_default = path_data_root_default / 'upstream.xlsx'
 
-common_fuel_info_default = dict(
-    filepath=path_fuels_default,
-    sheet=None,
-    is_fuel=True,
-)
-
-lookup_var_default = {
-    # FUELS
-    'fuel': dict(common_fuel_info_default, lookup_var='fueltype'),
-    'other fuel': dict(common_fuel_info_default, lookup_var='other fuel type'),
-    'primary fuel': dict(common_fuel_info_default, lookup_var='primary fuel type'),
-    'secondary fuel': dict(common_fuel_info_default, lookup_var='secondary fuel type'),
-    'fossil fuel': dict(common_fuel_info_default, lookup_var='fossil fuel type'),
-    'biofuel': dict(common_fuel_info_default, lookup_var='biofuel type'),
-    'secondary biofuel': dict(common_fuel_info_default, lookup_var='secondary biofuel type'),
-    'reducing agent': dict(common_fuel_info_default, lookup_var='reducing agent'),
-    'waste fuel': dict(common_fuel_info_default, lookup_var='waste fuel type'),
-
-    # UPSTREAM
-    'upstream outflows': dict(
-        filepath=path_upstream_default,
-        sheet='up-emissions',
-        lookup_var='upstream outflows',
-    ),
-    'upstream inflows': dict(
-        filepath=path_upstream_default,
-        sheet='up-removals',
-        lookup_var='upstream inflows',
-    ),
-
-    # DOWNSTREAM
-    'downstream outflows': dict(
-        filepath=path_upstream_default,
-        sheet='down-emissions',
-        lookup_var='downstream outflows',
-    ),
-    'downstream inflows': dict(
-        filepath=path_upstream_default,
-        sheet='down-removals',
-        lookup_var='downstream inflows',
-    ),
-
-    # NO FURTHER DATA (only used to pass flowname from var_df)
-    'biomass': dict(lookup_var='biomass type'),
-    'feedstock': dict(lookup_var='feedstock type'),
-    'fossil feedstock': dict(lookup_var='fossil feedstock type'),
-    'biofeedstock': dict(lookup_var='biofeedstock type'),
-    'alloy': dict(lookup_var='alloy type'),
-    'solvent': dict(lookup_var='solvent type')
-}
-
-
-shared_var_default = SharedVarConfig(
-    path_shared_fuels=path_fuels_default,
-    path_shared_upstream=path_upstream_default,
-    fuel_dict=dict(
-        filepath=path_fuels_default,
-        sheet='Fuels',
-        lookup_var='fueltype',
-    ),
-    lookup_var_dict=lookup_var_default,
-)
+shared_var_default = SharedVarConfig.convention_sharedvar_scenario_root(path_fuels_default, path_upstream_default)
 
 
 graphviz_path_default = Path('C:/ProgramData/Anaconda3/Library/bin/graphviz/')

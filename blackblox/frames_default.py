@@ -60,6 +60,8 @@ def __attempt_initialize():
     )
 
     if bbcfg.shared_var.fuel_dict is not None:
+        # TODO remove
+        print(f"fuel_dict: {bbcfg.shared_var.fuel_dict['filepath']}")
         df_fuels = iof.make_df(bbcfg.shared_var.fuel_dict['filepath'], sheet=bbcfg.shared_var.fuel_dict['sheet'])
         logger.info("df_fuels created")
 
