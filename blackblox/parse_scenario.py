@@ -296,8 +296,30 @@ def __validate_scenario_dict(config_file_dir: Path, scenario_dict: dict) -> Tupl
 
 
 def __run_validated_dict(cfg: Config, entities: Entities, commands: Commands):
+    # TODO: remove these prints
     print(f"Config:\n{cfg}\n\n")
     print(f"Entities:\n{entities}\n\n")
     print(f"Commands:\n{commands}\n\n")
 
+    for cmd in commands:
+        # Each command is a dict with single key (command type) and a single value (dict with params)
+        cmdtype = cmd.keys()[0]
+        cmdparams = cmd[cmdtype]
 
+        # TODO: remove these prints
+        print(f"Cmdtype: {cmdtype}")
+        print(f"Cmdparams: {cmdparams}")
+
+        # Big switch case for the command types
+        if cmdtype == 'unit_process_balance':
+            pass
+        elif cmdtype == 'unit_process_run_scenarios':
+            pass
+        elif cmdtype == 'product_chain_balance':
+            pass
+        elif cmdtype == 'product_chain_run_scenarios':
+            pass
+        elif cmdtype == 'factory_balance':
+            pass
+        else:
+            pass
