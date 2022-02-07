@@ -8,7 +8,7 @@ import pandas as pd
 import yaml
 
 from blackblox.dataconfig_defaults import default as defcfgs
-from blackblox.dataconfig_format import Config, PathConfig
+from blackblox.dataconfig_format import Config, PathConfig, SharedVarConfig
 import blackblox.dataconfig
 from blackblox.io_functions import build_unit_library
 from blackblox.factory import Factory
@@ -149,12 +149,15 @@ def __build_bbcfgs_with_defaults(config_file_dir: Path, cfgs: dict) -> Config:
     # If paths_convention is present, build according to convention, otherwise the defaults from the source code
     built_cfg.paths = defcfgs.paths
 
+    # default is where the config file itself resides
+    built_scenario_root = config_file_dir
+
     if 'paths_convention' in cfgs.keys():
         cfgs_paths = cfgs['paths_convention']
 
-        # default is CWD
         cfg_scenario_root = cfgs_paths.get('scenario_root', None)
-        built_scenario_root = Path(config_file_dir) if cfg_scenario_root is None else Path(cfgs_paths['scenario_root'])
+        if cfg_scenario_root is not None:
+            built_scenario_root = Path(cfgs_paths['scenario_root'])
 
         cfg_UP_sheet = cfgs_paths.get('unit_process_library_sheet', None)
         built_UP_sheet = defcfgs.paths.unit_process_library_sheet if cfg_UP_sheet is None else cfg_UP_sheet
@@ -184,7 +187,40 @@ def __build_bbcfgs_with_defaults(config_file_dir: Path, cfgs: dict) -> Config:
             path_outdir_suffix=built_path_outdir_suffix,
         )
 
-    print(f"built_cfg:\n{built_cfg}\n")
+    if 'shared_var' in cfgs.keys():
+        cfgs_shared_var = cfgs['shared_var']
+
+        cfg_path_shared_fuels = cfgs_shared_var.get('path_shared_fuels', None)
+        built_path_shared_fuels = defcfgs.shared_var.path_shared_fuels if cfg_path_shared_fuels is None else Path(cfg_path_shared_fuels)
+
+        cfg_path_shared_upstream = cfgs_shared_var.get('path_shared_upstream', None)
+        built_path_shared_upstream = defcfgs.shared_var.path_shared_upstream if cfg_path_shared_upstream is None else Path(cfg_path_shared_upstream)
+
+        built_shared_var = SharedVarConfig.convention_sharedvar_scenario_root(
+            path_shared_fuels=built_scenario_root / built_path_shared_fuels,
+            path_shared_upstream=built_scenario_root / built_path_shared_upstream,
+        )
+
+        if 'fuel_dict' in cfgs_shared_var:
+            cfgs_fuel_dict = cfgs_shared_var['fuel_dict']
+
+            cfg_filepath = cfgs_fuel_dict.get('filepath', None)
+            built_filepath = defcfgs.shared_var.fuel_dict['filepath'] if cfg_filepath is None else Path(cfg_filepath)
+
+            cfg_sheet = cfgs_fuel_dict.get('sheet', None)
+            built_sheet = defcfgs.shared_var.fuel_dict['sheet'] if cfg_sheet is None else cfg_sheet
+
+            cfg_lookup_var = cfgs_fuel_dict.get('lookup_var', None)
+            built_lookup_var = defcfgs.shared_var.fuel_dict['lookup_var'] if cfg_lookup_var is None else cfg_lookup_var
+
+            built_shared_var.fuel_dict = dict(
+                filepath=built_scenario_root / built_filepath,
+                sheet=built_sheet,
+                lookup_var=built_lookup_var,
+            )
+
+        built_cfg.shared_var = built_shared_var
+
     return built_cfg
 
 
