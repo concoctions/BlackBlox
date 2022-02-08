@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
+from pprint import pprint
 
-import pandas
 import pandas as pd
 import yaml
 
@@ -25,7 +25,7 @@ def run_scenario_file(yaml_file_path: Path):
         __run_validated_dict(cfg, entities, commands)
 
 
-def __build_unit_libraries(unit_library_dicts) -> Dict[str, pandas.DataFrame]:
+def __build_unit_libraries(unit_library_dicts, scenario_root: Path) -> Dict[str, pd.DataFrame]:
     built_unit_libraries = {}
 
     for ul_dict in unit_library_dicts:
@@ -33,16 +33,19 @@ def __build_unit_libraries(unit_library_dicts) -> Dict[str, pandas.DataFrame]:
         ul_params = ul_dict['params']
 
         built_filename = ul_params.get('file', None)
-        built_filepath = Path(built_filename) if built_filename is not None else None
+        # (ab)using short-circuit and duck-typing here, None is falseish and bool(y) == True implies that (x and y) == y
+        # If not None, outdir should be relative to '<bbcfg.scenario_root>/data'
+        built_filepath_rel = built_filename and (scenario_root / 'data' / Path(built_filename))
+
         built_sheet = ul_params.get('sheet', None)
 
-        built_library = build_unit_library(ul_file=built_filepath, ul_sheet=built_sheet)
+        built_library = build_unit_library(ul_file=built_filepath_rel, ul_sheet=built_sheet)
         built_unit_libraries[ul_id] = built_library
 
     return built_unit_libraries
 
 
-def __build_unit_processes(unit_process_dicts, unit_libraries) -> Dict[str, UnitProcess]:
+def __build_unit_processes(unit_process_dicts, unit_libraries, scenario_root: Path) -> Dict[str, UnitProcess]:
     built_unit_processes = {}
 
     for up_dict in unit_process_dicts:
@@ -50,16 +53,20 @@ def __build_unit_processes(unit_process_dicts, unit_libraries) -> Dict[str, Unit
         up_params = up_dict['params']
 
         built_unit_library_id = up_params.get('unit_library_id', None)
-        built_unit_library = unit_libraries[built_unit_library_id] if built_unit_library_id is not None else None
-        built_outdir = up_params.get('outdir', None)
+        # (ab)using short-circuit and duck-typing here, None is falseish and bool(y) == True implies that (x and y) == y
+        built_unit_library = built_unit_library_id and unit_libraries[built_unit_library_id]
 
-        built_process = UnitProcess(u_id=up_id, outdir=built_outdir, units_df=built_unit_library)
+        built_outdir = up_params.get('outdir', None)
+        # If not None, outdir should be relative to '<bbcfg.scenario_root>'
+        outdir_rel = built_outdir and (scenario_root / Path(built_outdir))
+
+        built_process = UnitProcess(u_id=up_id, outdir=outdir_rel, units_df=built_unit_library)
         built_unit_processes[up_id] = built_process
 
     return built_unit_processes
 
 
-def __build_product_chains(product_chain_dicts, unit_libraries) -> Dict[str, ProductChain]:
+def __build_product_chains(product_chain_dicts, unit_libraries, scenario_root: Path) -> Dict[str, ProductChain]:
     built_prod_chains = {}
 
     for prod_chain in product_chain_dicts:
@@ -67,15 +74,17 @@ def __build_product_chains(product_chain_dicts, unit_libraries) -> Dict[str, Pro
         chain_params = prod_chain['params']
 
         built_name = chain_params.get('name', None)
-        built_chain_data = Path(chain_params['chain_data'])  # mandatory parameter
+        built_chain_data = Path(chain_params['chain_data'])  # mandatory parameter, can't be null
         built_xls_sheet = chain_params.get('xls_sheet', None)
         built_outdir = chain_params.get('outdir', None)
         built_unit_library_id = chain_params.get('unit_library_id', None)
         built_unit_library = unit_libraries[built_unit_library_id] if built_unit_library_id is None else None
 
-        # TODO: make sure chain_data is relative to '<bbcfg.scenario_root>/data'
+        # make sure chain_data is relative to '<bbcfg.scenario_root>/data'
+        chain_data_rel = scenario_root / 'data' / built_chain_data
+
         built_chain = ProductChain(
-            chain_data=built_chain_data,  # mandatory parameter
+            chain_data=chain_data_rel,
             name=built_name, xls_sheet=built_xls_sheet, outdir=built_outdir, units_df=built_unit_library,
         )
         built_prod_chains[chain_id] = built_chain
@@ -83,7 +92,7 @@ def __build_product_chains(product_chain_dicts, unit_libraries) -> Dict[str, Pro
     return built_prod_chains
 
 
-def __build_factories(factory_dicts, unit_libraries) -> Dict[str, Factory]:
+def __build_factories(factory_dicts, unit_libraries, scenario_root: Path) -> Dict[str, Factory]:
     built_factories = {}
 
     for factory in factory_dicts:
@@ -91,16 +100,18 @@ def __build_factories(factory_dicts, unit_libraries) -> Dict[str, Factory]:
         fac_params = factory['params']
 
         built_name = fac_params.get('name', None)
-        built_chain_list_file = fac_params['chain_list_file']  # mandatory parameter
-        built_chain_list_sheet = fac_params('chain_list_sheet', None)
+        built_chain_list_file = Path(fac_params['chain_list_file'])  # mandatory parameter, can't be null
+        built_chain_list_sheet = fac_params.get('chain_list_sheet', None)
         built_connections_sheet = fac_params.get('connections_sheet', None)
         built_outdir = fac_params.get('outdir', None)
         built_unit_library_id = fac_params.get('unit_library_id', None)
         built_unit_library = unit_libraries[built_unit_library_id] if built_unit_library_id is None else None
 
-        # TODO: make sure chain_list_file is relative to '<bbcfg.scenario_root>/data'
+        # make sure chain_list_file is relative to '<bbcfg.scenario_root>/data'
+        chain_list_file_rel = scenario_root / 'data' / built_chain_list_file
+
         built_factory = Factory(
-            chain_list_file=built_chain_list_file,  # mandatory parameter
+            chain_list_file=chain_list_file_rel,
             chain_list_sheet=built_chain_list_sheet, connections_sheet=built_connections_sheet, name=built_name,
             outdir=built_outdir, units_df=built_unit_library,
         )
@@ -109,7 +120,7 @@ def __build_factories(factory_dicts, unit_libraries) -> Dict[str, Factory]:
     return built_factories
 
 
-def __build_bbcfgs_with_defaults(config_file_dir: Path, cfgs: dict) -> Config:
+def __build_bbcfgs_with_defaults(config_file_dir: Path, cfgs: dict) -> Tuple[Config, Path]:
     # for bbcfg basically everything is optional
     # thus we just start with the default cfg, and override ONLY what is specififed in the YAML
     built_cfg = defcfgs
@@ -150,14 +161,14 @@ def __build_bbcfgs_with_defaults(config_file_dir: Path, cfgs: dict) -> Config:
     built_cfg.paths = defcfgs.paths
 
     # default is where the config file itself resides
-    built_scenario_root = config_file_dir
+    scenario_root = config_file_dir
 
     if 'paths_convention' in cfgs.keys():
         cfgs_paths = cfgs['paths_convention']
 
         cfg_scenario_root = cfgs_paths.get('scenario_root', None)
         if cfg_scenario_root is not None:
-            built_scenario_root = Path(cfgs_paths['scenario_root'])
+            scenario_root = Path(cfgs_paths['scenario_root'])
 
         cfg_UP_sheet = cfgs_paths.get('unit_process_library_sheet', None)
         built_UP_sheet = defcfgs.paths.unit_process_library_sheet if cfg_UP_sheet is None else cfg_UP_sheet
@@ -178,7 +189,7 @@ def __build_bbcfgs_with_defaults(config_file_dir: Path, cfgs: dict) -> Config:
         built_UP_filesuffix = Path('unitlibrary.csv') if cfg_UP_filesuffix is None else cfg_UP_filesuffix
 
         built_cfg.paths = PathConfig.convention_paths_scenario_root(
-            scenario=built_scenario_root,
+            scenario=scenario_root,
             unit_process_library_sheet=built_UP_sheet,
             var_filename_prefix=built_var_filename_prefix,
             calc_filename_prefix=built_calc_filename_prefix,
@@ -196,9 +207,12 @@ def __build_bbcfgs_with_defaults(config_file_dir: Path, cfgs: dict) -> Config:
         cfg_path_shared_upstream = cfgs_shared_var.get('path_shared_upstream', None)
         built_path_shared_upstream = defcfgs.shared_var.path_shared_upstream if cfg_path_shared_upstream is None else Path(cfg_path_shared_upstream)
 
+        # (ab)using short-circuit and duck-typing here, None is falseish and bool(y) == True implies that (x and y) == y
+        path_shared_fuels_rel = built_path_shared_fuels and (scenario_root / 'data' / built_path_shared_fuels)
+        path_shared_upstream_rel = built_path_shared_upstream and (scenario_root / 'data' / built_path_shared_upstream)
         built_shared_var = SharedVarConfig.convention_sharedvar_scenario_root(
-            path_shared_fuels=built_scenario_root / built_path_shared_fuels,
-            path_shared_upstream=built_scenario_root / built_path_shared_upstream,
+            path_shared_fuels=path_shared_fuels_rel,
+            path_shared_upstream=path_shared_upstream_rel,
         )
 
         if 'fuel_dict' in cfgs_shared_var:
@@ -213,15 +227,16 @@ def __build_bbcfgs_with_defaults(config_file_dir: Path, cfgs: dict) -> Config:
             cfg_lookup_var = cfgs_fuel_dict.get('lookup_var', None)
             built_lookup_var = defcfgs.shared_var.fuel_dict['lookup_var'] if cfg_lookup_var is None else cfg_lookup_var
 
+            filepath_rel = built_filepath and (scenario_root / 'data' / built_filepath)
             built_shared_var.fuel_dict = dict(
-                filepath=built_scenario_root / built_filepath,
+                filepath=filepath_rel,
                 sheet=built_sheet,
                 lookup_var=built_lookup_var,
             )
 
         built_cfg.shared_var = built_shared_var
 
-    return built_cfg
+    return built_cfg, scenario_root
 
 
 Commands = List[Dict[str, dict]]
@@ -269,21 +284,19 @@ def __validate_scenario_dict(config_file_dir: Path, scenario_dict: dict) -> Tupl
                 pass
 
     # All the sections EXCEPT commands may have defaults (omitted in the YAML) that we fill in
-    built_cfgs = __build_bbcfgs_with_defaults(config_file_dir, cfgs_dict)
+    built_cfgs, scenario_root = __build_bbcfgs_with_defaults(config_file_dir, cfgs_dict)
 
     # Must set the global bbcfgs before doing anything else in the library (that's the protocol)
     blackblox.dataconfig.bbcfg = built_cfgs
 
-    built_unit_libraries = __build_unit_libraries(unit_library_dicts)
-    built_unit_processes = __build_unit_processes(unit_process_dicts, built_unit_libraries)
-    built_product_chains = __build_product_chains(product_chain_dicts, built_unit_libraries)
-    built_factories = __build_factories(factory_dicts)
+    built_unit_libraries = __build_unit_libraries(unit_library_dicts, scenario_root)
 
-    # TODO: return all entities together? bundled in dict?
-    # TODO: remove debug
+    built_unit_processes = __build_unit_processes(unit_process_dicts, built_unit_libraries, scenario_root)
+    built_product_chains = __build_product_chains(product_chain_dicts, built_unit_libraries, scenario_root)
+    built_factories = __build_factories(factory_dicts, built_unit_libraries, scenario_root)
+
+    # TODO: remove debug, cause exception on validation errors list non empty?
     print(f"Validation errors: {error_list}")
-    for c in validated_commands:
-        print(c)
 
     built_entities = Entities(
         unit_libraries=built_unit_libraries,
@@ -296,30 +309,83 @@ def __validate_scenario_dict(config_file_dir: Path, scenario_dict: dict) -> Tupl
 
 
 def __run_validated_dict(cfg: Config, entities: Entities, commands: Commands):
-    # TODO: remove these prints
-    print(f"Config:\n{cfg}\n\n")
-    print(f"Entities:\n{entities}\n\n")
-    print(f"Commands:\n{commands}\n\n")
+    unit_libraries = entities.unit_libraries
+    unit_processes = entities.unit_processes
+    product_chains = entities.product_chains
+    factories = entities.factories
+
+    print('bbcfg:')
+    pprint(cfg, width=100)
+
+    print('Entities:')
+    pprint(entities, width=100)
 
     for cmd in commands:
         # Each command is a dict with single key (command type) and a single value (dict with params)
-        cmdtype = cmd.keys()[0]
+        cmdtype = next(iter(cmd.keys()))
         cmdparams = cmd[cmdtype]
 
-        # TODO: remove these prints
-        print(f"Cmdtype: {cmdtype}")
-        print(f"Cmdparams: {cmdparams}")
+        print(f"Command type: {cmdtype}")
 
-        # Big switch case for the command types
+        print('Command parameters:')
+        pprint(cmdparams, width=100)
+
+        # TODO: Now we are not considering any parameters OPTIONAL.
+        # TODO: This will be convenient if the default params are None in the balance/run_scenarios/etc. functions
+
+        # The id parameter is always present regardless of command type
+        entity_id = cmdparams['id']
+
         if cmdtype == 'unit_process_balance':
-            pass
+            up = unit_processes[entity_id]
+
+            up.balance(
+                qty=cmdparams['qty'],
+                scenario=cmdparams['scenario'],
+                write_to_console=cmdparams['write_to_console'],
+            )
+
         elif cmdtype == 'unit_process_run_scenarios':
-            pass
+            up = unit_processes[entity_id]
+
+            up.run_scenarios(
+                scenario_list=cmdparams['scenario_list'],
+                write_to_console=cmdparams['write_to_console'],
+            )
+
         elif cmdtype == 'product_chain_balance':
-            pass
+            chain = product_chains[entity_id]
+
+            cfg_prod = cmdparams.get('product', None)
+            built_prod = False if cfg_prod is None else cfg_prod
+            cfg_scenario = cmdparams.get('scenario', None)
+            built_scenario = blackblox.dataconfig.bbcfg.scenario_default if cfg_scenario is None else cfg_scenario
+
+            chain.balance(
+                qty=cmdparams['qty'],
+                write_to_console=cmdparams['write_to_console'],
+                product=built_prod,
+                scenario=built_scenario,
+            )
+
         elif cmdtype == 'product_chain_run_scenarios':
-            pass
+            chain = product_chains[entity_id]
+
+            chain.run_scenarios(
+                scenario_list=cmdparams['scenario_list'],
+                write_to_console=cmdparams['write_to_console'],
+            )
+
         elif cmdtype == 'factory_balance':
-            pass
+            factory = factories[entity_id]
+
+            factory.balance(
+                product_qty=cmdparams['product_qty'],
+                product=cmdparams['product'],
+                product_io=cmdparams['product_io'],
+                product_unit=cmdparams['product_unit'],
+                write_to_xls=cmdparams['write_to_xls'],
+            )
+
         else:
             pass

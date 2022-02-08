@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 from pathlib import Path
 
 
@@ -148,8 +148,8 @@ class PathConfig:
 
 @dataclass
 class SharedVarConfig:
-    path_shared_fuels: Path
-    path_shared_upstream: Path
+    path_shared_fuels: Optional[Path]
+    path_shared_upstream: Optional[Path]
     fuel_dict: dict
 
     lookup_var_dict: dict
@@ -176,8 +176,8 @@ class SharedVarConfig:
 
     @staticmethod
     def convention_sharedvar_scenario_root(
-        path_shared_fuels: Path,
-        path_shared_upstream: Path,
+        path_shared_fuels: Optional[Path],
+        path_shared_upstream: Optional[Path],
     ):
         common_fuel_info_default = dict(
             filepath=path_shared_fuels,
@@ -186,15 +186,15 @@ class SharedVarConfig:
         )
 
         lookup_var = {
-            'fuel': dict(common_fuel_info_default, lookup_var='fueltype'),
-            'other fuel': dict(common_fuel_info_default, lookup_var='other fuel type'),
-            'primary fuel': dict(common_fuel_info_default, lookup_var='primary fuel type'),
-            'secondary fuel': dict(common_fuel_info_default, lookup_var='secondary fuel type'),
-            'fossil fuel': dict(common_fuel_info_default, lookup_var='fossil fuel type'),
-            'biofuel': dict(common_fuel_info_default, lookup_var='biofuel type'),
-            'secondary biofuel': dict(common_fuel_info_default, lookup_var='secondary biofuel type'),
-            'reducing agent': dict(common_fuel_info_default, lookup_var='reducing agent'),
-            'waste fuel': dict(common_fuel_info_default, lookup_var='waste fuel type'),
+            'fuel': common_fuel_info_default | dict(lookup_var='fueltype'),
+            'other fuel': common_fuel_info_default | dict(lookup_var='other fuel type'),
+            'primary fuel': common_fuel_info_default | dict(lookup_var='primary fuel type'),
+            'secondary fuel': common_fuel_info_default | dict(lookup_var='secondary fuel type'),
+            'fossil fuel': common_fuel_info_default | dict(lookup_var='fossil fuel type'),
+            'biofuel': common_fuel_info_default | dict(lookup_var='biofuel type'),
+            'secondary biofuel': common_fuel_info_default | dict(lookup_var='secondary biofuel type'),
+            'reducing agent': common_fuel_info_default | dict(lookup_var='reducing agent'),
+            'waste fuel': common_fuel_info_default | dict(lookup_var='waste fuel type'),
 
             'upstream outflows': dict(
                 filepath=path_shared_upstream,

@@ -21,10 +21,9 @@ bbcfg:
     calc_filename_prefix: 'calc_'  # default
     path_outdir_suffix: null  # a null here means the name is just a timestamp, default
   shared_var:
-    path_shared_fuels: 'data/fuels.csv'  # relative to paths_convention.scenario_root
-    path_shared_upstream: 'data/upstream.xlsx'  # relative to paths_convention.scenario_root
+    path_shared_fuels: 'fuels.csv'  # relative to '<paths_convention.scenario_root>/data'
     fuel_dict:
-      filepath: 'data/fuels.csv'  # relative to paths_convention.scenario_root
+      filepath: 'fuels.csv'  # relative to '<paths_convention.scenario_root>/data'
       sheet: 'Fuels'  # default
       lookup_var: 'fueltype'  # default
 
@@ -32,13 +31,13 @@ bbcfg:
 unit_libraries:
   - id: 'demo_units_df'
     params:
-      file: null  # a null here just means use the path convention from bbcfg
-      sheet: null  # a null here just means use bbcfg.unit_process_library_sheet
+      file: null  # a null here means use the path convention from bbcfg, otherwise relative to '<bbcfg.scenario_root>/data'
+      sheet: null  # a null here means use bbcfg.unit_process_library_sheet
 
 unit_processes:
   - id: 'demo_kiln'
     params:
-      outdir: null  # a null here just means use the path convention from bbcfg
+      outdir: null  # a null here means use the path convention from bbcfg, otherwise relative to '<bbcfg.scenario_root>'
       unit_library_id: 'demo_units_df'
 
 product_chains:

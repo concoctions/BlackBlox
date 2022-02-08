@@ -153,8 +153,8 @@ paths_default = PathConfig(
 
 
 # LOOKUP VARIABLES
-path_fuels_default = path_data_root_default / 'fuels.csv'
-path_upstream_default = path_data_root_default / 'upstream.xlsx'
+path_fuels_default = None
+path_upstream_default = None
 
 shared_var_default = SharedVarConfig.convention_sharedvar_scenario_root(path_fuels_default, path_upstream_default)
 
