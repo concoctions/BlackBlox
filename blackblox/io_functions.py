@@ -36,7 +36,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pan
 
-import blackblox.about as about
+import blackblox.about as about_def
 from blackblox.dataconfig import bbcfg
 from blackblox.bb_log import get_logger
 
@@ -355,7 +355,7 @@ def mass_energy_df(df, energy_strings=bbcfg.energy_flows, totals=True, aggregate
     return combined_df
 
 
-def metadata_df(user=bbcfg.user, about=about.about_blackblox, name="unknown", level="unknown",
+def metadata_df(user=bbcfg.user, about=about_def.about_blackblox, name="unknown", level="unknown",
                 product="unknown", product_qty="unknown", scenario="unknown",
                 energy_flows=bbcfg.energy_flows, units=bbcfg.units_default):
     """Generates a metadata dataframe for use in excel file output
@@ -369,8 +369,8 @@ def metadata_df(user=bbcfg.user, about=about.about_blackblox, name="unknown", le
             "03": " ",
             "04": " ",
             "05": f"This file was generated on {creation_date}",
-            "06": f"by {user['name']} of {user['affiliation']}",
-            "07": f"for use in {user['project']}",
+            "06": f"by {user.name} of {user.affiliation}",
+            "07": f"for use in {user.project}",
             "08": f"and contains {level}-level results data for {name}",
             "09": f"balanced on {product_qty} {units.energy if is_energy(product) else units.mass} of {product} using the variable values from the {scenario} scenario(s).",
             "10": f"Mass quantites are given in {units.mass} and energy quantities in {units.energy}",
