@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
-from pprint import pprint
+from pprint import pformat
+from textwrap import dedent
 
 import pandas as pd
 import yaml
@@ -17,6 +18,15 @@ from blackblox.unitprocess import UnitProcess
 
 
 def run_scenario_file(yaml_file_path: Path):
+    print(dedent("""
+        Running BlackBlox scenario
+        ==========================
+
+        Scenario configuration file (full path) = "{}"
+
+    """.format(yaml_file_path.resolve())
+    ))
+
     with open(yaml_file_path, 'r') as f:
         scenario_dict = yaml.load(f, Loader=yaml.FullLoader)
         config_file_dir = yaml_file_path.parent
@@ -295,8 +305,7 @@ def __validate_scenario_dict(config_file_dir: Path, scenario_dict: dict) -> Tupl
     built_product_chains = __build_product_chains(product_chain_dicts, built_unit_libraries, scenario_root)
     built_factories = __build_factories(factory_dicts, built_unit_libraries, scenario_root)
 
-    # TODO: remove debug, cause exception on validation errors list non empty?
-    print(f"Validation errors: {error_list}")
+    # TODO: cause exception on validation errors list non empty?
 
     built_entities = Entities(
         unit_libraries=built_unit_libraries,
@@ -314,11 +323,29 @@ def __run_validated_dict(cfg: Config, entities: Entities, commands: Commands):
     product_chains = entities.product_chains
     factories = entities.factories
 
-    print('bbcfg:')
-    pprint(cfg, width=100)
+    print(dedent("""\
+        Time of scenario execution = {}
+        Scenario uses unit process data from (full path) = "{}"
+        Outputting any files to directory (full path) = "{}"
 
-    print('Entities:')
-    pprint(entities, width=100)
+    """.format(
+            cfg.timestamp_str,
+            cfg.paths.unit_process_library_file.resolve(),
+            cfg.paths.path_outdir.resolve(),
+        )
+    ))
+
+    print(dedent("""\
+        Configuration
+        -------------
+        Here are the configuration key/values setup in this scenario
+        (when values were not present in the configuration file, they were obtained from 'dataconfig_defaults.py').
+
+        {}
+    """.format(
+            pformat(cfg, width=100)
+        )
+    ))
 
     for cmd in commands:
         # Each command is a dict with single key (command type) and a single value (dict with params)
@@ -326,19 +353,16 @@ def __run_validated_dict(cfg: Config, entities: Entities, commands: Commands):
         cmdparams = cmd[cmdtype]
 
         print(f"Command type: {cmdtype}")
-
-        print('Command parameters:')
-        pprint(cmdparams, width=100)
+        print(f"Command parameters:\n {pformat(cmdparams, width=100)}")
 
         # TODO: Now we are not considering any parameters OPTIONAL.
-        # TODO: This will be convenient if the default params are None in the balance/run_scenarios/etc. functions
+        # TODO: This will become possible when the default params are None in the balance/run_scenarios/etc. functions
 
         # The id parameter is always present regardless of command type
         entity_id = cmdparams['id']
 
         if cmdtype == 'unit_process_balance':
             up = unit_processes[entity_id]
-
             up.balance(
                 qty=cmdparams['qty'],
                 scenario=cmdparams['scenario'],
@@ -347,7 +371,6 @@ def __run_validated_dict(cfg: Config, entities: Entities, commands: Commands):
 
         elif cmdtype == 'unit_process_run_scenarios':
             up = unit_processes[entity_id]
-
             up.run_scenarios(
                 scenario_list=cmdparams['scenario_list'],
                 write_to_console=cmdparams['write_to_console'],
@@ -370,7 +393,6 @@ def __run_validated_dict(cfg: Config, entities: Entities, commands: Commands):
 
         elif cmdtype == 'product_chain_run_scenarios':
             chain = product_chains[entity_id]
-
             chain.run_scenarios(
                 scenario_list=cmdparams['scenario_list'],
                 write_to_console=cmdparams['write_to_console'],
@@ -378,7 +400,6 @@ def __run_validated_dict(cfg: Config, entities: Entities, commands: Commands):
 
         elif cmdtype == 'factory_balance':
             factory = factories[entity_id]
-
             factory.balance(
                 product_qty=cmdparams['product_qty'],
                 product=cmdparams['product'],
@@ -388,4 +409,4 @@ def __run_validated_dict(cfg: Config, entities: Entities, commands: Commands):
             )
 
         else:
-            pass
+            print(f"COMMAND TYPE \"{cmdtype}\" NOT RECOGNIZED. Ignoring...")
