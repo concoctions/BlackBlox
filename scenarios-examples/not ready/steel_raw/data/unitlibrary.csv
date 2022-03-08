@@ -1,0 +1,20 @@
+﻿id,display name,product,productType,Same var as,Same calc as
+simple_coke,Coke Oven,coke,outflow,,
+simple_lime,Lime Kiln,CaO,outflow,,
+simple_pellets,Pellet Plant,pellets,outflow,,
+simple_sinter,Sinter Plant,sinter,outflow,,
+simple_BF,Blast Furnace,hot metal,outflow,,
+simple_BOF,Basic Oxygen Furnace,crude steel,outflow,,
+simple_oxygen,Air Separation,O2,outflow,,
+simple_power,Electricty Generation,electricity,outflow,,
+duplicate_power,Electricty Generation Aux,electricity,outflow,simple_power,simple_power
+simple_heat,Steam Boiler,heat,outflow,,
+simple_CO2capture,CO2 Capture,CO2,inflow,,
+duplicate_CO2capture,CO2 Capture Aux,CO2,inflow,,simple_CO2capture
+simple_compression,CO2 Compression,compressed CO2,outflow,,
+simple_CO2storage,CO2 Transport & Storage,stored CO2,outflow,,
+simple_EAF,Electric Arc Furnace,crude steel,outflow,,
+simple_DRI,DRI Furnace,reduced iron,outflow,,
+simple_syngas,Syngas Production,syngas,outflow,,
+simple_casting,Finishing,hot rolled coil,outflow,,
+simple_charcoal,Charcoal,charcoal,outflow,,

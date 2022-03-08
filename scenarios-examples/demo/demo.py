@@ -48,7 +48,7 @@ scenario_list = ['EU-1990', 'EU-2000', 'EU-2010']
 
 demo_units_df = iof.build_unit_library(
     bbcfg.paths.unit_process_library_file,
-    ul_sheet=bbcfg.paths.unit_process_library_sheet
+    # ul_sheet=bbcfg.paths.unit_process_library_sheet
 )
 
 

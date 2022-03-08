@@ -45,7 +45,7 @@ units_default_default = UnitsDefaultConfig(
 )
 
 energy_flows_default = ['heat', 'energy', 'electricity', 'power', 'LHV', 'HHV', 'lhv', 'hhv']
-emissions_default = ['CO2__fossil', 'CO2__bio', 'H2O', 'contrib_CO2__bio-annual', 'contrib_CO2__bio-long']
+emissions_default = ['CO2', 'CO2__fossil', 'CO2__bio', 'H2O',]
 ignore_sep_default = '__'
 consumed_indicator_default = 'CONSUMED'
 
