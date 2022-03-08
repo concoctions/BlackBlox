@@ -1,0 +1,25 @@
+﻿fuel,HHV,LHV,CO2__fossil,CO2__bio,H2O,meta-source
+meta-notes,,,,,,
+meta-units,(gj/t),(gj/t dry),(t/t combusted),,(t/t combusted),
+charcoal - IPCC,,29.5,,3.304,,http://www.fao.org/3/a-i6935e.pdf
+coal anthracite - IPCC,,26.7,2.62461,,,
+coal bituminous - IPCC,25.8,25.8,2.47938,,,
+coal - CEMCAP,27.1,27.1,2.53,,,
+coal coking - IPCC,28.2,28.2,2.66772,,,IPCC EFDB
+coke - IPCC,28.2,28.2,3.0174,,,
+natural gas - IPCC,48,48,2.6928,,,
+wood oven dry - IPCC,20,20,,2.24,,
+wood air dry - IPCC,,16.6,,0,,
+syngas - wood,21.5,21.5,,1.3,,
+wood chips - dry,,20.4,,,,
+diesel,45.6,28.435,3.153333333,,,ecoinvent 2.2
+electricity 0g/kWh,1,1,0.000,,,
+electricity 200g/kWh,1,1,0.000,,,
+electricity 400g/kWh,1,1,0.000,,,
+electricity 600g/kWh,1,1,0.000,,,
+electricity 800g/kWh,1,1,0.000,,,
+electricity 1000g/kWh,1,1,0.000,,,
+dry wood chips (EU no swiss),20,20,,2.24,,
+dry wood chips (EU no swiss) also,20,20,,2.24,,
+recovered steam,1,1,0,0,1,
+HFO - IPCC,40.4,40.4,3.12696,,,
