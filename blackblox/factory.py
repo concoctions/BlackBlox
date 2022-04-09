@@ -176,7 +176,8 @@ class Factory:
                 upstream_outflows=False, upstream_inflows=False,
                 downstream_outflows=False, downstream_inflows=False,
                 aggregate_flows=False, net_flows=False, 
-                write_to_xls=True, outdir=None, subdir=False, id=''):
+                write_to_console=False, write_to_xls=True, 
+                outdir=None, subdir=False, file_id=''):
         """Calculates the mass balance of the factory using qty of main product
 
         Balances all UnitProcesses and Chains in the factory
@@ -339,7 +340,7 @@ class Factory:
 
                     (i_tmp, o_tmp,
                      chain_intermediates_dict[dest_chain.name],
-                     chain_internal_flows) = dest_chain.balance(qty=qty,
+                     chain_internal_flows) = dest_chain.balance(product_qty=qty,
                                                                 product=dest_product,
                                                                 product_alt_name=orig_product,
                                                                 i_o=dest_product_io,
@@ -423,9 +424,14 @@ class Factory:
         # output to file
         outdir = outdir if outdir else self.outdir
 
+        if write_to_console is True:
+            print(f'{self.name} factory balanced on {product_qty} of {product} using {scenario} scenario variables.\n')
+            print('OVERALL FACTORY INFLOWS AND OUTFLOWS')
+            print(iof.mass_energy_df(iof.make_df(factory_totals)).to_string(), '\n')
+
         if write_to_xls is True:
             self.factory_to_excel(io_dicts, factory_totals, internal_flows,
-                                  scenario, product_qty, aggregated_df, net_df, outdir, subdir, id)
+                                  scenario, product_qty, aggregated_df, net_df, outdir, subdir, file_id)
 
         logger.debug(f"successfully balanced factory on {product_qty} of {self.chain_dict[self.main_chain]['product']}")
 
@@ -566,12 +572,12 @@ class Factory:
         except graphviz.backend.ExecutableNotFound:
             print(
                 f"In factory.py: The \"dot\" executable was not found on your system: maybe it's not installed or "
-                f"the variable dataconfig.bbcfg.graphviz_path is not set correctly."
+                f"the variable dataconfig.bbcfg.graphviz_path is not set correctly.\n"
             )
 
         logger.debug(f"created diagram for {self.name} factory")
 
-    def run_scenarios(self, scenario_list,
+    def run_scenarios(self, scenario_list=[],
                       product_qty=1.0, product=False, product_unit=False, product_io=False,
                       upstream_outflows=False, upstream_inflows=False, downstream_outflows=False,
                       downstream_inflows=False, aggregate_flows=False, net_flows=False, write_to_xls=True,
@@ -595,6 +601,7 @@ class Factory:
 
         """
         outdir = outdir if outdir else self.outdir
+        scenario_list = scenario_list if scenario_list else bbcfg.scenario_default
 
         scenario_dict = iof.nested_dicts(3)
 
@@ -689,14 +696,17 @@ class Factory:
                              outdir=outdir,
                              filename=f'{self.name}_f_multi_{bbcfg.timestamp_str}')
 
+        print(f"Results for {self.name}, {scenario_list}, {product_qty} written to: {outdir}/{self.name}_f_multi_{bbcfg.timestamp_str}'\n")
+
         return inflows_df, outflows_df, aggregated_inflows_df, aggregated_outflows_df, net_df
 
-    def run_sensitivity(self, product_qty, scenario, chain_name, unit_name, variable, variable_options=[],
+    def run_sensitivity(self,scenario, chain_name, unit_name, variable, variable_options=[],
                         fixed_vars=False,
-                        product=False, product_unit=False, product_io=False, upstream_outflows=False,
-                        upstream_inflows=False,
-                        downstream_outflows=False, downstream_inflows=False, aggregate_flows=False, net_flows=False,
-                        write_to_xls=True, individual_xls=False, outdir=None, id=''):
+                        product_qty=1.0, product=False, product_unit=False, product_io=False, 
+                        upstream_outflows=False, upstream_inflows=False,
+                        downstream_outflows=False, downstream_inflows=False, 
+                        aggregate_flows=False, net_flows=False,
+                        individual_xls=False, outdir=None, id=''):
         """Balances the factory on the same quantity for a list of different scenarios.
         Outputs a file with total inflows and outflows for the factory for each scenario.
 
@@ -1254,6 +1264,10 @@ class Factory:
         # output to all Dataframes to single Excel file
         iof.write_to_xls(df_list, sheet_list=sheet_list,
                          outdir=outdir, filename=filename, subdir=subdir)
+
+        if subdir is not False:
+            outdir = f"{outdir}/{subdir}"
+        print(f"Results for {self.name}, {scenario}, {product_qty} written to: {outdir}/{filename}\n")
 
     def aggregate_flows(self, aggregate_flows, inflow_dict, outflow_dict):
         """Creates dataframe of specified aggregated flows
