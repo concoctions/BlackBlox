@@ -285,7 +285,7 @@ def __validate_scenario_dict(config_file_dir: Path, scenario_dict: dict) -> Tupl
                     validated_commands += [{k: c[k]}]
                 else:
                     error_list += [f"WARNING: Product chain '{elem_id}' mentioned in commands but not declared."]
-            elif k == 'factory_balance':
+            elif k == 'factory_balance' or k == 'factory_run_scenarios':
                 if elem_id in [f['id'] for f in factory_dicts]:
                     validated_commands += [{k: c[k]}]
                 else:
@@ -335,17 +335,18 @@ def __run_validated_dict(cfg: Config, entities: Entities, commands: Commands):
         )
     ))
 
-    print(dedent("""\
-        Configuration
-        -------------
-        Here are the configuration key/values setup in this scenario
-        (when values were not present in the configuration file, they were obtained from 'dataconfig_defaults.py').
+    # commenting this out as it ends up printing a giant list of df_fuels - onee for each aliaas in the lookup_var dictionary
+    # print(dedent("""\
+    #     Configuration
+    #     -------------
+    #     Here are the configuration key/values setup in this scenario
+    #     (when values were not present in the configuration file, they were obtained from 'dataconfig_defaults.py').
 
-        {}
-    """.format(
-            pformat(cfg, width=100)
-        )
-    ))
+    #     {}
+    # """.format(
+    #         pformat(cfg, width=100)
+    #     )
+    # ))
 
     for cmd in commands:
         # Each command is a dict with single key (command type) and a single value (dict with params)
@@ -359,21 +360,23 @@ def __run_validated_dict(cfg: Config, entities: Entities, commands: Commands):
         # TODO: This will become possible when the default params are None in the balance/run_scenarios/etc. functions
 
         # The id parameter is always present regardless of command type
-        entity_id = cmdparams['id']
+        entity_id = cmdparams.pop('id')
 
         if cmdtype == 'unit_process_balance':
             up = unit_processes[entity_id]
             up.balance(
-                qty=cmdparams['qty'],
-                scenario=cmdparams['scenario'],
-                write_to_console=cmdparams['write_to_console'],
+                **cmdparams
+                # qty=cmdparams['qty'],
+                # scenario=cmdparams['scenario'],
+                # write_to_console=cmdparams['write_to_console'],
             )
 
         elif cmdtype == 'unit_process_run_scenarios':
             up = unit_processes[entity_id]
             up.run_scenarios(
-                scenario_list=cmdparams['scenario_list'],
-                write_to_console=cmdparams['write_to_console'],
+                 **cmdparams
+                # scenario_list=cmdparams['scenario_list'],
+                # write_to_console=cmdparams['write_to_console'],
             )
 
         elif cmdtype == 'product_chain_balance':
@@ -385,27 +388,37 @@ def __run_validated_dict(cfg: Config, entities: Entities, commands: Commands):
             built_scenario = blackblox.dataconfig.bbcfg.scenario_default if cfg_scenario is None else cfg_scenario
 
             chain.balance(
-                qty=cmdparams['qty'],
-                write_to_console=cmdparams['write_to_console'],
-                product=built_prod,
-                scenario=built_scenario,
+                 **cmdparams
+                # qty=cmdparams['qty'],
+                # write_to_console=cmdparams['write_to_console'],
+                # product=built_prod,
+                # scenario=built_scenario,
             )
 
         elif cmdtype == 'product_chain_run_scenarios':
             chain = product_chains[entity_id]
             chain.run_scenarios(
-                scenario_list=cmdparams['scenario_list'],
-                write_to_console=cmdparams['write_to_console'],
+                 **cmdparams
+                # scenario_list=cmdparams['scenario_list'],
+                # write_to_console=cmdparams['write_to_console'],
             )
 
         elif cmdtype == 'factory_balance':
             factory = factories[entity_id]
             factory.balance(
-                product_qty=cmdparams['product_qty'],
-                product=cmdparams['product'],
-                product_io=cmdparams['product_io'],
-                product_unit=cmdparams['product_unit'],
-                write_to_xls=cmdparams['write_to_xls'],
+                **cmdparams
+                # product_qty=cmdparams['product_qty'],
+                # product=cmdparams['product'],
+                # product_io=cmdparams['product_io'],
+                # product_unit=cmdparams['product_unit'],
+                # write_to_xls=cmdparams['write_to_xls'],
+                # write_to_console=cmdparams['write_to_console']
+            )
+
+        elif cmdtype == 'factory_run_scenarios':
+            factory = factories[entity_id]
+            factory.run_scenarios(
+                **cmdparams
             )
 
         else:
