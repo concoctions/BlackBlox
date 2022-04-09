@@ -1,0 +1,118 @@
+# This is an example YAML file using available data from the Steel dataset
+
+bbcfg:
+  user:
+    name: 'S.E. Tanzer'
+    affiliation: 'TU Delft'
+    project: 'BioCCS in steel'
+  units_default:
+    mass: 'tonnes'
+    energy: 'GJ'
+  emissions: ['CO2__fossil', 'CO2__bio']
+  scenario_default: 'default'
+  paths_convention:
+    scenario_root: null  # this means the directory where the yaml file itself resides
+    unit_process_library_file_suffix: 'unitlibrary.csv'  # default
+    unit_process_library_sheet: 'Unit Processes'  # default
+    same_xls: ['thisfile', 'same', 'here']  # default
+    var_filename_prefix: 'var_'  # defaults
+    calc_filename_prefix: 'calc_'  # default
+    path_outdir_suffix: null  # a null here means the name is just a timestamp, default
+  shared_var:
+    path_shared_fuels: 'fuels.csv'  # relative to '<paths_convention.scenario_root>/data'
+    path_shared_upstream: 'upstream.xlsx'
+    fuel_dict:
+      filepath: 'fuels.csv'  # relative to '<paths_convention.scenario_root>/data'
+      sheet: 'Fuels'  # default
+      lookup_var: 'fueltype'  # default
+      
+
+
+unit_libraries:
+  - id: 'steel_units_df'
+    params:
+      file: null  # a null here means use the path convention from bbcfg, otherwise relative to '<bbcfg.scenario_root>/data'
+      sheet: null  # a null here means use bbcfg.unit_process_library_sheet
+
+unit_processes:
+  - id: 'simple_BF'
+    params:
+      outdir: null  # a null here means use the path convention from bbcfg, otherwise relative to '<bbcfg.scenario_root>'
+      unit_library_id: 'steel_units_df'
+
+
+factories:
+  - id: 'BF-BOF'
+    params:
+      name: 'BF-BOF'
+      chain_list_file: 'factories/IBF_factory-0C.xlsx'  # relative to '<bbcfg.scenario_root>/data'
+      chain_list_sheet: 'chains'
+      connections_sheet: 'connections'
+      unit_library_id: 'steel_units_df'
+
+  - id: 'BF-BOF-CCS'
+    params:
+      name: 'BF-BOF-CCS'
+      chain_list_file: 'factories/IBF_factory-HC.xlsx'  # relative to '<bbcfg.scenario_root>/data'
+      chain_list_sheet: 'chains'
+      connections_sheet: 'connections'
+      unit_library_id: 'steel_units_df'
+
+  - id: 'DRI-EAF'
+    params:
+      name: 'DRI-EAF'
+      chain_list_file: 'factories/DRI_factory-0C.xlsx'  # relative to '<bbcfg.scenario_root>/data'
+      chain_list_sheet: 'chains'
+      connections_sheet: 'connections'
+      unit_library_id: 'steel_units_df'
+
+  - id: 'DRI-EAF-CCS'
+    params:
+      name: 'DRI-EAF-CCS'
+      chain_list_file: 'factories/DRI_factory-HC.xlsx'  # relative to '<bbcfg.scenario_root>/data'
+      chain_list_sheet: 'chains'
+      connections_sheet: 'connections'
+      unit_library_id: 'steel_units_df'
+
+
+commands:
+  - unit_process_balance:
+      id: 'simple_BF'
+      write_to_console: No
+
+  - unit_process_run_scenarios:
+      id: 'simple_BF'
+      scenario_list: ['BBF-0B', 'TGR-0B', 'HIS-0B']
+      write_to_console: No
+
+  - factory_balance:
+      id: 'BF-BOF'
+      product_qty: 1.0
+      product: 'hot rolled coil'
+      upstream_outflows: ['CO2', 'CH4 (CO2eq)',]
+      aggregate_flows: ['CO2', 'CO2__upstream', 'CH4 (CO2eq)', 'factory CH4']
+      write_to_xls: Yes
+      write_to_console: No
+
+  - factory_run_scenarios:
+      id: 'BF-BOF-CCS'
+      scenario_list: ['BBF-HB', 'TGR-HB', 'HIS-HB']
+      upstream_outflows: ['CO2', 'CH4 (CO2eq)',]
+      aggregate_flows: ['CO2', 'CO2__upstream', 'CH4 (CO2eq)', 'factory CH4']
+      write_to_xls: Yes
+
+  - factory_balance:
+      id: 'DRI-EAF'
+      product_qty: 1.0
+      product: 'hot rolled coil'
+      upstream_outflows: ['CO2', 'CH4 (CO2eq)',]
+      aggregate_flows: ['CO2', 'CO2__upstream', 'CH4 (CO2eq)', 'factory CH4']
+      write_to_xls: Yes
+      write_to_console: Yes
+
+  - factory_run_scenarios:
+      id: 'DRI-EAF-CCS'
+      scenario_list: ['MID-0B', 'MID-LB', 'MID-HB']
+      upstream_outflows: ['CO2', 'CH4 (CO2eq)',]
+      aggregate_flows: ['CO2', 'CO2__upstream', 'CH4 (CO2eq)', 'factory CH4']
+      write_to_xls: Yes

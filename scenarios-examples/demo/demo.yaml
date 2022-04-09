@@ -61,7 +61,7 @@ factories:
 commands:
   - unit_process_balance:
       id: 'demo_kiln'
-      qty: 1.0
+      product_qty: 1.0
       scenario: 'EU-2010'
       write_to_console: Yes
   - unit_process_run_scenarios:
@@ -70,11 +70,11 @@ commands:
       write_to_console: Yes
   - product_chain_balance:
       id: 'Cement'
-      qty: 1.0
+      product_qty: 1.0
       write_to_console: Yes
   - product_chain_balance:
       id: 'Cement'
-      qty: 1.070880
+      product_qty: 1.070880
       product: 'CaCO3'
       scenario: 'default'
       write_to_console: Yes
