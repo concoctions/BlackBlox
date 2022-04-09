@@ -2,7 +2,9 @@
 
 **Blackblox.py** was originally built by [S.E. Tanzer](https://www.tudelft.nl/tbm/over-de-faculteit/afdelingen/engineering-systems-and-services/people/phd-candidates/ir-se-samantha-tanzer), as part of her dissertation "Negative Emissions in the Industrial Sector", at the department of [Engineering Systems and Services](https://www.tudelft.nl/en/tpm/about-the-faculty/departments/engineering-systems-and-services>), [Faculty of Technology Policy, Management](https://www.tudelft.nl/en/tpm>) at the [Delft University of Technology](https://www.tudelft.nl/en/), between 2017-2022. This page introduces the research that this modelling library has been used in.
 
-## Dissertation, ""Negative Emissions in the Industrial Sector"
+## Dissertation, "Negative Emissions in the Industrial Sector"
+
+Available in the [TU Delft Repository](https://doi.org/10.4233/uuid:5ca5fea0-3322-4b0b-948b-af2d60dc168f)) 
 
 Preventing the worst impacts from the ongoing climate crises requires rapid and dramatic reduction of anthropogenic emissions of greenhouse gases to “net zero”. However, it is highly likely that we will also need to remove greenhouse gases from the atmosphere to compensate for residual and/or historic emissions. In particular, the industrial sector is expected to be a source of residual emissions of carbon dioxide due to production technologies that are difficult to electricity, or that produce carbon dioxide as part of a non-energy chemical conversion process, or that produce products that result in carbon dioxide emissions during use or end-of-life.
 
