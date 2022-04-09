@@ -1,8 +1,11 @@
 from copy import copy
+from pandas import ExcelFile
+from os.path import exists
 
 from blackblox.dataconfig import bbcfg
 import blackblox.io_functions as iof
 from blackblox.bb_log import get_logger
+
 
 
 df_unit_library = None
@@ -60,35 +63,53 @@ def __attempt_initialize():
     )
 
     if bbcfg.shared_var.fuel_dict is not None:
-        df_fuels = iof.make_df(bbcfg.shared_var.fuel_dict['filepath'], sheet=bbcfg.shared_var.fuel_dict['sheet'])
-        logger.info("df_fuels created")
+        if exists(bbcfg.shared_var.fuel_dict['filepath']):
+            df_fuels = iof.make_df(bbcfg.shared_var.fuel_dict['filepath'], sheet=bbcfg.shared_var.fuel_dict['sheet'])
+            logger.info("df_fuels created")
+        else:
+            logger.info(f"ALERT: Fuels DataFrame not created (no valid filepath specified (defaults to {bbcfg.shared_var.fuel_dict['filepath']}")
 
+    
     lookup_var_dict = copy(bbcfg.shared_var.lookup_var_dict)
     for var in lookup_var_dict:
         if 'is_fuel' in lookup_var_dict[var]:
-            if lookup_var_dict[var]['is_fuel'] is True and df_fuels is not None:
+            if lookup_var_dict[var]['is_fuel'] and df_fuels is not None:
                 lookup_var_dict[var]['data_frame'] = df_fuels
         elif 'filepath' in lookup_var_dict[var]:
-            df = iof.make_df(lookup_var_dict[var]['filepath'], sheet=lookup_var_dict[var]['sheet'])
-            lookup_var_dict[var]['data_frame'] = df
-            logger.info(f"dataframe created for lookup variable {var}")
+            if lookup_var_dict[var]['filepath']:
+                if var in ['upstream outflows', 'upstream inflows', 'downstream outflows', 'downstream inflows']:
+                    if 'sheet' in lookup_var_dict[var] and lookup_var_dict[var]['sheet'] is not None:
+                        flows_xls = ExcelFile(lookup_var_dict[var]['filepath'])
+                        if lookup_var_dict[var]['sheet'] not in flows_xls.sheet_names:
+                            continue
+                        else:
+                            df = iof.make_df(lookup_var_dict[var]['filepath'], sheet=lookup_var_dict[var]['sheet'])
+                            lookup_var_dict[var]['data_frame'] = df
+                            logger.info(f"dataframe created for lookup variable {var}")
+
+                else:
+                    df = iof.make_df(lookup_var_dict[var]['filepath'], sheet=lookup_var_dict[var]['sheet'])
+                    lookup_var_dict[var]['data_frame'] = df
+                    logger.info(f"dataframe created for lookup variable {var}")
+
 
     if 'upstream outflows' in bbcfg.shared_var.lookup_var_dict:
-        df_upstream_outflows = iof.make_df(bbcfg.shared_var.lookup_var_dict['upstream outflows']['filepath'],
-                                           sheet=bbcfg.shared_var.lookup_var_dict['upstream outflows']['sheet'])
+        if 'data_frame' in lookup_var_dict['upstream outflows']:
+            df_upstream_outflows = lookup_var_dict['upstream outflows']['data_frame']
         logger.info("df_upstream_outflows created")
 
     if 'upstream inflows' in bbcfg.shared_var.lookup_var_dict:
-        df_upstream_inflows = iof.make_df(bbcfg.shared_var.lookup_var_dict['upstream inflows']['filepath'],
-                                          sheet=bbcfg.shared_var.lookup_var_dict['upstream inflows']['sheet'])
+        if 'data_frame' in lookup_var_dict['upstream inflows']:
+            df_upstream_inflows = lookup_var_dict['upstream inflows']['data_frame']
         logger.info("df_upstream_inflows created")
 
     if 'downstream outflows' in bbcfg.shared_var.lookup_var_dict:
-        df_downstream_outflows = iof.make_df(bbcfg.shared_var.lookup_var_dict['downstream outflows']['filepath'],
-                                             sheet=bbcfg.shared_var.lookup_var_dict['downstream outflows']['sheet'])
+        if 'data_frame' in lookup_var_dict['downstream outflows']:
+            df_downstream_outflows = lookup_var_dict['downstream outflows']['data_frame']
         logger.info("df_downstream_outflows created")
-
+        
     if 'downstream inflows' in bbcfg.shared_var.lookup_var_dict:
-        df_downstream_inflows = iof.make_df(bbcfg.shared_var.lookup_var_dict['downstream inflows']['filepath'],
-                                            sheet=bbcfg.shared_var.lookup_var_dict['downstream inflows']['sheet'])
+        if 'data_frame' in lookup_var_dict['downstream inflows']:
+            df_downstream_inflows = lookup_var_dict['downstream inflows']['data_frame']
+
         logger.info("df_downstream_inflows created")
