@@ -29,8 +29,9 @@ Miscellaneous Functions
 
 """
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PosixPath
 import os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -39,6 +40,7 @@ import pandas as pan
 import blackblox.about as about_def
 from blackblox.dataconfig import bbcfg
 from blackblox.bb_log import get_logger
+from blackblox.dataconfig_format import UserConfig
 
 
 logger = get_logger("IO")
@@ -217,6 +219,7 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
     """
     logger.debug(f"Attempting to make dataframe from {data} ({type(data)}), (excel sheet: {sheet}")
 
+
     if isinstance(data, pan.DataFrame):
         df = data
         if df.empty:
@@ -227,7 +230,7 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
         if isinstance(data, (dict, list)):
             df = pan.DataFrame(data)
         # Contains file path
-        elif isinstance(data, (Path, str)):
+        elif isinstance(data, (Path, str, PosixPath)):
             filepath = Path(data)
             # Excel workbook
             if filepath.suffix in ['.xls', '.xlsx']:
@@ -240,6 +243,7 @@ def make_df(data, sheet=None, sep='\t', index=0, metaprefix="meta",
 
     if str_index is True:
         df.index = df.index.astype('str')
+
 
     if metaprefix is not None:
         if index is not None:
@@ -360,8 +364,20 @@ def metadata_df(user=bbcfg.user, about=about_def.about_blackblox, name="unknown"
                 energy_flows=bbcfg.energy_flows, units=bbcfg.units_default):
     """Generates a metadata dataframe for use in excel file output
     """
+
     creation_date = datetime.now().strftime("%A, %d %B %Y at %H:%M")
     energy_flows = ', '.join(energy_flows)
+
+    #temporary workaround as UserConfig class isn't working for unknown reasons
+    if type(user) is dict:
+        user_name = user['name']
+        user_affiliation = user['affiliation']
+        user_project = user['project']
+    else:
+        user_name = user.name
+        user_affiliation = user.affiliation
+        user_project = user.project
+
 
     meta = {"00": f"This data was calculated using {about['name']} v{about['version']}",
             "01": f"{about['name']} was created by {about['creator']} of {about['affiliation']}",
@@ -369,8 +385,8 @@ def metadata_df(user=bbcfg.user, about=about_def.about_blackblox, name="unknown"
             "03": " ",
             "04": " ",
             "05": f"This file was generated on {creation_date}",
-            "06": f"by {user.name} of {user.affiliation}",
-            "07": f"for use in {user.project}",
+            "06": f"by {user_name} of {user_affiliation}",
+            "07": f"for use in {user_project}",
             "08": f"and contains {level}-level results data for {name}",
             "09": f"balanced on {product_qty} {units.energy if is_energy(product) else units.mass} of {product} using the variable values from the {scenario} scenario(s).",
             "10": f"Mass quantites are given in {units.mass} and energy quantities in {units.energy}",
@@ -394,6 +410,12 @@ def metadata_df(user=bbcfg.user, about=about_def.about_blackblox, name="unknown"
     return meta_df
 
 def build_unit_library(ul_file=None, ul_sheet=None):
+    """Builds unit library dataframe using tabular data that lists the desired unit processes.
+    This processes then creates the appropriate variable and calculation dataframes for each
+    listed unit processes based on the names of the unit processes in this tables, which should
+    align with those provided in the variable and caculation tabular data files (either as file
+    names or sheet names)
+    """
     # Default parameters need to be set at call time instead of import time
     file = bbcfg.paths.unit_process_library_file if ul_file is None else ul_file
     sheet = bbcfg.paths.unit_process_library_sheet if ul_sheet is None else ul_sheet
@@ -419,7 +441,7 @@ def build_unit_library(ul_file=None, ul_sheet=None):
         calc_files = []
         unused_files = []
 
-        for file in dir_files:
+        for file in dir_files: # separate variable files and calc files
             if file.startswith(bbcfg.paths.var_filename_prefix):
                 var_files.append(file)
             elif file.startswith(bbcfg.paths.calc_filename_prefix):
@@ -427,7 +449,7 @@ def build_unit_library(ul_file=None, ul_sheet=None):
             else:
                 unused_files.append(file)
 
-        for file in var_files:
+        for file in var_files: #get location of variable data by process id
             filepath = data_dir / file
 
             if filepath.suffix in ['.xls', '.xlsx']:
@@ -450,7 +472,7 @@ def build_unit_library(ul_file=None, ul_sheet=None):
             else:
                 print(f"{filepath.suffix} files not supported. Skipping {file}.")
 
-        for file in calc_files:
+        for file in calc_files: # get location of calc data by process id
             filepath = data_dir / file
 
             if filepath.suffix in ['.xls', '.xlsx']:
@@ -472,13 +494,15 @@ def build_unit_library(ul_file=None, ul_sheet=None):
             else:
                 print(f"{filepath.suffix} files not supported. Skipping {file}.")
 
-    var_df = pan.DataFrame({
+    # create dataframes of variable process data location
+    var_df = pan.DataFrame({              
         bbcfg.columns.unit_id: var_id_col,
         bbcfg.columns.var_filepath: var_file_col,
         bbcfg.columns.var_sheetname: var_sheet_col,
     })
     var_df = var_df.set_index(bbcfg.columns.unit_id)
 
+    # create dataframes of variable process data location
     calc_df = pan.DataFrame({
         bbcfg.columns.unit_id: calc_id_col,
         bbcfg.columns.calc_filepath: calc_file_col,
@@ -489,6 +513,34 @@ def build_unit_library(ul_file=None, ul_sheet=None):
     file_data = pan.merge(var_df, calc_df, on=bbcfg.columns.unit_id, how="inner")
 
     unit_library_merged = pan.merge(df_unit_library_partial, file_data, on=bbcfg.columns.unit_id, how="inner")
+
+    ul_diff = df_unit_library_partial.index.difference(unit_library_merged.index)
+
+    dup_process_rows = dict()
+    for id in ul_diff:
+        dup_process_rows[id] = {
+                    bbcfg.columns.unit_name: df_unit_library_partial.at[id, bbcfg.columns.unit_name],
+                    bbcfg.columns.unit_product: df_unit_library_partial.at[id, bbcfg.columns.unit_product],
+                    bbcfg.columns.unit_product_io: df_unit_library_partial.at[id, bbcfg.columns.unit_product_io],
+                    }
+                
+        if df_unit_library_partial.at[id, bbcfg.columns.same_var_id] not in bbcfg.no_var:
+            dup_var_id = df_unit_library_partial.at[id, bbcfg.columns.same_var_id]
+        else:
+            dup_var_id = id
+        
+        if df_unit_library_partial.at[id,  bbcfg.columns.same_calc_id] not in bbcfg.no_var:
+            dup_calc_id = df_unit_library_partial.at[id,  bbcfg.columns.same_calc_id]
+        else:
+            dup_calc_id = id
+
+        dup_process_rows[id][bbcfg.columns.var_filepath] =  var_df.at[dup_var_id, bbcfg.columns.var_filepath]
+        dup_process_rows[id][bbcfg.columns.var_sheetname] =  var_df.at[dup_var_id, bbcfg.columns.var_sheetname]
+        dup_process_rows[id][bbcfg.columns.calc_filepath] =  calc_df.at[dup_calc_id, bbcfg.columns.calc_filepath]
+        dup_process_rows[id][bbcfg.columns.calc_sheetname] =  calc_df.at[dup_calc_id, bbcfg.columns.calc_sheetname]
+
+    dup_process_rows_df = make_df(dup_process_rows, T=True)
+    unit_library_merged = unit_library_merged.append(dup_process_rows_df)
 
     return unit_library_merged
 
