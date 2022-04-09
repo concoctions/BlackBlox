@@ -163,7 +163,7 @@ class UnitProcess:
                         self.energy_outflows.add("waste heat")
 
     def balance(self,
-                qty=1.0,
+                product_qty=1.0,
                 product=False,
                 i_o=False,
                 scenario=bbcfg.scenario_default,
@@ -220,7 +220,7 @@ class UnitProcess:
             Defaultdict of outflows with substance names as keys and quantities as values.
         """
         i_o = self.check_io(i_o)
-        product_qty = qty
+        qty = product_qty
 
         if scenario not in self.var_df.index.values:
             logger.info(
@@ -372,7 +372,7 @@ class UnitProcess:
 
         return io_dicts['i'], io_dicts['o']
 
-    def run_scenarios(self, scenario_list=[], qty=1.0, product=False, i_o=False, product_alt_name=False,
+    def run_scenarios(self, scenario_list=[], product_qty=1.0, product=False, i_o=False, product_alt_name=False,
                       balance_energy=True, raise_imbalance=False, write_to_xls=True, write_to_console=False,
                       outdir=None):
         """Runs UnitProcess.balance over multiple scenarions of varaibles. Outputs to Excel.
@@ -380,22 +380,22 @@ class UnitProcess:
         outdir = outdir if outdir else self.outdir
 
         iof.check_type(scenario_list, is_type=[list], not_not=True)
+        scenario_list = scenario_list if scenario_list else [bbcfg.scenario_default]
         scenario_dict = iof.nested_dicts(3)
 
-        if product is False:
-            product = self.default_product
+        product = product if product else self.default_product
 
         # balance UnitProcess on each scenario of variable values
         for scenario in scenario_list:
             u_in, u_out = self.balance(
-                qty=qty,
+                product_qty=product_qty,
                 product=product,
                 scenario=scenario,
                 i_o=i_o,
                 product_alt_name=product_alt_name,
                 balance_energy=balance_energy,
                 raise_imbalance=raise_imbalance,
-                write_to_console=write_to_console,
+                write_to_console=False,
             )
 
             scenario_dict['i'][scenario] = u_in
@@ -411,7 +411,7 @@ class UnitProcess:
                                       level="Unit",
                                       scenario=" ,".join(scenario_list),
                                       product=product,
-                                      product_qty=qty)
+                                      product_qty=product_qty)
 
             dfs = [meta_df, inflows_df, outflows_df]
             sheets = ["meta", "inflows", "outflows"]
@@ -422,7 +422,7 @@ class UnitProcess:
                              filename=f'{self.name}_u_multi_{datetime.now().strftime("%b%d_%H%M")}')
 
         if write_to_console is True:
-            print(f"\n{str.upper(self.name)} balanced on {qty} of {product}.\n")
+            print(f"\n{str.upper(self.name)} balanced on {product_qty} of {product}.\n")
             print("\nINFLOWS\n", inflows_df)
             print("\nOUTFLOWS\n", outflows_df, "\n")
 
@@ -740,12 +740,17 @@ class UnitProcess:
                 substance = product_alt_name  # name at origin
                 logger.debug(f"{self.name.upper()}: {product_alt_name} substitued for {product} as known substance")
 
+
         if substance in fd.lookup_var_dict:
+            substance_raw = substance
             if 'data_frame' in fd.lookup_var_dict[substance]:
                 logger.debug(f"{self.name.upper()}: {substance} has dataframe in fd.lookup_var_dict")
                 lookup_df = fd.lookup_var_dict[substance]['data_frame']
             substance = self.get_var(fd.lookup_var_dict[substance]['lookup_var'], scenario)
             logger.debug(f"{self.name.upper()}: lookup substance {substance} substituted")
+            if substance == 0:
+                print(f'WARNING: lookup variable "{substance_raw}" type is not specified in {self.u_id} variable file for scenario {scenario}')
+                substance = substance_raw
 
         if bbcfg.ignore_sep in substance:
             if substance.split(bbcfg.ignore_sep)[0] in fd.lookup_var_dict:
