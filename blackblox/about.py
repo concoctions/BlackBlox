@@ -7,10 +7,10 @@ of output spreadsheets in io_functions.py
 
 about_blackblox = {
     "name": "blackblox.py",
-    "version": "0.1 (unreleased)",
-    "url": "OFFLINE",
-    "documentation_url": "OFFLINE",
-    "github_url": "OFFLINE",
+    "version": "0.3",
+    "url": "https://pypi.org/project/blackblox/",
+    "documentation_url": "https://concoctions.org/blackblox/",
+    "github_url": "https://github.com/concoctions/BlackBlox",
     "creator": "Ir. S.E. Tanzer",
     "affiliation": (
         "Energy & Industry Group, "
