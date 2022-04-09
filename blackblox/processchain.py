@@ -113,7 +113,7 @@ class ProductChain:
                 logger.debug(f"{self.name.upper()}: No default product found for {self.name}.")
 
     
-    def balance(self, qty=1.0, product=False, i_o=False, unit_process=False,
+    def balance(self, product_qty=1.0, product=False, i_o=False, unit_process=False,
                 product_alt_name=False, scenario=None,
                 write_to_console=False, write_to_xls = False):
         """balance(self, qty, product=False, i_o=False, scenario=bbcfg.scenario_default)
@@ -154,7 +154,7 @@ class ProductChain:
         """
 
         chain = self.process_list.copy() # to avoid manipulating self.process_list directly
-        product_qty = qty
+        qty = product_qty
 
         # identify UnitProcess of balancing product (start) and divides chains into processes
         # before the start process (upstream) and after the start process (downstream)
@@ -187,8 +187,7 @@ class ProductChain:
                     raise KeyError(f"{product} is not an {i_o}-flow of {start.name}")
        
         else:
-            if product is False:
-                product = self.default_product
+            product = product if product else self.default_product
             logger.debug(f"{self.name.upper()}: attempting to balance chain on {product}")
 
             if i_o:
@@ -220,8 +219,8 @@ class ProductChain:
 
         orig_product = product
         # balances starting process
-        logger.debug(f"{self.name.upper()}: attempting to balance {start.name} on {qty} of {product}({i_o}) using {scenario} variables.")
-        (io_dicts['i'][start.name], io_dicts['o'][start.name]) = start.balance(qty, product, i_o, scenario, product_alt_name=product_alt_name)
+        logger.debug(f"{self.name.upper()}: attempting to balance {start.name} on {product_qty} of {product}({i_o}) using {scenario} variables.")
+        (io_dicts['i'][start.name], io_dicts['o'][start.name]) = start.balance(product_qty, product, i_o, scenario, product_alt_name=product_alt_name)
  
         # balances individual UnitProcesses in order
         for stream, prod_io, qty_io in [(upstream,'o', 'i'),(downstream, 'i', 'o')]:
@@ -233,13 +232,13 @@ class ProductChain:
                         previous_process = start
 
                     product = unit[prod_io]
-                    qty = io_dicts[qty_io][previous_process.name][product]
-                    intermediate_product_dict[product] = qty
-                    internal_flows.append([self.name, previous_process.name, product, qty, self.name, process.name])
+                    product_qty = io_dicts[qty_io][previous_process.name][product]
+                    intermediate_product_dict[product] = product_qty
+                    internal_flows.append([self.name, previous_process.name, product, product_qty, self.name, process.name])
 
-                    logger.debug(f"{self.name.upper()}: attempting to balance {process.name} on {qty} of {product}({prod_io}) using {scenario} variables.")
+                    logger.debug(f"{self.name.upper()}: attempting to balance {process.name} on {product_qty} of {product}({prod_io}) using {scenario} variables.")
                     (io_dicts['i'][process.name], 
-                    io_dicts['o'][process.name]) = process.balance(qty, product, prod_io, scenario)
+                    io_dicts['o'][process.name]) = process.balance(product_qty, product, prod_io, scenario)
 
                     previous_process = process
 
@@ -250,17 +249,17 @@ class ProductChain:
 
         # aggregates inflows and outflows from all unit processes
         for dummy_process, inflows_dict in io_dicts['i'].items():
-            for inflow, qty in inflows_dict.items():
-                totals['i'][inflow] += qty
+            for inflow, product_qty in inflows_dict.items():
+                totals['i'][inflow] += product_qty
         
         for dummy_process, outflows_dict in io_dicts['o'].items():
-            for outflow, qty in outflows_dict.items():
-                totals['o'][outflow] += qty
+            for outflow, product_qty in outflows_dict.items():
+                totals['o'][outflow] += product_qty
 
         # removes intra-chain flows
         for io_dict in totals:
-            for product, qty in intermediate_product_dict.items():
-                totals[io_dict][product] -= qty
+            for product, product_qty in intermediate_product_dict.items():
+                totals[io_dict][product] -= product_qty
 
         # adds to inflow/outflow dictionaries
         io_dicts['i']["chain totals"] = totals['i']
@@ -273,7 +272,7 @@ class ProductChain:
             outflows_df = iof.mass_energy_df(io_dicts['o'])
 
         if write_to_console is True:
-            print(f'\n{self.name.upper()}: balanced on {product_qty} of {orig_product} using {scenario} values')
+            print(f'\n{self.name.upper()}: balanced on {qty} of {orig_product} using {scenario} values')
             print("\ninflows:\n", inflows_df)
             print("\noutflows:\n", outflows_df)
 
@@ -293,7 +292,7 @@ class ProductChain:
                                         level="Chain", 
                                         scenario=scenario, 
                                         product=product,
-                                        product_qty=qty)
+                                        product_qty=product_qty)
 
             dfs = [meta_df, inflows_df, outflows_df, internal_flows_df]
             sheets = ["meta", "inflows", "outflows", "internal_flows"]
@@ -305,24 +304,24 @@ class ProductChain:
                 
         return io_dicts['i'], io_dicts['o'], intermediate_product_dict, internal_flows
 
-    def run_scenarios(self, scenario_list=[], qty=1.0, product=False, i_o=False, product_alt_name=False, 
-                      balance_energy=True, raise_imbalance=False, write_to_xls=True, write_to_console=False,
+    def run_scenarios(self, scenario_list=[], product_qty=1.0, product=False, i_o=False, product_alt_name=False, 
+                      write_to_xls=True, write_to_console=False,
                       outdir=None):
         """Runs UnitProcess.balance over multiple scenarions of varaibles. Outputs to Excel.
 
         """
         
         iof.check_type(scenario_list, is_type=[list], not_not=True)
+        scenario_list = scenario_list if scenario_list else [bbcfg.scenario_default]
         scenario_dict = iof.nested_dicts(3)
         chain_dfs = []
         chain_sheets = []
 
-        if product is False:
-            product = self.default_product
+        product = product if product else self.default_product
         
         # balance UnitProcess on each scenario of variable values
         for scenario in scenario_list:
-            c_in, c_out, dummy_intermediates, internal_flows = self.balance(qty=qty, 
+            c_in, c_out, dummy_intermediates, internal_flows = self.balance(product_qty=product_qty, 
                                                product=product,
                                                scenario=scenario,
                                                i_o=i_o,
@@ -351,7 +350,7 @@ class ProductChain:
                                         level="Chain", 
                                         scenario=" ,".join(scenario_list), 
                                         product=product,
-                                        product_qty=qty)
+                                        product_qty=product_qty)
 
             dfs = [meta_df, inflows_df, outflows_df, internal_flows_df]
             sheets = ["meta", "IN - multi", "OUT - multi", "internal_flows"]
@@ -366,7 +365,7 @@ class ProductChain:
                              filename=f'{self.name}_c_multi_{bbcfg.timestamp_str}')
 
         if write_to_console is True:
-            print(f"\n{str.upper(self.name)} balanced on {qty} of {product} for scenarios of {scenario_list}.\n")
+            print(f"\n{str.upper(self.name)} balanced on {product_qty} of {product} for scenarios of {scenario_list}.\n")
             print("\nINFLOWS\n", inflows_df)
             print("\nOUTFLOWS\n", outflows_df, "\n")
         
