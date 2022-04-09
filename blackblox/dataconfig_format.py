@@ -43,6 +43,8 @@ class ColumnConfig:
     calc_sheetname: str
     var_filepath: str
     calc_filepath: str
+    same_var_id: str
+    same_calc_id: str
 
     # for UNIT PROCESS relationship tabular data:
     known: str

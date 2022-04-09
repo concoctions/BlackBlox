@@ -50,7 +50,7 @@ ignore_sep_default = '__'
 consumed_indicator_default = 'CONSUMED'
 
 # OTHER DATA NAMING VARIABLES
-scenario_default_default = "BASE"  # "default" is used in older scripts
+scenario_default_default = "default"  # "default" is used in older scripts
 
 no_var_default = ['None', 'none', 'false', 'na', '-', '--', '', 'nan', 0, '0', None, False, float('nan')]
 connect_all_default = 'all'
@@ -85,6 +85,8 @@ columns_default = ColumnConfig(
     calc_sheetname='calcsheet',
     var_filepath='varfile',  # this column stores a filepath relative to path_data_root
     calc_filepath='calcfile',  # this column stores a filepath relative to path_data_root
+    same_var_id='same var as',
+    same_calc_id='same calc as',
 
     # for UNIT PROCESS relationship tabular data:
     known='knownqty',
@@ -153,7 +155,7 @@ paths_default = PathConfig(
 
 
 # LOOKUP VARIABLES
-path_fuels_default = None
+path_fuels_default = path_data_root_default / 'fuels.csv'
 path_upstream_default = None
 
 shared_var_default = SharedVarConfig.convention_sharedvar_scenario_root(path_fuels_default, path_upstream_default)
