@@ -33,14 +33,21 @@ BlackBlox is a calculator for "black box" systems, ranging from single unit proc
    + The generated pages will be under `docs/_build/html`
 
 3. Building a (new) release and publishing it to PyPI:
-   1. Make an account on `https://pypi.org`. Ask (optional) for invitation to become project contributor on PyPI.
-   2. Add API token on the "account settings" page of PyPI (global scope for now)
-   3. Register the API token to be the one used by Poetry: `poetry config pypi-token.pypi "<your_api_token>"`
-   4. Do the actual contribution to the project 🙂
-   5. Run `poetry update` to get possible dependecy updates, and commit the updated `poetry.lock` file
-   6. Increment the package's version number in `pyproject.toml`
-   7. Build the package (wheel and source): `poetry build`. The built artifacts will be placed in the `dist` folder
-   8. Publish to PyPI: `poetry publish`
+   1. Register as a contributor (first time only)
+      1. Make an account on `https://pypi.org`. Ask (optional) for invitation to become project contributor on PyPI. 
+      2. Add API token on the "account settings" page of PyPI (global scope for now)
+      3. Register the API token to be the one used by Poetry: `poetry config pypi-token.pypi "<your_api_token>"` 
+   2. Do the actual contribution to the project 🙂
+   3. Test on local machine
+      1. Run `poetry install` to create a clean environment with needed depedencies
+      2. Run `poetry shell` to enter a virtual environment from the top level of the project folder 
+      3. Test whatever you want to test within the virtual environment
+         1. running `blackblox --config scenarios-examples/demo/demo.yaml` is a good place to start
+         2. as is `python3 scenarios-examples/demo/demo.py` 
+   4. Run `poetry update` to get possible dependecy updates, and commit the updated `poetry.lock` file (optional)
+   5. Increment the package's version number in `pyproject.toml`
+   6. Build the package (wheel and source): `poetry build`. The built artifacts will be placed in the `dist` folder
+   7. Publish to PyPI: `poetry publish`
 
 
 # What is blackblox.py?

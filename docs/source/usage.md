@@ -17,7 +17,4 @@
 3. Look at the demonstration scenario under `scenarios-examples/demo/demo.py` for inspiration
    + Here you can learn how to change configuration options
    + As well as how to create and balance unit processes, chains, factories, etc.
-
-## Model Data
-
-*forthcoming.*
+4. Example model data is available [here](data.html)

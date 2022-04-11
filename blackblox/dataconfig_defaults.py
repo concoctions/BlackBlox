@@ -81,10 +81,6 @@ columns_default = ColumnConfig(
     unit_name='display name',
     unit_product='product',
     unit_product_io='producttype',
-    var_sheetname='varsheet',
-    calc_sheetname='calcsheet',
-    var_filepath='varfile',  # this column stores a filepath relative to path_data_root
-    calc_filepath='calcfile',  # this column stores a filepath relative to path_data_root
     same_var_id='same var as',
     same_calc_id='same calc as',
 

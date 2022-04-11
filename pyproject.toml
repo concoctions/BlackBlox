@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "blackblox"
-version = "0.2.2"
+version = "0.3"
 description = "Simple simulator for black box process models"
 authors = ["S.E. Tanzer <S.E.Tanzer@tudelft.nl>", "João Paulo Pizani <J.P.PizaniFlor@tudelft.nl>"]
 license = "GPL-3.0-only"
