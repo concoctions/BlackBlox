@@ -1,7 +1,5 @@
 import argparse
 from pathlib import Path, PosixPath
-import pprint
-from types import NoneType
 
 from blackblox.parse_scenario import run_scenario_file
 import blackblox.unitprocess as uni
@@ -35,7 +33,7 @@ def main():
                      ('  shared_var:\n      path_shared_fuels', bbcfg.shared_var.path_shared_fuels),
                      ('  shared_var:\n      path_shared_upstream', bbcfg.shared_var.path_shared_upstream),                     
                      ]:
-            if isinstance(j, (float, str, int, list, Path, PosixPath, NoneType)):
+            if isinstance(j, (float, str, int, list, Path, PosixPath, type(None))):
                 if isinstance(j, (str, Path, PosixPath)):
                     print_v = f'\'{j}\''
                 else:
